@@ -4,10 +4,10 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // First query: Get the article with the given slug
+    // Query the article with explicit type casting to avoid deep type instantiation
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
+      .select('*')
       .eq('slug', slug)
       .maybeSingle();
     
@@ -32,7 +32,8 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       
       const { data: tagsData } = await supabase
         .from('tags')
-        .select('id, name, slug, created_at');
+        .select('*')
+        .in('id', tagIds);
         
       if (tagsData) {
         tags = tagsData as Tag[];
@@ -44,14 +45,14 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     if (typeof articleData.author === 'string') {
       const { data: authorData } = await supabase
         .from('authors')
-        .select('id, name, bio, avatar_url, email, created_at, updated_at')
+        .select('*')
         .eq('id', articleData.author)
         .maybeSingle();
       
-      author = authorData as Author || null;
+      author = authorData as Author | null;
     }
     
-    // Construct the final article object
+    // Construct the final article object with explicit types
     const article: Article = {
       id: articleData.id,
       title: articleData.title,
@@ -82,7 +83,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
   try {
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
+      .select('*')
       .neq('id', currentArticleId)
       .limit(limit);
     

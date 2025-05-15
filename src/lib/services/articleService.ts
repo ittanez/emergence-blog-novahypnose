@@ -1,13 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Article } from '../types';
+import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // First query the article to get basic data - use explicit type casting to avoid deep instantiation
+    // Use a simpler query with explicit return type to avoid deep type instantiation
     const { data: articleData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
+      .select('*')
       .eq('slug', slug)
       .single();
     
@@ -20,21 +20,31 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       return { data: null, error: null };
     }
     
-    // Then fetch tags for this article - with explicit type casting
-    const { data: articleTags, error: tagsError } = await supabase
+    // Get tags for this article with a separate simple query
+    const { data: tagRelations, error: tagsError } = await supabase
       .from('article_tags')
-      .select('tag_id, tags:tags(id, name, slug, created_at)')
+      .select('tag_id')
       .eq('article_id', articleData.id);
     
     if (tagsError) {
-      console.error('Error fetching article tags:', tagsError);
+      console.error('Error fetching article tag relations:', tagsError);
     }
     
-    // Extract tags from the nested structure
-    const tags = articleTags?.map(item => item.tags) || [];
+    // Fetch tags data if tag relations exist
+    let tags: Tag[] = [];
+    if (tagRelations && tagRelations.length > 0) {
+      const tagIds = tagRelations.map(relation => relation.tag_id);
+      
+      const { data: tagsData } = await supabase
+        .from('tags')
+        .select('*')
+        .in('id', tagIds);
+        
+      tags = tagsData || [];
+    }
     
-    // Get author details if needed
-    let author = null;
+    // Get author details if needed with a separate query
+    let author: Author | null = null;
     if (typeof articleData.author === 'string') {
       const { data: authorData } = await supabase
         .from('authors')
@@ -45,22 +55,22 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       author = authorData || null;
     }
     
-    // Convert to Article type with proper defaults
+    // Construct the final article object with proper defaults
     const article: Article = {
       id: articleData.id,
       title: articleData.title,
       content: articleData.content,
       excerpt: articleData.excerpt || '',
       image_url: articleData.image_url || '',
-      category: '', // Default
+      category: '', // Default value
       author_id: typeof articleData.author === 'string' ? articleData.author : '',
       slug: slug,
-      read_time: 0, // Default
+      read_time: 0, // Default value
       published: articleData.published || false,
       created_at: articleData.created_at,
       updated_at: articleData.updated_at,
-      seo_description: '', // Default
-      keywords: [], // Default
+      seo_description: '', // Default value
+      keywords: [], // Default value
       tags: tags,
       author: author
     };
@@ -74,10 +84,10 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
 
 export async function getRelatedArticles(currentArticleId: string, limit: number = 3): Promise<{ data: Article[] | null; error: any }> {
   try {
-    // Simplify query to avoid deep type instantiation
+    // Use a simpler query to avoid type complexity
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
+      .select('*')
       .neq('id', currentArticleId)
       .limit(limit);
     
@@ -90,23 +100,23 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
       return { data: [], error: null };
     }
     
-    // Map to Article type
+    // Map data to Article type with default values where needed
     const articles: Article[] = relatedArticlesData.map(data => ({
       id: data.id,
       title: data.title,
       content: data.content,
       excerpt: data.excerpt || '',
       image_url: data.image_url || '',
-      category: '', 
+      category: '', // Default value
       author_id: typeof data.author === 'string' ? data.author : '',
-      slug: '', 
-      read_time: 0,
+      slug: data.slug || '', // Use data.slug if available
+      read_time: 0, // Default value
       published: data.published || false,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      seo_description: '',
-      keywords: [],
-      tags: []
+      seo_description: '', // Default value
+      keywords: [], // Default value
+      tags: [] // Default value
     }));
     
     return { data: articles, error: null };

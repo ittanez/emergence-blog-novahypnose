@@ -1,10 +1,9 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { articles } from "@/lib/mock-data";
-import { Article } from "@/lib/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
@@ -18,23 +17,72 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { getArticleBySlug, getRelatedArticles } from "@/lib/services/articleService";
+import { articles } from "@/lib/mock-data"; // Keep as fallback
+import { Article } from "@/lib/types";
 
 const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   
-  // Find the article that matches the slug
-  const article = articles.find(article => article.slug === slug);
+  // Use React Query to fetch the article data
+  const { 
+    data: articleData, 
+    error: articleError,
+    isLoading: articleLoading 
+  } = useQuery({
+    queryKey: ['article', slug],
+    queryFn: () => getArticleBySlug(slug!),
+    enabled: !!slug,
+  });
+
+  // Get the article from Supabase or use mock data as fallback
+  const article = articleData?.data || articles.find(article => article.slug === slug);
+  
+  // Use React Query to fetch related articles
+  const { 
+    data: relatedData,
+    error: relatedError,
+    isLoading: relatedLoading 
+  } = useQuery({
+    queryKey: ['relatedArticles', article?.id],
+    queryFn: () => getRelatedArticles(article!.id, 3),
+    enabled: !!article?.id,
+  });
+
+  // Get related articles from Supabase or use mock data as fallback
+  const relatedArticles = relatedData?.data || 
+    articles.filter(a => a.id !== article?.id).slice(0, 3);
   
   // Handle case where article is not found
   useEffect(() => {
-    if (!article) {
+    if (!articleLoading && !article) {
       navigate("/not-found");
     }
-  }, [article, navigate]);
+  }, [article, articleLoading, navigate]);
   
-  if (!article) {
-    return null;
+  if (articleLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-grow flex items-center justify-center">
+          <p>Chargement de l'article...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  
+  if (articleError || !article) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-grow flex items-center justify-center">
+          <p>Impossible de charger l'article.</p>
+        </div>
+        <Footer />
+      </div>
+    );
   }
   
   const formattedDate = format(new Date(article.created_at), "d MMMM yyyy", { locale: fr });
@@ -117,7 +165,7 @@ const ArticlePage = () => {
               <div className="mt-8 pt-8 border-t flex items-center justify-between">
                 <div className="text-sm text-gray-600">
                   <div>Catégorie: <Link to={`/category/${article.category}`} className="text-nova-700 hover:underline">
-                    {articles.find(a => a.category === article.category)?.category || "Non catégorisé"}
+                    {article.category}
                   </Link></div>
                   <div>Publié le {formattedDate}</div>
                 </div>
@@ -190,11 +238,11 @@ const ArticlePage = () => {
               
               <div className="bg-gray-50 border rounded-lg p-6">
                 <h3 className="text-lg font-serif font-medium mb-4">Articles recommandés</h3>
-                <ul className="space-y-4">
-                  {articles
-                    .filter(a => a.id !== article.id)
-                    .slice(0, 3)
-                    .map(relatedArticle => (
+                {relatedLoading ? (
+                  <p>Chargement des articles recommandés...</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {relatedArticles.map(relatedArticle => (
                       <li key={relatedArticle.id} className="border-b pb-4 last:border-0">
                         <Link 
                           to={`/article/${relatedArticle.slug}`}
@@ -209,7 +257,8 @@ const ArticlePage = () => {
                         </Link>
                       </li>
                     ))}
-                </ul>
+                  </ul>
+                )}
               </div>
             </aside>
           </div>

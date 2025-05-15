@@ -6,10 +6,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
   // First query the article to get basic data
   const { data: articleData, error } = await supabase
     .from('articles')
-    .select(`
-      id, title, content, excerpt, image_url, published, created_at, updated_at,
-      author
-    `)
+    .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
     .eq('slug', slug)
     .single();
   
@@ -71,10 +68,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
 export async function getRelatedArticles(currentArticleId: string, limit: number = 3): Promise<{ data: Article[] | null; error: any }> {
   const { data: relatedArticlesData, error } = await supabase
     .from('articles')
-    .select(`
-      id, title, content, excerpt, image_url, published, created_at, updated_at,
-      author
-    `)
+    .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
     .neq('id', currentArticleId)
     .limit(limit);
   

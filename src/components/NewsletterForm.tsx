@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { addSubscriber } from "@/lib/services/subscriberService";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -30,17 +31,22 @@ const NewsletterForm = () => {
     setIsSubmitting(true);
     
     try {
-      // This would be replaced with the actual API call when Supabase is connected
-      // await addSubscriber(data.email);
+      const result = await addSubscriber(data.email);
       
-      // Simulate API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      toast.success("Inscription réussie ! Vous recevrez nos prochains articles.", {
-        description: "Merci pour votre inscription à notre newsletter.",
-      });
-      
-      form.reset();
+      if (result.error) {
+        if (result.error.code === "23505") { // Unique violation
+          toast.error("Cette adresse email est déjà inscrite.", {
+            description: "Vous recevez déjà nos notifications.",
+          });
+        } else {
+          throw result.error;
+        }
+      } else {
+        toast.success("Inscription réussie ! Vous recevrez nos prochains articles.", {
+          description: "Merci pour votre inscription à notre newsletter.",
+        });
+        form.reset();
+      }
     } catch (error) {
       toast.error("Une erreur est survenue", {
         description: "Impossible de vous inscrire, veuillez réessayer plus tard.",

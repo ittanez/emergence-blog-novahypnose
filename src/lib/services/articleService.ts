@@ -4,20 +4,28 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // Query the article with explicit type casting to avoid deep type instantiation
-    const { data: articleData, error: articleError } = await supabase
+    // First fetch just the article ID to avoid deep type instantiation
+    const { data: articleId, error: slugError } = await supabase
       .from('articles')
-      .select('*')
+      .select('id')
       .eq('slug', slug)
       .maybeSingle();
     
-    if (articleError) {
-      console.error('Error fetching article by slug:', articleError);
-      return { data: null, error: articleError };
+    if (slugError || !articleId) {
+      console.error('Error fetching article ID by slug:', slugError);
+      return { data: null, error: slugError || new Error('Article not found') };
     }
     
-    if (!articleData) {
-      return { data: null, error: null };
+    // Then fetch the full article by ID
+    const { data: articleData, error: articleError } = await supabase
+      .from('articles')
+      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
+      .eq('id', articleId.id)
+      .single();
+    
+    if (articleError) {
+      console.error('Error fetching article details:', articleError);
+      return { data: null, error: articleError };
     }
     
     // Get tags for this article with a separate query
@@ -32,7 +40,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       
       const { data: tagsData } = await supabase
         .from('tags')
-        .select('*')
+        .select('id, name, slug, created_at')
         .in('id', tagIds);
         
       if (tagsData) {
@@ -42,17 +50,17 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     
     // Get author details with a separate query
     let author: Author | null = null;
-    if (typeof articleData.author === 'string') {
+    if (articleData.author && typeof articleData.author === 'string') {
       const { data: authorData } = await supabase
         .from('authors')
-        .select('*')
+        .select('id, name, bio, avatar_url, email, created_at, updated_at')
         .eq('id', articleData.author)
         .maybeSingle();
       
       author = authorData as Author | null;
     }
     
-    // Construct the final article object with explicit types
+    // Construct the final article object with explicitly defined properties
     const article: Article = {
       id: articleData.id,
       title: articleData.title,
@@ -83,7 +91,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
   try {
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('*')
+      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
       .neq('id', currentArticleId)
       .limit(limit);
     

@@ -36,16 +36,21 @@ export async function checkIsAdmin() {
     return { isAdmin: false };
   }
 
-  const { data, error } = await supabase.rpc('is_admin', {
-    user_id: session.user.id
-  });
+  try {
+    const { data, error } = await supabase.rpc('is_admin', {
+      user_id: session.user.id
+    });
 
-  if (error) {
-    console.error('Erreur lors de la vérification des droits admin:', error);
+    if (error) {
+      console.error('Erreur lors de la vérification des droits admin:', error);
+      return { isAdmin: false, error };
+    }
+
+    return { isAdmin: !!data, error: null };
+  } catch (error) {
+    console.error('Exception lors de la vérification des droits admin:', error);
     return { isAdmin: false, error };
   }
-
-  return { isAdmin: !!data, error: null };
 }
 
 /**

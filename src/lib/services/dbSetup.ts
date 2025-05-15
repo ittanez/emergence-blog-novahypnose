@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export async function setupDatabase() {
@@ -51,12 +52,9 @@ export async function setupStorageBucket() {
 
 /**
  * Creates the database function to get article ID by slug
+ * Note: This function is now created via SQL migration
  */
 export async function setupArticleFunctions() {
-  const { error } = await supabase.rpc('create_get_article_id_by_slug_function');
-  if (error) {
-    console.error('Error setting up article functions:', error);
-    return { success: false, error };
-  }
+  console.log('Article functions are already set up via SQL migration');
   return { success: true, error: null };
 }

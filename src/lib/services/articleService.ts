@@ -4,8 +4,8 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // Use a simple string-based query approach to avoid TypeScript analyzing deep types
-    const { data: articleIdResult, error: slugError } = await supabase
+    // First, get the article ID using our custom RPC function
+    const { data: articleId, error: slugError } = await supabase
       .rpc('get_article_id_by_slug', { slug_param: slug });
     
     if (slugError) {
@@ -13,12 +13,11 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       return { data: null, error: slugError };
     }
     
-    if (!articleIdResult) {
+    if (!articleId) {
       return { data: null, error: new Error('Article not found') };
     }
     
-    // Use a raw SQL query to fetch article data
-    const articleId = articleIdResult;
+    // Then fetch the complete article data with the retrieved ID
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
       .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
@@ -88,17 +87,6 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
   } catch (error) {
     console.error('Unexpected error in getArticleBySlug:', error);
     return { data: null, error };
-  }
-}
-
-// First, let's create the database function
-export async function createDbFunction() {
-  try {
-    await supabase.rpc('create_get_article_id_by_slug_function');
-    return { success: true, error: null };
-  } catch (error) {
-    console.error('Error creating database function:', error);
-    return { success: false, error };
   }
 }
 

@@ -101,6 +101,7 @@ export type Database = {
           id: string
           image_url: string | null
           published: boolean | null
+          slug: string | null
           tags: string[] | null
           title: string
           updated_at: string | null
@@ -115,6 +116,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           published?: boolean | null
+          slug?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string | null
@@ -129,6 +131,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           published?: boolean | null
+          slug?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string | null
@@ -543,12 +546,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_get_article_id_by_slug_function: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_tables_if_not_exist: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
       generate_promo_code: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_article_id_by_slug: {
+        Args: { slug_param: string }
         Returns: string
       }
       has_role: {

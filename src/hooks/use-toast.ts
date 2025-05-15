@@ -158,7 +158,6 @@ export function toast({ title, description, action, ...props }: Omit<ToastProps,
     type: "ADD_TOAST",
     toast: {
       ...props,
-      id,
       open: true,
       onOpenChange: (open) => {
         if (!open) {

@@ -56,7 +56,11 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(data);
+      // Nous nous assurons que les valeurs sont bien définies avant de les passer à signIn
+      const { error } = await signIn({
+        email: data.email,
+        password: data.password
+      });
       
       if (error) {
         throw error;

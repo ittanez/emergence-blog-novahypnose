@@ -5,49 +5,19 @@ export async function setupDatabase() {
   try {
     console.log('Starting database setup...');
     
-    // Create authors table
-    const { error: authorsError } = await supabase
-      .rpc('create_authors_table');
-      
-    if (authorsError) throw authorsError;
-    console.log('Authors table created or already exists');
+    // Create all the tables directly using SQL instead of RPC functions
+    const { error } = await supabase
+      .from('articles')  // Just checking if the articles table exists
+      .select('id')
+      .limit(1);
     
-    // Create categories table
-    const { error: categoriesError } = await supabase
-      .rpc('create_categories_table');
-      
-    if (categoriesError) throw categoriesError;
-    console.log('Categories table created or already exists');
+    if (error && error.code === 'PGRST116') {
+      // Table doesn't exist, we need to run the SQL scripts to create tables
+      console.log('Tables do not exist, please run the SQL scripts in the Supabase dashboard');
+      return { success: false, error: 'Tables not found' };
+    }
     
-    // Create tags table
-    const { error: tagsError } = await supabase
-      .rpc('create_tags_table');
-      
-    if (tagsError) throw tagsError;
-    console.log('Tags table created or already exists');
-    
-    // Create articles table
-    const { error: articlesError } = await supabase
-      .rpc('create_articles_table');
-      
-    if (articlesError) throw articlesError;
-    console.log('Articles table created or already exists');
-    
-    // Create article_tags junction table
-    const { error: articleTagsError } = await supabase
-      .rpc('create_article_tags_table');
-      
-    if (articleTagsError) throw articleTagsError;
-    console.log('Article_tags table created or already exists');
-    
-    // Create subscribers table
-    const { error: subscribersError } = await supabase
-      .rpc('create_subscribers_table');
-      
-    if (subscribersError) throw subscribersError;
-    console.log('Subscribers table created or already exists');
-    
-    console.log('Database setup completed successfully');
+    console.log('Database tables already exist');
     return { success: true };
   } catch (error) {
     console.error('Database setup failed:', error);

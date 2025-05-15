@@ -4,11 +4,11 @@ import { Article } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   // First query the article
-  const { data: article, error } = await supabase
+  const { data: articleData, error } = await supabase
     .from('articles')
     .select(`
-      *,
-      author: author_id (*)
+      id, title, content, excerpt, image_url, category, author_id, slug, read_time, published, created_at, updated_at,
+      author:authors(id, name, bio, avatar_url, email, created_at, updated_at)
     `)
     .eq('slug', slug)
     .single();
@@ -23,27 +23,32 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     .from('article_tags')
     .select(`
       tag_id,
-      tags:tag_id (*)
+      tags:tags(id, name, slug, created_at)
     `)
-    .eq('article_id', article.id);
+    .eq('article_id', articleData.id);
   
   if (tagsError) {
     console.error('Error fetching article tags:', tagsError);
     // We can still return the article without tags
-  } else if (articleTags) {
-    // Map the tags into the expected format
-    article.tags = articleTags.map(item => item.tags);
   }
+  
+  // Convert the fetched data to our Article type
+  const article: Article = {
+    ...articleData,
+    keywords: articleData.keywords || [],
+    seo_description: articleData.seo_description || '',
+    tags: articleTags ? articleTags.map(item => item.tags) : []
+  };
   
   return { data: article, error: null };
 }
 
 export async function getRelatedArticles(currentArticleId: string, limit: number = 3): Promise<{ data: Article[] | null; error: any }> {
-  const { data, error } = await supabase
+  const { data: relatedArticlesData, error } = await supabase
     .from('articles')
     .select(`
-      *,
-      author: author_id (*)
+      id, title, content, excerpt, image_url, category, author_id, slug, read_time, published, created_at, updated_at,
+      author:authors(id, name, bio, avatar_url, email, created_at, updated_at)
     `)
     .neq('id', currentArticleId)
     .limit(limit);
@@ -53,5 +58,13 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
     return { data: null, error };
   }
   
-  return { data, error: null };
+  // Convert the fetched data to our Article type
+  const articles: Article[] = relatedArticlesData.map(data => ({
+    ...data,
+    keywords: data.keywords || [],
+    seo_description: data.seo_description || '',
+    tags: []
+  }));
+  
+  return { data: articles, error: null };
 }

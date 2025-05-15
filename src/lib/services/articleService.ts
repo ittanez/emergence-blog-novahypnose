@@ -4,10 +4,10 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // Use a simpler query with explicit return type to avoid deep type instantiation
+    // Use a simpler query with explicit fields instead of '*' to avoid deep type instantiation
     const { data: articleData, error } = await supabase
       .from('articles')
-      .select('*')
+      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
       .eq('slug', slug)
       .single();
     
@@ -37,7 +37,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       
       const { data: tagsData } = await supabase
         .from('tags')
-        .select('*')
+        .select('id, name, slug, created_at')
         .in('id', tagIds);
         
       tags = tagsData || [];
@@ -48,7 +48,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     if (typeof articleData.author === 'string') {
       const { data: authorData } = await supabase
         .from('authors')
-        .select('*')
+        .select('id, name, bio, avatar_url, email, created_at, updated_at')
         .eq('id', articleData.author)
         .single();
       
@@ -84,10 +84,10 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
 
 export async function getRelatedArticles(currentArticleId: string, limit: number = 3): Promise<{ data: Article[] | null; error: any }> {
   try {
-    // Use a simpler query to avoid type complexity
+    // Use a more explicit query with specific fields to avoid type complexity
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('*')
+      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
       .neq('id', currentArticleId)
       .limit(limit);
     
@@ -109,7 +109,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
       image_url: data.image_url || '',
       category: '', // Default value
       author_id: typeof data.author === 'string' ? data.author : '',
-      slug: data.slug || '', // Use data.slug if available
+      slug: '', // Use a default empty string for slug as it's not in the query results
       read_time: 0, // Default value
       published: data.published || false,
       created_at: data.created_at,

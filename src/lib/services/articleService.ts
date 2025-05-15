@@ -3,12 +3,12 @@ import { supabase } from './supabase';
 import { Article } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
-  // First query the article
+  // First query the article to get basic data
   const { data: articleData, error } = await supabase
     .from('articles')
     .select(`
-      id, title, content, excerpt, image_url, category, author_id, slug, read_time, published, created_at, updated_at,
-      author:authors(id, name, bio, avatar_url, email, created_at, updated_at)
+      id, title, content, excerpt, image_url, published, created_at, updated_at,
+      author
     `)
     .eq('slug', slug)
     .single();
@@ -29,15 +29,40 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
   
   if (tagsError) {
     console.error('Error fetching article tags:', tagsError);
-    // We can still return the article without tags
   }
   
-  // Convert the fetched data to our Article type
+  // Get author details if needed from the author field
+  let author = null;
+  if (typeof articleData.author === 'string') {
+    const { data: authorData } = await supabase
+      .from('authors')
+      .select('*')
+      .eq('id', articleData.author)
+      .single();
+    
+    if (authorData) {
+      author = authorData;
+    }
+  }
+  
+  // Convert the fetched data to our Article type with defaults for missing fields
   const article: Article = {
-    ...articleData,
-    keywords: articleData.keywords || [],
-    seo_description: articleData.seo_description || '',
-    tags: articleTags ? articleTags.map(item => item.tags) : []
+    id: articleData.id,
+    title: articleData.title,
+    content: articleData.content,
+    excerpt: articleData.excerpt || '',
+    image_url: articleData.image_url || '',
+    category: '', // Using default since 'category' doesn't exist in the table
+    author_id: typeof articleData.author === 'string' ? articleData.author : '',
+    slug: slug,
+    read_time: 0, // Default since it doesn't exist in the table
+    published: articleData.published || false,
+    created_at: articleData.created_at,
+    updated_at: articleData.updated_at,
+    seo_description: '', // Default since it doesn't exist in the table
+    keywords: [], // Default since it doesn't exist in the table
+    tags: articleTags ? articleTags.map(item => item.tags) : [],
+    author: author
   };
   
   return { data: article, error: null };
@@ -47,8 +72,8 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
   const { data: relatedArticlesData, error } = await supabase
     .from('articles')
     .select(`
-      id, title, content, excerpt, image_url, category, author_id, slug, read_time, published, created_at, updated_at,
-      author:authors(id, name, bio, avatar_url, email, created_at, updated_at)
+      id, title, content, excerpt, image_url, published, created_at, updated_at,
+      author
     `)
     .neq('id', currentArticleId)
     .limit(limit);
@@ -58,11 +83,26 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
     return { data: null, error };
   }
   
-  // Convert the fetched data to our Article type
+  if (!relatedArticlesData) {
+    return { data: [], error: null };
+  }
+  
+  // Convert the fetched data to our Article type with defaults for missing fields
   const articles: Article[] = relatedArticlesData.map(data => ({
-    ...data,
-    keywords: data.keywords || [],
-    seo_description: data.seo_description || '',
+    id: data.id,
+    title: data.title,
+    content: data.content,
+    excerpt: data.excerpt || '',
+    image_url: data.image_url || '',
+    category: '', // Default since 'category' doesn't exist in the table
+    author_id: typeof data.author === 'string' ? data.author : '',
+    slug: '', // We don't have slug in this query
+    read_time: 0, // Default since it doesn't exist in the table
+    published: data.published || false,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    seo_description: '', // Default since it doesn't exist in the table
+    keywords: [], // Default since it doesn't exist in the table
     tags: []
   }));
   

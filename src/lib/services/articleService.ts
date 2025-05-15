@@ -4,10 +4,10 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // Use a generic type approach to avoid deep type instantiation
+    // Use explicit typing and avoid complex type inference
     const { data: articleData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author, slug')
+      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
       .eq('slug', slug)
       .single();
     
@@ -63,7 +63,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       image_url: articleData.image_url || '',
       category: '', // Default value
       author_id: typeof articleData.author === 'string' ? articleData.author : '',
-      slug: articleData.slug || '',
+      slug: slug, // Use the slug that was passed to the function
       read_time: 0, // Default value
       published: articleData.published || false,
       created_at: articleData.created_at,
@@ -83,10 +83,10 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
 
 export async function getRelatedArticles(currentArticleId: string, limit: number = 3): Promise<{ data: Article[] | null; error: any }> {
   try {
-    // Use a generic type approach to avoid deep type instantiation
+    // Use explicit typing and avoid complex type inference
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author, slug')
+      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
       .neq('id', currentArticleId)
       .limit(limit);
     
@@ -108,7 +108,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
       image_url: data.image_url || '',
       category: '', // Default value
       author_id: typeof data.author === 'string' ? data.author : '',
-      slug: data.slug || '',
+      slug: '', // We don't have the slug in the query, so use an empty string
       read_time: 0, // Default value
       published: data.published || false,
       created_at: data.created_at,

@@ -4,72 +4,81 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // Use a more specific select statement with exact column names to avoid deep type instantiation
-    const { data: articleData, error } = await supabase
+    // First query: Get the article ID from the slug
+    const { data: slugData, error: slugError } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author, categories, featured, tags')
+      .select('id')
       .eq('slug', slug)
-      .single();
+      .maybeSingle();
     
-    if (error) {
-      console.error('Error fetching article:', error);
-      return { data: null, error };
+    if (slugError) {
+      console.error('Error fetching article by slug:', slugError);
+      return { data: null, error: slugError };
     }
     
-    if (!articleData) {
+    if (!slugData) {
       return { data: null, error: null };
     }
     
-    // Get tags for this article with a separate simple query
+    // Second query: Get full article data by ID
+    const { data: articleData, error: articleError } = await supabase
+      .from('articles')
+      .select()
+      .eq('id', slugData.id)
+      .single();
+    
+    if (articleError || !articleData) {
+      console.error('Error fetching article data:', articleError);
+      return { data: null, error: articleError };
+    }
+    
+    // Get tags for this article with a separate query
     let tags: Tag[] = [];
     const { data: tagRelations, error: tagsError } = await supabase
       .from('article_tags')
       .select('tag_id')
       .eq('article_id', articleData.id);
     
-    if (tagsError) {
-      console.error('Error fetching article tag relations:', tagsError);
-    } else if (tagRelations && tagRelations.length > 0) {
-      // Fetch tags data if tag relations exist
+    if (!tagsError && tagRelations && tagRelations.length > 0) {
       const tagIds = tagRelations.map(relation => relation.tag_id);
       
       const { data: tagsData } = await supabase
         .from('tags')
-        .select('id, name, slug, created_at');
+        .select();
         
       if (tagsData) {
         tags = tagsData;
       }
     }
     
-    // Get author details if needed with a separate query
+    // Get author details with a separate query
     let author: Author | null = null;
     if (typeof articleData.author === 'string') {
       const { data: authorData } = await supabase
         .from('authors')
-        .select('id, name, bio, avatar_url, email, created_at, updated_at')
+        .select()
         .eq('id', articleData.author)
         .single();
       
       author = authorData || null;
     }
     
-    // Construct the final article object with proper defaults
+    // Construct the final article object
     const article: Article = {
       id: articleData.id,
       title: articleData.title,
       content: articleData.content,
       excerpt: articleData.excerpt || '',
       image_url: articleData.image_url || '',
-      category: '', // Default value
+      category: '', 
       author_id: typeof articleData.author === 'string' ? articleData.author : '',
-      slug: slug, // Use the slug parameter that was passed to the function
-      read_time: 0, // Default value
+      slug: slug,
+      read_time: 0,
       published: articleData.published || false,
       created_at: articleData.created_at,
       updated_at: articleData.updated_at,
-      seo_description: '', // Default value
-      keywords: [], // Default value
+      seo_description: '',
+      keywords: [],
       tags: tags,
       author: author
     };
@@ -83,10 +92,9 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
 
 export async function getRelatedArticles(currentArticleId: string, limit: number = 3): Promise<{ data: Article[] | null; error: any }> {
   try {
-    // Use a more specific select statement with exact column names to avoid deep type instantiation
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author, categories, featured, tags')
+      .select()
       .neq('id', currentArticleId)
       .limit(limit);
     
@@ -99,13 +107,9 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
       return { data: [], error: null };
     }
     
-    // Map data to Article type with default values where needed
+    // Map data to Article type with default values
     const articles: Article[] = relatedArticlesData.map(data => {
-      // We need to get slug from the Supabase schema or use a fallback
-      // Since the database schema doesn't explicitly include a 'slug' field, 
-      // we need to implement a workaround
-      
-      // Generate a slug from the title if needed
+      // Generate a slug from the title
       const generatedSlug = data.title ? 
         data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 
         `article-${data.id}`;
@@ -116,16 +120,16 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
         content: data.content,
         excerpt: data.excerpt || '',
         image_url: data.image_url || '',
-        category: '', // Default value
+        category: '',
         author_id: typeof data.author === 'string' ? data.author : '',
-        slug: generatedSlug, // Use generated slug as fallback
-        read_time: 0, // Default value
+        slug: generatedSlug,
+        read_time: 0,
         published: data.published || false,
         created_at: data.created_at,
         updated_at: data.updated_at,
-        seo_description: '', // Default value
-        keywords: [], // Default value
-        tags: [] // Default value
+        seo_description: '',
+        keywords: [],
+        tags: []
       };
     });
     

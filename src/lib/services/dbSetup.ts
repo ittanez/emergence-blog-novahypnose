@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export async function setupDatabase() {
@@ -48,4 +47,16 @@ export async function setupStorageBucket() {
     console.error('Storage bucket setup failed:', error);
     return { success: false, error };
   }
+}
+
+/**
+ * Creates the database function to get article ID by slug
+ */
+export async function setupArticleFunctions() {
+  const { error } = await supabase.rpc('create_get_article_id_by_slug_function');
+  if (error) {
+    console.error('Error setting up article functions:', error);
+    return { success: false, error };
+  }
+  return { success: true, error: null };
 }

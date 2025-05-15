@@ -4,20 +4,21 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // Fetch only the article ID first using a simpler query
+    // Use a simple string-based query approach to avoid TypeScript analyzing deep types
     const { data: articleIdResult, error: slugError } = await supabase
-      .from('articles')
-      .select('id')
-      .eq('slug', slug)
-      .single();
+      .rpc('get_article_id_by_slug', { slug_param: slug });
     
     if (slugError) {
       console.error('Error fetching article ID by slug:', slugError);
       return { data: null, error: slugError };
     }
     
-    // Then fetch the complete article data with explicit field selection
-    const articleId = articleIdResult?.id;
+    if (!articleIdResult) {
+      return { data: null, error: new Error('Article not found') };
+    }
+    
+    // Use a raw SQL query to fetch article data
+    const articleId = articleIdResult;
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
       .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
@@ -52,13 +53,15 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     // Get author details with a separate query
     let author: Author | null = null;
     if (articleData.author && typeof articleData.author === 'string') {
-      const { data: authorData } = await supabase
+      const { data: authorData, error: authorError } = await supabase
         .from('authors')
         .select('id, name, bio, avatar_url, email, created_at, updated_at')
         .eq('id', articleData.author)
         .single();
       
-      author = authorData as Author | null;
+      if (!authorError && authorData) {
+        author = authorData as Author;
+      }
     }
     
     // Construct the final article object with explicit properties
@@ -85,6 +88,17 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
   } catch (error) {
     console.error('Unexpected error in getArticleBySlug:', error);
     return { data: null, error };
+  }
+}
+
+// First, let's create the database function
+export async function createDbFunction() {
+  try {
+    await supabase.rpc('create_get_article_id_by_slug_function');
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error creating database function:', error);
+    return { success: false, error };
   }
 }
 

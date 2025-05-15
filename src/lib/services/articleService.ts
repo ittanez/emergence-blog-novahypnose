@@ -4,10 +4,10 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // Use explicit typing and avoid complex type inference
+    // Simplify query to avoid deep type instantiation
     const { data: articleData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
+      .select('*')  // Select all fields explicitly
       .eq('slug', slug)
       .single();
     
@@ -83,10 +83,10 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
 
 export async function getRelatedArticles(currentArticleId: string, limit: number = 3): Promise<{ data: Article[] | null; error: any }> {
   try {
-    // Use explicit typing and avoid complex type inference
+    // Simplify query to avoid deep type instantiation
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, published, created_at, updated_at, author')
+      .select('*')  // Select all fields explicitly
       .neq('id', currentArticleId)
       .limit(limit);
     
@@ -108,7 +108,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
       image_url: data.image_url || '',
       category: '', // Default value
       author_id: typeof data.author === 'string' ? data.author : '',
-      slug: '', // We don't have the slug in the query, so use an empty string
+      slug: data.slug || '', // Use slug if available
       read_time: 0, // Default value
       published: data.published || false,
       created_at: data.created_at,

@@ -566,6 +566,10 @@ export type Database = {
         Args: { user_id: string; required_role: string }
         Returns: boolean
       }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       random_string: {
         Args: { length: number }
         Returns: string

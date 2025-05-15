@@ -25,7 +25,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       .from('article_tags')
       .select(`
         tag_id,
-        tags:tags(id, name, slug, created_at)
+        tags (id, name, slug, created_at)
       `)
       .eq('article_id', articleData.id);
     

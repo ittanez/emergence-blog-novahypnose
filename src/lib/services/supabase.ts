@@ -1,12 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/database.types';
+import { supabase } from '@/integrations/supabase/client';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase credentials');
-}
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+// Re-export the supabase client to maintain compatibility with existing code
+export { supabase };

@@ -4,23 +4,24 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // First fetch just the article ID to avoid deep type instantiation
-    const { data: articleId, error: slugError } = await supabase
+    // Fetch only the article ID first using a simpler query
+    const { data: articleIdResult, error: slugError } = await supabase
       .from('articles')
       .select('id')
       .eq('slug', slug)
-      .maybeSingle();
+      .single();
     
-    if (slugError || !articleId) {
+    if (slugError) {
       console.error('Error fetching article ID by slug:', slugError);
-      return { data: null, error: slugError || new Error('Article not found') };
+      return { data: null, error: slugError };
     }
     
-    // Then fetch the full article by ID
+    // Then fetch the complete article data with explicit field selection
+    const articleId = articleIdResult?.id;
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
       .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
-      .eq('id', articleId.id)
+      .eq('id', articleId)
       .single();
     
     if (articleError) {
@@ -55,12 +56,12 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
         .from('authors')
         .select('id, name, bio, avatar_url, email, created_at, updated_at')
         .eq('id', articleData.author)
-        .maybeSingle();
+        .single();
       
       author = authorData as Author | null;
     }
     
-    // Construct the final article object with explicitly defined properties
+    // Construct the final article object with explicit properties
     const article: Article = {
       id: articleData.id,
       title: articleData.title,

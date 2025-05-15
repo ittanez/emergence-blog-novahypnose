@@ -4,32 +4,20 @@ import { Article, Author, Tag } from '../types';
 
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // First query: Get the article ID from the slug
-    const { data: slugData, error: slugError } = await supabase
+    // First query: Get the article with the given slug
+    const { data: articleData, error: articleError } = await supabase
       .from('articles')
-      .select('id')
+      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
       .eq('slug', slug)
       .maybeSingle();
     
-    if (slugError) {
-      console.error('Error fetching article by slug:', slugError);
-      return { data: null, error: slugError };
-    }
-    
-    if (!slugData) {
-      return { data: null, error: null };
-    }
-    
-    // Second query: Get full article data by ID
-    const { data: articleData, error: articleError } = await supabase
-      .from('articles')
-      .select()
-      .eq('id', slugData.id)
-      .single();
-    
-    if (articleError || !articleData) {
-      console.error('Error fetching article data:', articleError);
+    if (articleError) {
+      console.error('Error fetching article by slug:', articleError);
       return { data: null, error: articleError };
+    }
+    
+    if (!articleData) {
+      return { data: null, error: null };
     }
     
     // Get tags for this article with a separate query
@@ -44,10 +32,10 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       
       const { data: tagsData } = await supabase
         .from('tags')
-        .select();
+        .select('id, name, slug, created_at');
         
       if (tagsData) {
-        tags = tagsData;
+        tags = tagsData as Tag[];
       }
     }
     
@@ -56,11 +44,11 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     if (typeof articleData.author === 'string') {
       const { data: authorData } = await supabase
         .from('authors')
-        .select()
+        .select('id, name, bio, avatar_url, email, created_at, updated_at')
         .eq('id', articleData.author)
-        .single();
+        .maybeSingle();
       
-      author = authorData || null;
+      author = authorData as Author || null;
     }
     
     // Construct the final article object
@@ -94,7 +82,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
   try {
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select()
+      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
       .neq('id', currentArticleId)
       .limit(limit);
     

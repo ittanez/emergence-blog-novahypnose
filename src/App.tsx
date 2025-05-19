@@ -10,6 +10,8 @@ import CategoriesPage from "./pages/CategoriesPage";
 import CategoryPage from "./pages/CategoryPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminArticles from "./pages/AdminArticles";
+import AdminArticleEditor from "./pages/AdminArticleEditor";
 import AdminSetup from "./pages/AdminSetup";
 import AdminResetPassword from "./pages/AdminResetPassword";
 import NotFound from "./pages/NotFound";
@@ -47,6 +49,22 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminDashboard />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/articles" 
+              element={
+                <AdminRoute>
+                  <AdminArticles />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/article/:id" 
+              element={
+                <AdminRoute>
+                  <AdminArticleEditor />
                 </AdminRoute>
               } 
             />

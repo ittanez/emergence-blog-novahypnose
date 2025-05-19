@@ -15,7 +15,6 @@ import { signOut } from "@/lib/services/authService";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +46,11 @@ const AdminDashboard = () => {
   };
 
   const handleAction = (action: string) => {
+    if (action === "Gestion des articles") {
+      navigate("/admin/articles");
+      return;
+    }
+    
     toast.info(`Fonctionnalité "${action}" en cours de développement`, {
       description: "Cette fonctionnalité sera disponible prochainement."
     });
@@ -89,7 +93,7 @@ const AdminDashboard = () => {
               <Button 
                 variant="default" 
                 className="w-full brand-gradient" 
-                onClick={() => handleAction("Gestion des articles")}
+                onClick={() => handleNavigation("/admin/articles")}
               >
                 Gérer les articles
               </Button>

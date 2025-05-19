@@ -1,5 +1,5 @@
 
-import { supabase } from './supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface AuthCredentials {
   email: string;
@@ -59,6 +59,30 @@ export async function checkIsAdmin() {
 export async function getCurrentSession() {
   const { data: { session }, error } = await supabase.auth.getSession();
   return { session, error };
+}
+
+/**
+ * Envoie un email de réinitialisation de mot de passe
+ * @param email L'adresse email de l'utilisateur
+ */
+export async function resetPassword(email: string) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/admin/reset-password`,
+  });
+  
+  return { data, error };
+}
+
+/**
+ * Met à jour le mot de passe d'un utilisateur
+ * @param password Le nouveau mot de passe
+ */
+export async function updatePassword(password: string) {
+  const { data, error } = await supabase.auth.updateUser({
+    password,
+  });
+
+  return { data, error };
 }
 
 /**

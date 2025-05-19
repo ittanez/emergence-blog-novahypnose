@@ -10,6 +10,7 @@ import CategoriesPage from "./pages/CategoriesPage";
 import CategoryPage from "./pages/CategoryPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminSetup from "./pages/AdminSetup";
+import AdminResetPassword from "./pages/AdminResetPassword";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import AdminRoute from "./components/AdminRoute";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/category/:categoryId" element={<CategoryPage />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/setup" element={<AdminSetup />} />
+            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
             <Route 
               path="/admin/dashboard" 
               element={

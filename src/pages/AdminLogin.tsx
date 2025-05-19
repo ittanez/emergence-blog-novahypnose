@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { signIn } from "@/lib/services/authService";
+import { signIn, resetPassword } from "@/lib/services/authService";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 const formSchema = z.object({
@@ -34,6 +34,9 @@ type FormData = z.infer<typeof formSchema>;
 
 const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetSent, setIsResetSent] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [showResetForm, setShowResetForm] = useState(false);
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   
@@ -76,6 +79,36 @@ const AdminLogin = () => {
       setIsLoading(false);
     }
   };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!resetEmail || !resetEmail.includes('@')) {
+      toast.error("Veuillez saisir une adresse email valide");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const { error } = await resetPassword(resetEmail);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setIsResetSent(true);
+      toast.success("Email de réinitialisation envoyé", {
+        description: "Vérifiez votre boîte de réception et suivez les instructions."
+      });
+    } catch (error: any) {
+      toast.error("Erreur lors de la réinitialisation", {
+        description: error.message || "Une erreur s'est produite lors de l'envoi de l'email de réinitialisation.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -88,45 +121,108 @@ const AdminLogin = () => {
             <CardDescription>Connectez-vous pour gérer votre blog</CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="votre@email.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mot de passe</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <Button 
-                  type="submit" 
-                  className="w-full brand-gradient hover:opacity-90" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Connexion..." : "Se connecter"}
-                </Button>
-              </form>
-            </Form>
+            {!showResetForm ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="votre@email.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mot de passe</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="••••••••" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full brand-gradient hover:opacity-90" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Connexion..." : "Se connecter"}
+                  </Button>
+                  
+                  <div className="text-center">
+                    <button 
+                      type="button"
+                      onClick={() => setShowResetForm(true)}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Mot de passe oublié ?
+                    </button>
+                  </div>
+                </form>
+              </Form>
+            ) : (
+              <div className="space-y-4">
+                {!isResetSent ? (
+                  <form onSubmit={handleResetPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="reset-email" className="text-sm font-medium">
+                        Email
+                      </label>
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        placeholder="votre@email.com"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Envoi en cours..." : "Réinitialiser le mot de passe"}
+                    </Button>
+                    
+                    <div className="text-center">
+                      <button 
+                        type="button"
+                        onClick={() => setShowResetForm(false)}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Retour à la connexion
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="text-center space-y-4">
+                    <p className="text-green-600">
+                      Un email de réinitialisation a été envoyé à <strong>{resetEmail}</strong>
+                    </p>
+                    <p>Vérifiez votre boîte de réception et suivez les instructions.</p>
+                    <Button 
+                      onClick={() => setShowResetForm(false)}
+                      variant="outline"
+                    >
+                      Retour à la connexion
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-gray-600">

@@ -66,8 +66,12 @@ export async function getCurrentSession() {
  * @param email L'adresse email de l'utilisateur
  */
 export async function resetPassword(email: string) {
+  // Utilisation de l'URL complète pour s'assurer de la redirection correcte
+  const resetUrl = `${window.location.origin}/admin/reset-password`;
+  console.log("URL de redirection pour la réinitialisation:", resetUrl);
+  
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/admin/reset-password`,
+    redirectTo: resetUrl,
   });
   
   return { data, error };

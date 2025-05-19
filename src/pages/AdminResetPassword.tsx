@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Form,
@@ -38,7 +38,9 @@ type FormData = z.infer<typeof formSchema>;
 const AdminResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isError, setIsError] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -48,25 +50,59 @@ const AdminResetPassword = () => {
     },
   });
 
-  // Vérifier si l'utilisateur a un accès valide de réinitialisation de mot de passe
   useEffect(() => {
-    const checkPasswordRecoverySession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error || !data.session) {
-        toast.error("Lien de réinitialisation invalide ou expiré", {
-          description: "Veuillez demander un nouveau lien de réinitialisation.",
+    const handlePasswordRecovery = async () => {
+      try {
+        // Obtenir les paramètres de l'URL
+        const params = new URLSearchParams(location.hash.substring(1));
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
+        const type = params.get("type");
+        
+        console.log("URL hash:", location.hash);
+        console.log("Type de redirection détecté:", type);
+        
+        if (!accessToken || type !== "recovery") {
+          console.error("Token d'accès manquant ou type incorrect");
+          setIsError(true);
+          toast.error("Lien de réinitialisation invalide ou expiré", {
+            description: "Veuillez demander un nouveau lien de réinitialisation.",
+          });
+          setTimeout(() => navigate("/admin"), 3000);
+          return;
+        }
+        
+        // Définir la session avec le token de récupération
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || "",
         });
-        navigate("/admin");
+
+        if (error) {
+          console.error("Erreur lors de la définition de la session:", error);
+          setIsError(true);
+          toast.error("Erreur lors de la réinitialisation", {
+            description: "Le lien est peut-être expiré. Veuillez demander un nouveau lien.",
+          });
+          setTimeout(() => navigate("/admin"), 3000);
+        }
+      } catch (error) {
+        console.error("Exception lors de la réinitialisation:", error);
+        setIsError(true);
+        toast.error("Une erreur s'est produite", {
+          description: "Veuillez réessayer ou demander un nouveau lien de réinitialisation.",
+        });
+        setTimeout(() => navigate("/admin"), 3000);
       }
     };
-    
-    checkPasswordRecoverySession();
-  }, [navigate]);
+
+    handlePasswordRecovery();
+  }, [location, navigate]);
   
   const onSubmit = async (data: FormData) => {
-    setIsLoading(true);
+    if (isError) return;
     
+    setIsLoading(true);
     try {
       const { error } = await updatePassword(data.password);
       
@@ -102,7 +138,12 @@ const AdminResetPassword = () => {
             <CardDescription>Entrez votre nouveau mot de passe</CardDescription>
           </CardHeader>
           <CardContent>
-            {!isSuccess ? (
+            {isError ? (
+              <div className="text-center space-y-4">
+                <p className="text-red-500 font-medium">Lien de réinitialisation invalide ou expiré</p>
+                <p>Vous allez être redirigé vers la page de connexion...</p>
+              </div>
+            ) : !isSuccess ? (
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField

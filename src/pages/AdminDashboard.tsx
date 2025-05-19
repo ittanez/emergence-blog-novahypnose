@@ -42,6 +42,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
+  const handleAction = (action: string) => {
+    toast.info(`Fonctionnalité "${action}" en cours de développement`, {
+      description: "Cette fonctionnalité sera disponible prochainement."
+    });
+  };
+
   console.log("AdminDashboard rendu, utilisateur:", user);
 
   return (
@@ -76,7 +86,11 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Créez, modifiez et supprimez des articles. Planifiez leur publication.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled={false}>
+              <Button 
+                variant="default" 
+                className="w-full brand-gradient" 
+                onClick={() => handleAction("Gestion des articles")}
+              >
                 Gérer les articles
               </Button>
             </CardFooter>
@@ -92,7 +106,11 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Créez et modifiez les catégories pour organiser vos articles.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled={false}>
+              <Button 
+                variant="default" 
+                className="w-full brand-gradient"
+                onClick={() => handleAction("Gestion des catégories")}
+              >
                 Gérer les catégories
               </Button>
             </CardFooter>
@@ -108,24 +126,13 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Ajoutez de nouveaux administrateurs pour gérer le blog.</p>
             </CardContent>
             <CardFooter>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="default" className="w-full brand-gradient">
-                    Gérer les administrateurs
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Gestion des administrateurs</DialogTitle>
-                    <DialogDescription>
-                      Cette fonctionnalité sera disponible prochainement.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button type="button" variant="secondary">Fermer</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button 
+                variant="default" 
+                className="w-full brand-gradient"
+                onClick={() => handleAction("Gestion des administrateurs")}
+              >
+                Gérer les administrateurs
+              </Button>
             </CardFooter>
           </Card>
           
@@ -139,7 +146,11 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Consultez les statistiques de votre blog : vues, interactions, etc.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled={false}>
+              <Button 
+                variant="default" 
+                className="w-full brand-gradient"
+                onClick={() => handleAction("Affichage des statistiques")}
+              >
                 Voir les statistiques
               </Button>
             </CardFooter>
@@ -155,7 +166,11 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Modérez les commentaires des visiteurs sur vos articles.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled={false}>
+              <Button 
+                variant="default" 
+                className="w-full brand-gradient"
+                onClick={() => handleAction("Modération des commentaires")}
+              >
                 Gérer les commentaires
               </Button>
             </CardFooter>
@@ -171,7 +186,11 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Modifiez les paramètres généraux du blog.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled={false}>
+              <Button 
+                variant="default" 
+                className="w-full brand-gradient"
+                onClick={() => handleAction("Configuration des réglages")}
+              >
                 Configurer
               </Button>
             </CardFooter>

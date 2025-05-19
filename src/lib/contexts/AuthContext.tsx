@@ -30,11 +30,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Fonction pour vérifier si l'utilisateur est admin
     const verifyAdminStatus = async (userId: string) => {
       try {
-        const { isAdmin: adminStatus } = await checkIsAdmin();
-        console.log("Admin status:", adminStatus);
+        console.log("Vérification du statut admin pour l'utilisateur:", userId);
+        const { isAdmin: adminStatus, error } = await checkIsAdmin();
+        
+        if (error) {
+          console.error("Erreur lors de la vérification du statut admin:", error);
+          setIsAdmin(false);
+          return;
+        }
+        
+        console.log("Statut admin:", adminStatus);
         setIsAdmin(adminStatus);
       } catch (error) {
-        console.error("Erreur lors de la vérification du statut admin:", error);
+        console.error("Exception lors de la vérification du statut admin:", error);
         setIsAdmin(false);
       }
     };

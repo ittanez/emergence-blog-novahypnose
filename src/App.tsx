@@ -16,11 +16,13 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import AdminRoute from "./components/AdminRoute";
 
+// Configuration du client de requête avec retry activé pour une meilleure stabilité
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: false
+      retry: 1, // Permettre une tentative de retry pour les requêtes qui échouent
+      staleTime: 5 * 60 * 1000, // 5 minutes
     }
   }
 });

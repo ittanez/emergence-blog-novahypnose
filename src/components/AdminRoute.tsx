@@ -13,6 +13,8 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   const location = useLocation();
 
   useEffect(() => {
+    console.log("AdminRoute - État d'authentification:", { user, isAdmin, isLoading });
+    
     if (!isLoading && !user) {
       toast.error("Vous devez vous connecter pour accéder à cette page");
     } else if (!isLoading && user && !isAdmin) {

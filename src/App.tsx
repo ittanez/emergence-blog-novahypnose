@@ -9,19 +9,12 @@ import ArticlePage from "./pages/ArticlePage";
 import CategoriesPage from "./pages/CategoriesPage";
 import CategoryPage from "./pages/CategoryPage";
 import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 import AdminSetup from "./pages/AdminSetup";
 import AdminResetPassword from "./pages/AdminResetPassword";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import AdminRoute from "./components/AdminRoute";
-
-// Page provisoire pour le tableau de bord admin
-const AdminDashboard = () => (
-  <div className="container mx-auto p-8">
-    <h1 className="text-3xl font-bold mb-6">Tableau de bord administrateur</h1>
-    <p>Bienvenue dans l'interface d'administration du blog.</p>
-  </div>
-);
 
 const queryClient = new QueryClient();
 

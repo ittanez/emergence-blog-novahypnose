@@ -29,6 +29,35 @@ import { Article } from "@/lib/types";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// Helper function to transform Supabase data to our Article type
+const transformArticleData = (data: any): Article => {
+  return {
+    id: data.id,
+    title: data.title,
+    content: data.content,
+    excerpt: data.excerpt || "",
+    image_url: data.image_url || "",
+    seo_description: "",
+    keywords: [],
+    category: "",
+    author_id: typeof data.author === 'string' ? data.author : "",
+    slug: data.slug || "",
+    read_time: 0,
+    published: data.published || false,
+    created_at: data.created_at,
+    updated_at: data.updated_at || data.created_at,
+    // Convert string[] tags to Tag[] if they exist
+    tags: Array.isArray(data.tags) 
+      ? data.tags.map(tag => ({ 
+          id: "", 
+          name: tag, 
+          slug: tag.toLowerCase().replace(/\s+/g, '-'),
+          created_at: new Date().toISOString()
+        }))
+      : undefined,
+  };
+};
+
 const AdminArticles = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +81,10 @@ const AdminArticles = () => {
         }
 
         console.log("Articles récupérés:", data);
-        setArticles(data as Article[]);
+        
+        // Transform each article to match our Article type
+        const transformedArticles = data.map(transformArticleData);
+        setArticles(transformedArticles);
       } catch (error: any) {
         console.error("Erreur lors de la récupération des articles:", error);
         toast.error("Impossible de charger les articles", { 
@@ -104,7 +136,7 @@ const AdminArticles = () => {
   };
 
   const handleEditArticle = (id: string) => {
-    navigate(`/admin/article/edit/${id}`);
+    navigate(`/admin/article/${id}`);
   };
 
   const handleViewArticle = (slug: string) => {

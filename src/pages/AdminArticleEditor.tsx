@@ -46,7 +46,33 @@ const AdminArticleEditor = () => {
         }
 
         console.log("Article récupéré:", data);
-        setArticle(data);
+        
+        // Transform the data to match our Article type
+        const transformedData: Partial<Article> = {
+          id: data.id,
+          title: data.title,
+          content: data.content,
+          excerpt: data.excerpt || "",
+          image_url: data.image_url || "",
+          published: data.published || false,
+          slug: data.slug || "",
+          category: "", // Default empty value
+          author_id: typeof data.author === 'string' ? data.author : "",
+          seo_description: "",
+          keywords: [],
+          read_time: 0,
+          // Convert string[] tags to Tag[] if they exist
+          tags: Array.isArray(data.tags) 
+            ? data.tags.map(tag => ({ 
+                id: "", 
+                name: tag, 
+                slug: tag.toLowerCase().replace(/\s+/g, '-'),
+                created_at: new Date().toISOString()
+              }))
+            : undefined,
+        };
+        
+        setArticle(transformedData);
       } catch (error: any) {
         console.error("Erreur lors de la récupération de l'article:", error);
         toast.error("Impossible de charger l'article", { 
@@ -98,31 +124,32 @@ const AdminArticleEditor = () => {
       
       let result;
       
+      // Prepare data for Supabase (remove properties that don't exist in the articles table)
+      const supabaseData = {
+        title: article.title,
+        content: article.content,
+        excerpt: article.excerpt,
+        image_url: article.image_url,
+        published: article.published,
+        updated_at: new Date().toISOString(),
+        slug: article.slug,
+        // Convert Tag[] to string[] if tags exist
+        tags: article.tags ? article.tags.map(tag => tag.name) : undefined,
+      };
+      
       if (isEditing) {
         // Mise à jour d'un article existant
         result = await supabase
           .from('articles')
-          .update({
-            title: article.title,
-            content: article.content,
-            excerpt: article.excerpt,
-            image_url: article.image_url,
-            published: article.published,
-            updated_at: new Date().toISOString(),
-            slug: article.slug
-          })
+          .update(supabaseData)
           .eq('id', id);
       } else {
         // Création d'un nouvel article
         result = await supabase
           .from('articles')
           .insert({
-            title: article.title,
-            content: article.content,
+            ...supabaseData,
             excerpt: article.excerpt || article.content.substring(0, 150) + '...',
-            image_url: article.image_url,
-            published: article.published,
-            slug: article.slug
           });
       }
       

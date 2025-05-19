@@ -37,6 +37,7 @@ export async function checkIsAdmin() {
   }
 
   try {
+    console.log("Vérification du statut admin pour:", session.user.id);
     const { data, error } = await supabase.rpc('is_admin', {
       user_id: session.user.id
     });
@@ -46,6 +47,7 @@ export async function checkIsAdmin() {
       return { isAdmin: false, error };
     }
 
+    console.log("Résultat de la vérification admin:", data);
     return { isAdmin: !!data, error: null };
   } catch (error) {
     console.error('Exception lors de la vérification des droits admin:', error);

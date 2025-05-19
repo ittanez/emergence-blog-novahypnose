@@ -1,8 +1,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../services/supabase';
-import { checkIsAdmin } from '../services/authService';
+import { supabase } from '@/integrations/supabase/client';
+import { checkIsAdmin } from '@/lib/services/authService';
 
 interface AuthContextType {
   session: Session | null;
@@ -29,8 +29,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Fonction pour vérifier si l'utilisateur est admin
     const verifyAdminStatus = async (userId: string) => {
-      const { isAdmin: adminStatus } = await checkIsAdmin();
-      setIsAdmin(adminStatus);
+      try {
+        const { isAdmin: adminStatus } = await checkIsAdmin();
+        console.log("Admin status:", adminStatus);
+        setIsAdmin(adminStatus);
+      } catch (error) {
+        console.error("Erreur lors de la vérification du statut admin:", error);
+        setIsAdmin(false);
+      }
     };
 
     // État d'authentification initial
@@ -39,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
+        console.log("Session initiale:", session);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -58,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Écouteur des changements d'état d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Événement d'authentification:", event, session);
         setSession(session);
         setUser(session?.user ?? null);
         

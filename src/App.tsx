@@ -16,7 +16,14 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import AdminRoute from "./components/AdminRoute";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false
+    }
+  }
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

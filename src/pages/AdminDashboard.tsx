@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { 
@@ -42,6 +42,8 @@ const AdminDashboard = () => {
     }
   };
 
+  console.log("AdminDashboard rendu, utilisateur:", user);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -74,7 +76,7 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Créez, modifiez et supprimez des articles. Planifiez leur publication.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled>
+              <Button variant="default" className="w-full brand-gradient" disabled={false}>
                 Gérer les articles
               </Button>
             </CardFooter>
@@ -90,7 +92,7 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Créez et modifiez les catégories pour organiser vos articles.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled>
+              <Button variant="default" className="w-full brand-gradient" disabled={false}>
                 Gérer les catégories
               </Button>
             </CardFooter>
@@ -137,7 +139,7 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Consultez les statistiques de votre blog : vues, interactions, etc.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled>
+              <Button variant="default" className="w-full brand-gradient" disabled={false}>
                 Voir les statistiques
               </Button>
             </CardFooter>
@@ -153,7 +155,7 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Modérez les commentaires des visiteurs sur vos articles.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled>
+              <Button variant="default" className="w-full brand-gradient" disabled={false}>
                 Gérer les commentaires
               </Button>
             </CardFooter>
@@ -169,7 +171,7 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-500">Modifiez les paramètres généraux du blog.</p>
             </CardContent>
             <CardFooter>
-              <Button variant="default" className="w-full brand-gradient" disabled>
+              <Button variant="default" className="w-full brand-gradient" disabled={false}>
                 Configurer
               </Button>
             </CardFooter>

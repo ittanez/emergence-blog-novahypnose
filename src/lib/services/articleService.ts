@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Article, Author, Category, Tag } from '../types';
+import { Article, Author, Category, Tag, CategoryWithChildren, CategoryNode } from '../types';
 
 // Transformation des données d'un article récupéré de Supabase
 export const transformArticleData = (data: any): Article => {
@@ -342,7 +342,7 @@ export interface CategoryWithChildren {
   children?: CategoryWithChildren[];
 }
 
-// Fonction pour organiser les catégories en hiérarchie
+// Function to organize categories in a hierarchy
 export function organizeCategoriesHierarchy(
   categories: Category[]
 ): CategoryWithChildren[] {
@@ -365,7 +365,10 @@ export function organizeCategoriesHierarchy(
     // If the category has a parent and the parent exists in our map
     if (category.parent_id && categoryMap[category.parent_id]) {
       // Add this category as a child of its parent
-      categoryMap[category.parent_id].children?.push(categoryMap[category.id]);
+      if (!categoryMap[category.parent_id].children) {
+        categoryMap[category.parent_id].children = [];
+      }
+      categoryMap[category.parent_id].children!.push(categoryMap[category.id]);
     } else {
       // This is a root category
       rootCategories.push(categoryMap[category.id]);

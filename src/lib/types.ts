@@ -14,10 +14,9 @@ export interface Category {
   name: string;
   description: string;
   created_at: string;
-  // Ajouter les propriétés manquantes
   slug: string;
-  parent_id?: string; // Optionnel car toutes les catégories n'ont pas de parent
-  updated_at?: string; // Optionnel pour la compatibilité avec les données existantes
+  parent_id?: string | null; // Optionnel car toutes les catégories n'ont pas de parent
+  updated_at?: string | null; // Optionnel pour la compatibilité avec les données existantes
 }
 
 export interface Tag {
@@ -61,4 +60,16 @@ export interface Subscriber {
 export interface SortOption {
   label: string;
   value: string;
+}
+
+// Break the recursive type definition
+export interface CategoryWithChildren extends Omit<Category, 'parent_id'> {
+  parent_id?: string | null;
+  children?: CategoryNode[];
+}
+
+// Use a separate type for the children array
+export interface CategoryNode extends Omit<Category, 'parent_id'> {
+  parent_id?: string | null;
+  children?: CategoryNode[];
 }

@@ -14,6 +14,10 @@ export interface Category {
   name: string;
   description: string;
   created_at: string;
+  // Ajouter les propriétés manquantes
+  slug: string;
+  parent_id?: string; // Optionnel car toutes les catégories n'ont pas de parent
+  updated_at?: string; // Optionnel pour la compatibilité avec les données existantes
 }
 
 export interface Tag {

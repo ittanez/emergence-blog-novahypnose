@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag } from '../types';
 
@@ -329,6 +328,41 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
     console.error('Error in deleteCategory:', error);
     return { success: false, error };
   }
+}
+
+// Corriger l'erreur de récursion infinie
+export type CategoryWithChildren = Category & {
+  children?: CategoryWithChildren[];
+};
+
+// Fonction pour organiser les catégories en hiérarchie
+export function organizeCategoriesHierarchy(
+  categories: Category[]
+): CategoryWithChildren[] {
+  const categoryMap: Record<string, CategoryWithChildren> = {};
+  const rootCategories: CategoryWithChildren[] = [];
+
+  // Première passe pour construire le map
+  categories.forEach(category => {
+    categoryMap[category.id] = {
+      ...category,
+      children: []
+    };
+  });
+
+  // Deuxième passe pour construire la hiérarchie
+  categories.forEach(category => {
+    if (category.parent_id && categoryMap[category.parent_id]) {
+      if (!categoryMap[category.parent_id].children) {
+        categoryMap[category.parent_id].children = [];
+      }
+      categoryMap[category.parent_id].children!.push(categoryMap[category.id]);
+    } else {
+      rootCategories.push(categoryMap[category.id]);
+    }
+  });
+
+  return rootCategories;
 }
 
 // Sauvegarder un article (création ou mise à jour)

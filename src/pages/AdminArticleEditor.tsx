@@ -226,7 +226,7 @@ const AdminArticleEditor = () => {
                   <SelectValue placeholder="Sélectionner une catégorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Non catégorisé</SelectItem>
+                  <SelectItem value="non-categorise">Non catégorisé</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category.id} value={category.name}>
                       {category.name}

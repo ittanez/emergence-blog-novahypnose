@@ -60,6 +60,36 @@ export type Database = {
         }
         Relationships: []
       }
+      article_categories: {
+        Row: {
+          article_id: string
+          category_id: string
+        }
+        Insert: {
+          article_id: string
+          category_id: string
+        }
+        Update: {
+          article_id?: string
+          category_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_categories_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_tags: {
         Row: {
           article_id: string

@@ -24,39 +24,10 @@ import {
 import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
 import { Article } from "@/lib/types";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-// Helper function to transform Supabase data to our Article type
-const transformArticleData = (data: any): Article => {
-  return {
-    id: data.id,
-    title: data.title,
-    content: data.content,
-    excerpt: data.excerpt || "",
-    image_url: data.image_url || "",
-    seo_description: "",
-    keywords: [],
-    category: "",
-    author_id: typeof data.author === 'string' ? data.author : "",
-    slug: data.slug || "",
-    read_time: 0,
-    published: data.published || false,
-    created_at: data.created_at,
-    updated_at: data.updated_at || data.created_at,
-    // Convert string[] tags to Tag[] if they exist
-    tags: Array.isArray(data.tags) 
-      ? data.tags.map(tag => ({ 
-          id: "", 
-          name: tag, 
-          slug: tag.toLowerCase().replace(/\s+/g, '-'),
-          created_at: new Date().toISOString()
-        }))
-      : undefined,
-  };
-};
+import { getAllArticles, deleteArticle } from "@/lib/services/articleService";
 
 const AdminArticles = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -71,10 +42,7 @@ const AdminArticles = () => {
     const fetchArticles = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('articles')
-          .select('*')
-          .order('created_at', { ascending: false });
+        const { data, error } = await getAllArticles();
           
         if (error) {
           throw error;
@@ -82,9 +50,11 @@ const AdminArticles = () => {
 
         console.log("Articles récupérés:", data);
         
-        // Transform each article to match our Article type
-        const transformedArticles = data.map(transformArticleData);
-        setArticles(transformedArticles);
+        if (data) {
+          setArticles(data);
+        } else {
+          setArticles([]);
+        }
       } catch (error: any) {
         console.error("Erreur lors de la récupération des articles:", error);
         toast.error("Impossible de charger les articles", { 
@@ -109,12 +79,11 @@ const AdminArticles = () => {
     
     try {
       setIsLoading(true);
-      const { error } = await supabase
-        .from('articles')
-        .delete()
-        .eq('id', selectedArticle.id);
+      const { success, error } = await deleteArticle(selectedArticle.id);
         
-      if (error) throw error;
+      if (!success || error) {
+        throw error;
+      }
       
       setArticles(articles.filter(a => a.id !== selectedArticle.id));
       toast.success("Article supprimé avec succès");
@@ -179,6 +148,7 @@ const AdminArticles = () => {
                   <TableHead>Titre</TableHead>
                   <TableHead className="hidden md:table-cell">Date de création</TableHead>
                   <TableHead className="hidden md:table-cell">Statut</TableHead>
+                  <TableHead className="hidden md:table-cell">Catégorie</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -194,6 +164,9 @@ const AdminArticles = () => {
                         <span className="text-green-500">Publié</span> : 
                         <span className="text-gray-500">Brouillon</span>
                       }
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {article.category || "Non catégorisé"}
                     </TableCell>
                     <TableCell className="text-right flex justify-end gap-2">
                       <Button 

@@ -7,26 +7,72 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
-import { Article } from "@/lib/types";
+import { Article, Category } from "@/lib/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getAllCategories, saveArticle, generateUniqueSlug } from "@/lib/services/articleService";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 const AdminArticleEditor = () => {
   const { id } = useParams();
   const isEditing = id !== "new";
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   
   const [isLoading, setIsLoading] = useState(isEditing);
   const [isSaving, setIsSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [article, setArticle] = useState<Partial<Article>>({
     title: "",
     content: "",
     excerpt: "",
     image_url: "",
     published: false,
+    category: "",
+    slug: ""
   });
+
+  // Rediriger si l'utilisateur n'est pas administrateur
+  useEffect(() => {
+    if (isAdmin === false) {
+      toast.error("Accès non autorisé", {
+        description: "Vous devez être administrateur pour accéder à cette page"
+      });
+      navigate("/");
+    }
+  }, [isAdmin, navigate]);
+
+  // Charger les catégories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await getAllCategories();
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setCategories(data);
+        }
+      } catch (error: any) {
+        console.error("Erreur lors du chargement des catégories:", error);
+        toast.error("Impossible de charger les catégories", {
+          description: error.message
+        });
+      }
+    };
+    
+    fetchCategories();
+  }, []);
 
   // Charger l'article si on est en mode édition
   useEffect(() => {
@@ -35,44 +81,15 @@ const AdminArticleEditor = () => {
       
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('articles')
-          .select('*')
-          .eq('id', id)
-          .single();
-          
+        
+        const { data: response, error } = await fetch(`/api/articles/${id}`).then(res => res.json());
+        
         if (error) {
           throw error;
         }
 
-        console.log("Article récupéré:", data);
-        
-        // Transform the data to match our Article type
-        const transformedData: Partial<Article> = {
-          id: data.id,
-          title: data.title,
-          content: data.content,
-          excerpt: data.excerpt || "",
-          image_url: data.image_url || "",
-          published: data.published || false,
-          slug: data.slug || "",
-          category: "", // Default empty value
-          author_id: typeof data.author === 'string' ? data.author : "",
-          seo_description: "",
-          keywords: [],
-          read_time: 0,
-          // Convert string[] tags to Tag[] if they exist
-          tags: Array.isArray(data.tags) 
-            ? data.tags.map(tag => ({ 
-                id: "", 
-                name: tag, 
-                slug: tag.toLowerCase().replace(/\s+/g, '-'),
-                created_at: new Date().toISOString()
-              }))
-            : undefined,
-        };
-        
-        setArticle(transformedData);
+        console.log("Article récupéré:", response);
+        setArticle(response);
       } catch (error: any) {
         console.error("Erreur lors de la récupération de l'article:", error);
         toast.error("Impossible de charger l'article", { 
@@ -97,12 +114,20 @@ const AdminArticleEditor = () => {
     setArticle(prev => ({ ...prev, published: checked }));
   };
 
-  // Générer un slug à partir du titre
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w ]+/g, '')
-      .replace(/ +/g, '-');
+  const handleCategoryChange = (value: string) => {
+    setArticle(prev => ({ ...prev, category: value }));
+  };
+
+  // Générer un slug automatique lorsque le titre change
+  const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setArticle(prev => ({ ...prev, title: newTitle }));
+    
+    // Ne générer un slug que si l'utilisateur n'en a pas déjà saisi un manuellement
+    if (!article.slug || article.slug === "") {
+      const newSlug = await generateUniqueSlug(newTitle, article.id);
+      setArticle(prev => ({ ...prev, slug: newSlug }));
+    }
   };
 
   // Sauvegarder l'article
@@ -117,45 +142,10 @@ const AdminArticleEditor = () => {
     try {
       setIsSaving(true);
       
-      // Générer un slug si nécessaire
-      if (!article.slug) {
-        article.slug = generateSlug(article.title);
-      }
-      
-      let result;
-      
-      // Prepare data for Supabase (remove properties that don't exist in the articles table)
-      const supabaseData = {
-        title: article.title,
-        content: article.content,
-        excerpt: article.excerpt,
-        image_url: article.image_url,
-        published: article.published,
-        updated_at: new Date().toISOString(),
-        slug: article.slug,
-        // Convert Tag[] to string[] if tags exist
-        tags: article.tags ? article.tags.map(tag => tag.name) : undefined,
-      };
-      
-      if (isEditing) {
-        // Mise à jour d'un article existant
-        result = await supabase
-          .from('articles')
-          .update(supabaseData)
-          .eq('id', id);
-      } else {
-        // Création d'un nouvel article
-        result = await supabase
-          .from('articles')
-          .insert({
-            ...supabaseData,
-            excerpt: article.excerpt || article.content.substring(0, 150) + '...',
-          });
-      }
-      
-      const { error } = result;
+      const { data, error } = await saveArticle(article);
       
       if (error) throw error;
+      if (!data) throw new Error("Aucune donnée n'a été retournée lors de l'enregistrement");
       
       toast.success(isEditing ? "Article mis à jour avec succès" : "Article créé avec succès");
       navigate('/admin/articles');
@@ -205,10 +195,46 @@ const AdminArticleEditor = () => {
               id="title"
               name="title"
               value={article.title}
-              onChange={handleChange}
+              onChange={handleTitleChange}
               placeholder="Titre de l'article"
               required
             />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug URL</Label>
+              <Input
+                id="slug"
+                name="slug"
+                value={article.slug || ''}
+                onChange={handleChange}
+                placeholder="titre-de-larticle"
+              />
+              <p className="text-sm text-gray-500">
+                Identifiant unique dans l'URL de l'article
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="category">Catégorie</Label>
+              <Select 
+                value={article.category || ''} 
+                onValueChange={handleCategoryChange}
+              >
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Sélectionner une catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Non catégorisé</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="space-y-2">

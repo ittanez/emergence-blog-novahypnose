@@ -73,9 +73,17 @@ export interface CategoryBase {
   updated_at?: string | null;
 }
 
-// Define CategoryNode for the tree structure
-export interface CategoryNode extends CategoryBase {
-  children: CategoryNode[]; // This is causing the infinite recursion
+// Define CategoryNode interface for the tree structure
+// This breaks the infinite recursion by using an explicit type definition
+export interface CategoryNode {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  slug: string;
+  parent_id?: string | null;
+  updated_at?: string | null;
+  children: CategoryNode[]; // Array of child categories
 }
 
 // For backward compatibility

@@ -73,9 +73,16 @@ export interface CategoryBase {
   updated_at?: string | null;
 }
 
-// Define CategoryNode for the tree structure with explicit children type
-export interface CategoryNode extends CategoryBase {
-  children: CategoryNode[] | [];
+// Define CategoryNode for the tree structure
+export interface CategoryNode {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  slug: string;
+  parent_id?: string | null;
+  updated_at?: string | null;
+  children: CategoryNode[];
 }
 
 // For backward compatibility

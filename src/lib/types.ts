@@ -74,14 +74,7 @@ export interface CategoryBase {
 }
 
 // Define CategoryNode for the tree structure
-export interface CategoryNode {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  slug: string;
-  parent_id?: string | null;
-  updated_at?: string | null;
+export interface CategoryNode extends CategoryBase {
   children: CategoryNode[]; // Always initialize as empty array to avoid recursion issues
 }
 

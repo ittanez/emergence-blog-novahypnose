@@ -330,8 +330,8 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
   }
 }
 
-// Corriger l'erreur de récursion infinie
-export type CategoryWithChildren = Category & {
+// Définir CategoryWithChildren sans récursion infinie
+export type CategoryWithChildren = Omit<Category, 'children'> & {
   children?: CategoryWithChildren[];
 };
 

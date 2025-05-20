@@ -16,25 +16,29 @@ export const categories: Category[] = [
     id: "1",
     name: "Hypnose Thérapeutique",
     description: "L'hypnose comme outil thérapeutique pour résoudre des problèmes spécifiques",
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    slug: "hypnose-therapeutique"
   },
   {
     id: "2",
     name: "Développement Personnel",
     description: "Techniques et approches pour stimuler votre croissance personnelle",
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    slug: "developpement-personnel"
   },
   {
     id: "3",
     name: "Bien-être",
     description: "Méthodes pour améliorer votre équilibre et votre qualité de vie",
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    slug: "bien-etre"
   },
   {
     id: "4",
     name: "Témoignages",
     description: "Expériences et parcours de transformation avec l'hypnose",
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    slug: "temoignages"
   }
 ];
 

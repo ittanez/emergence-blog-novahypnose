@@ -75,7 +75,7 @@ export interface CategoryBase {
 
 // Define CategoryNode for the tree structure
 export interface CategoryNode extends CategoryBase {
-  children: CategoryNode[]; // Always initialize as empty array to avoid recursion issues
+  children: CategoryNode[]; // This is causing the infinite recursion
 }
 
 // For backward compatibility

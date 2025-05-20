@@ -340,7 +340,7 @@ export function organizeCategoriesHierarchy(
   // Create an array to store root categories
   const rootCategories: CategoryNode[] = [];
 
-  // First pass: populate the map with all categories
+  // First pass: populate the map with all categories, each with an empty children array
   categories.forEach(category => {
     categoryMap[category.id] = {
       ...category,
@@ -350,13 +350,15 @@ export function organizeCategoriesHierarchy(
 
   // Second pass: build the hierarchy
   categories.forEach(category => {
+    const categoryNode = categoryMap[category.id];
+    
     // If the category has a parent and the parent exists in our map
     if (category.parent_id && categoryMap[category.parent_id]) {
       // Add this category as a child of its parent
-      categoryMap[category.parent_id].children.push(categoryMap[category.id]);
+      categoryMap[category.parent_id].children.push(categoryNode);
     } else {
       // This is a root category
-      rootCategories.push(categoryMap[category.id]);
+      rootCategories.push(categoryNode);
     }
   });
 

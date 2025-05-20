@@ -330,18 +330,6 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
   }
 }
 
-// Définir CategoryWithChildren sans récursion infinie
-export interface CategoryWithChildren {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  slug: string;
-  parent_id?: string | null;
-  updated_at?: string | null;
-  children?: CategoryWithChildren[];
-}
-
 // Function to organize categories in a hierarchy
 export function organizeCategoriesHierarchy(
   categories: Category[]

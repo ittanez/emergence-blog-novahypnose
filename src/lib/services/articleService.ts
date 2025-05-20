@@ -337,8 +337,8 @@ export interface CategoryWithChildren {
   description: string;
   created_at: string;
   slug: string;
-  parent_id?: string;
-  updated_at?: string;
+  parent_id?: string | null;
+  updated_at?: string | null;
   children?: CategoryWithChildren[];
 }
 
@@ -346,23 +346,28 @@ export interface CategoryWithChildren {
 export function organizeCategoriesHierarchy(
   categories: Category[]
 ): CategoryWithChildren[] {
+  // Create a map to store all categories by their ID
   const categoryMap: Record<string, CategoryWithChildren> = {};
+  
+  // Create an array to store root categories
   const rootCategories: CategoryWithChildren[] = [];
 
-  // Première passe pour construire le map
+  // First pass: populate the map with all categories
   categories.forEach(category => {
     categoryMap[category.id] = {
       ...category,
-      children: []
+      children: [] // Initialize with empty array to avoid null checks later
     };
   });
 
-  // Deuxième passe pour construire la hiérarchie
+  // Second pass: build the hierarchy
   categories.forEach(category => {
+    // If the category has a parent and the parent exists in our map
     if (category.parent_id && categoryMap[category.parent_id]) {
-      categoryMap[category.parent_id].children = categoryMap[category.parent_id].children || [];
-      categoryMap[category.parent_id].children!.push(categoryMap[category.id]);
+      // Add this category as a child of its parent
+      categoryMap[category.parent_id].children?.push(categoryMap[category.id]);
     } else {
+      // This is a root category
       rootCategories.push(categoryMap[category.id]);
     }
   });

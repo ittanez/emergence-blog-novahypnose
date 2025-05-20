@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
@@ -332,7 +333,7 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
 
 // Function to organize categories in a hierarchy
 export function organizeCategoriesHierarchy(
-  categories: Category[]
+  categories: CategoryBase[]
 ): CategoryNode[] {
   // Create a map to store all categories by their ID
   const categoryMap: Record<string, CategoryNode> = {};
@@ -353,6 +354,9 @@ export function organizeCategoriesHierarchy(
     // If the category has a parent and the parent exists in our map
     if (category.parent_id && categoryMap[category.parent_id]) {
       // Add this category as a child of its parent
+      if (!categoryMap[category.parent_id].children) {
+        categoryMap[category.parent_id].children = [];
+      }
       categoryMap[category.parent_id].children!.push(categoryMap[category.id]);
     } else {
       // This is a root category

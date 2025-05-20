@@ -18,7 +18,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Article, Category } from "@/lib/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getAllCategories, saveArticle, generateUniqueSlug } from "@/lib/services/articleService";
+import { getAllCategories, saveArticle, generateUniqueSlug, getArticleById } from "@/lib/services/articleService";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 const AdminArticleEditor = () => {
@@ -77,19 +77,24 @@ const AdminArticleEditor = () => {
   // Charger l'article si on est en mode édition
   useEffect(() => {
     const fetchArticle = async () => {
-      if (!isEditing) return;
+      if (!isEditing || !id) return;
       
       try {
         setIsLoading(true);
         
-        const { data: response, error } = await fetch(`/api/articles/${id}`).then(res => res.json());
+        // Utiliser directement notre fonction getArticleById au lieu d'un fetch standard
+        const { data, error } = await getArticleById(id);
         
         if (error) {
           throw error;
         }
 
-        console.log("Article récupéré:", response);
-        setArticle(response);
+        if (!data) {
+          throw new Error("Article non trouvé");
+        }
+
+        console.log("Article récupéré:", data);
+        setArticle(data);
       } catch (error: any) {
         console.error("Erreur lors de la récupération de l'article:", error);
         toast.error("Impossible de charger l'article", { 

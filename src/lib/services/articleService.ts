@@ -30,6 +30,34 @@ export const transformArticleData = (data: any): Article => {
   };
 };
 
+// Récupérer un article par son ID
+export async function getArticleById(id: string): Promise<{ data: Article | null; error: any }> {
+  try {
+    const { data: articleData, error: articleError } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (articleError) {
+      console.error('Error fetching article details:', articleError);
+      return { data: null, error: articleError };
+    }
+    
+    if (!articleData) {
+      return { data: null, error: new Error('Article not found') };
+    }
+    
+    // Transformer les données en type Article
+    const article = transformArticleData(articleData);
+    
+    return { data: article, error: null };
+  } catch (error) {
+    console.error('Unexpected error in getArticleById:', error);
+    return { data: null, error };
+  }
+}
+
 // Récupérer un article par son slug
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {

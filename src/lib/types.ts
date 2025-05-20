@@ -63,8 +63,14 @@ export interface SortOption {
 }
 
 // Define a base category interface without children
-export interface CategoryBase extends Omit<Category, 'parent_id'> {
+export interface CategoryBase {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  slug: string;
   parent_id?: string | null;
+  updated_at?: string | null;
 }
 
 // Define CategoryNode for the tree structure

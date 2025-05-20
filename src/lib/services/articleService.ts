@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Article, Author, Category, Tag, CategoryNode } from '../types';
+import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
 // Transformation des données d'un article récupéré de Supabase
 export const transformArticleData = (data: any): Article => {

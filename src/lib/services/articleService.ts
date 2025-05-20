@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
@@ -353,7 +354,7 @@ export function organizeCategoriesHierarchy(
     // If the category has a parent and the parent exists in our map
     if (category.parent_id && categoryMap[category.parent_id]) {
       // Add this category as a child of its parent
-      categoryMap[category.parent_id].children!.push(categoryMap[category.id]);
+      categoryMap[category.parent_id].children.push(categoryMap[category.id]);
     } else {
       // This is a root category
       rootCategories.push(categoryMap[category.id]);

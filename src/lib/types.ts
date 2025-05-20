@@ -62,14 +62,15 @@ export interface SortOption {
   value: string;
 }
 
-// Break the recursive type definition
-export interface CategoryWithChildren extends Omit<Category, 'parent_id'> {
+// Define a base category interface without children
+export interface CategoryBase extends Omit<Category, 'parent_id'> {
   parent_id?: string | null;
+}
+
+// Define CategoryNode for the tree structure
+export interface CategoryNode extends CategoryBase {
   children?: CategoryNode[];
 }
 
-// Use a separate type for the children array
-export interface CategoryNode extends Omit<Category, 'parent_id'> {
-  parent_id?: string | null;
-  children?: CategoryNode[];
-}
+// CategoryWithChildren is now an alias to CategoryNode for backward compatibility
+export type CategoryWithChildren = CategoryNode;

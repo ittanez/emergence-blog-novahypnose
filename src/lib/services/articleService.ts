@@ -277,7 +277,7 @@ export async function saveCategory(category: Partial<Category>): Promise<{ data:
 }
 
 // Supprimer une catégorie avec vérification
-export async function deleteCategory(categoryId: string): Promise<{ success: boolean; error: any }> {
+export async function deleteCategory(categoryId: string): Promise<{ success: boolean; error: Error | string | null }> {
   try {
     // Vérifier si la catégorie est utilisée par des articles
     const { data: usedByArticles, error: checkError } = await supabase
@@ -297,6 +297,7 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
     }
     
     // Vérifier si la catégorie a des enfants
+// @ts-ignore - Contournement temporaire de l'erreur TS2589 
     const { data: childCategories, error: childCheckError } = await supabase
       .from('categories')
       .select('id')

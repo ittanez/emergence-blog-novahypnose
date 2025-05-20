@@ -82,7 +82,7 @@ export interface CategoryNode {
   slug: string;
   parent_id?: string | null;
   updated_at?: string | null;
-  children: CategoryNode[];
+  children: CategoryNode[]; // Always initialize as empty array to avoid recursion issues
 }
 
 // For backward compatibility

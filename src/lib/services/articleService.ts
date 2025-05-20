@@ -331,9 +331,16 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
 }
 
 // Définir CategoryWithChildren sans récursion infinie
-export type CategoryWithChildren = Omit<Category, 'children'> & {
+export interface CategoryWithChildren {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  slug: string;
+  parent_id?: string;
+  updated_at?: string;
   children?: CategoryWithChildren[];
-};
+}
 
 // Fonction pour organiser les catégories en hiérarchie
 export function organizeCategoriesHierarchy(
@@ -353,9 +360,7 @@ export function organizeCategoriesHierarchy(
   // Deuxième passe pour construire la hiérarchie
   categories.forEach(category => {
     if (category.parent_id && categoryMap[category.parent_id]) {
-      if (!categoryMap[category.parent_id].children) {
-        categoryMap[category.parent_id].children = [];
-      }
+      categoryMap[category.parent_id].children = categoryMap[category.parent_id].children || [];
       categoryMap[category.parent_id].children!.push(categoryMap[category.id]);
     } else {
       rootCategories.push(categoryMap[category.id]);

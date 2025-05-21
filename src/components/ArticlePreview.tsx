@@ -37,10 +37,14 @@ const ArticlePreview = ({ article, open, onClose }: ArticlePreviewProps) => {
           
           <h1 className="text-3xl font-serif font-bold mb-4">{article.title || "Sans titre"}</h1>
           
-          <div className="flex items-center text-sm text-gray-500 mb-6">
+          <div className="flex flex-wrap items-center text-sm text-gray-500 mb-6">
             <span>Publié {formattedDate}</span>
-            <span className="mx-2">•</span>
-            <span>{article.category || "Non catégorisé"}</span>
+            {article.category && (
+              <>
+                <span className="mx-2">•</span>
+                <span>{article.category}</span>
+              </>
+            )}
             {article.read_time && (
               <>
                 <span className="mx-2">•</span>

@@ -408,7 +408,7 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       published: article.published || false,
       updated_at: new Date().toISOString(),
       slug: article.slug || article.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-      tags: article.tags ? article.tags.map(tag => tag.name) : []
+      tags: article.tags ? article.tags.map(tag => (typeof tag === 'string') ? tag : tag.name) : []
     };
     
     let result;
@@ -439,6 +439,8 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
     
     // Gérer les catégories si spécifiées
     if (article.category) {
+      console.log("Traitement de la catégorie:", article.category);
+      
       // Chercher si la catégorie existe déjà
       const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
@@ -447,12 +449,13 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
         .single();
         
       if (categoryError && categoryError.code !== 'PGRST116') {  // PGRST116 signifie "no rows returned"
-        console.error('Error finding category:', categoryError);
+        console.error('Erreur lors de la recherche de la catégorie:', categoryError);
       }
       
       let categoryId;
       
       if (!categoryData) {
+        console.log("La catégorie n'existe pas, création d'une nouvelle catégorie");
         // Créer la catégorie si elle n'existe pas
         const slug = article.category.toLowerCase().replace(/\s+/g, '-');
         const { data: newCategory, error: createError } = await supabase
@@ -464,29 +467,45 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
           .select();
           
         if (createError) {
-          console.error('Error creating category:', createError);
-        } else {
+          console.error('Erreur lors de la création de la catégorie:', createError);
+        } else if (newCategory && newCategory.length > 0) {
           categoryId = newCategory[0].id;
+          console.log("Nouvelle catégorie créée avec l'ID:", categoryId);
         }
       } else {
         categoryId = categoryData.id;
+        console.log("Catégorie existante trouvée avec l'ID:", categoryId);
       }
       
       if (categoryId) {
+        console.log("Suppression des anciennes relations de catégorie pour l'article:", articleId);
         // Supprimer les anciennes relations de catégorie
-        await supabase
+        const { error: deleteError } = await supabase
           .from('article_categories')
           .delete()
           .eq('article_id', articleId);
           
+        if (deleteError) {
+          console.error('Erreur lors de la suppression des relations de catégorie:', deleteError);
+        }
+        
+        console.log("Création de la nouvelle relation article-catégorie");
         // Ajouter la nouvelle relation
-        await supabase
+        const { error: insertError } = await supabase
           .from('article_categories')
           .insert({
             article_id: articleId,
             category_id: categoryId
           });
+          
+        if (insertError) {
+          console.error('Erreur lors de la création de la relation article-catégorie:', insertError);
+        } else {
+          console.log("Relation article-catégorie créée avec succès");
+        }
       }
+    } else {
+      console.log("Aucune catégorie spécifiée pour l'article");
     }
     
     // Transformer l'article pour le retour

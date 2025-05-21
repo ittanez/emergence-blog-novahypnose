@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue 
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarIcon, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -28,6 +27,9 @@ import TagInput from "@/components/TagInput";
 import ArticlePreview from "@/components/ArticlePreview";
 import { getAllCategories, saveArticle, generateUniqueSlug, getArticleById } from "@/lib/services/articleService";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 const AdminArticleEditor = () => {
   const { id } = useParams();
@@ -39,7 +41,6 @@ const AdminArticleEditor = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showPreview, setShowPreview] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("contenu");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [article, setArticle] = useState<Partial<Article>>({
     title: "",
@@ -139,7 +140,7 @@ const AdminArticleEditor = () => {
     setArticle(prev => ({ ...prev, [name]: value }));
   };
 
-  // Mettre à jour le contenu riche de l'article
+  // Mettre à jour le contenu riche de l'article et générer automatiquement le SEO
   const handleContentChange = (content: string) => {
     setArticle(prev => ({ ...prev, content }));
     
@@ -151,10 +152,41 @@ const AdminArticleEditor = () => {
       setArticle(prev => ({ ...prev, excerpt }));
     }
     
+    // Générer automatiquement la description SEO si elle est vide
+    if (!article.seo_description || article.seo_description === "") {
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const seoDescription = plainText.substring(0, 160) + (plainText.length > 160 ? '...' : '');
+      setArticle(prev => ({ ...prev, seo_description: seoDescription }));
+    }
+    
     // Estimer le temps de lecture (environ 200 mots par minute)
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
     setArticle(prev => ({ ...prev, read_time: readTime }));
+    
+    // Extraire des mots-clés potentiels si la liste est vide
+    if (!article.keywords || article.keywords.length === 0) {
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const words = plainText.toLowerCase().split(/\s+/);
+      const commonWords = new Set(['le', 'la', 'les', 'un', 'une', 'des', 'et', 'ou', 'mais', 'donc', 'car', 'de', 'à', 'au', 'aux', 'en', 'dans', 'sur', 'pour', 'par', 'avec', 'sans']);
+      const frequency: Record<string, number> = {};
+      
+      words.forEach(word => {
+        if (word.length > 3 && !commonWords.has(word)) {
+          frequency[word] = (frequency[word] || 0) + 1;
+        }
+      });
+      
+      // Trier par fréquence et prendre les 5 premiers mots
+      const potentialKeywords = Object.entries(frequency)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(entry => entry[0]);
+        
+      if (potentialKeywords.length > 0) {
+        setArticle(prev => ({ ...prev, keywords: potentialKeywords }));
+      }
+    }
   };
 
   // Mettre à jour les tags
@@ -170,13 +202,9 @@ const AdminArticleEditor = () => {
     setArticle(prev => ({ ...prev, tags: tagObjects }));
   };
 
-  const handleSwitchChange = (checked: boolean) => {
-    setArticle(prev => ({ ...prev, published: checked }));
-    setPublishMode(checked ? "publish" : "draft");
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setArticle(prev => ({ ...prev, category: value }));
+  // Mettre à jour les keywords SEO
+  const handleKeywordsChange = (keywords: string[]) => {
+    setArticle(prev => ({ ...prev, keywords }));
   };
 
   const handlePublishModeChange = (mode: "draft" | "publish" | "schedule") => {
@@ -206,6 +234,12 @@ const AdminArticleEditor = () => {
       const newSlug = await generateUniqueSlug(newTitle, article.id);
       setArticle(prev => ({ ...prev, slug: newSlug }));
     }
+  };
+
+  // Mettre à jour la catégorie
+  const handleCategoryChange = (value: string) => {
+    console.log("Nouvelle catégorie sélectionnée:", value);
+    setArticle(prev => ({ ...prev, category: value }));
   };
 
   // Gérer l'upload d'image
@@ -243,11 +277,7 @@ const AdminArticleEditor = () => {
         article.scheduled_for = undefined;
       }
       
-      // Si l'utilisateur n'a pas fourni de description SEO, utiliser l'extrait
-      if (!article.seo_description && article.excerpt) {
-        article.seo_description = article.excerpt;
-      }
-      
+      console.log("Sauvegarde de l'article avec catégorie:", article.category);
       const { data, error } = await saveArticle(article);
       
       if (error) throw error;
@@ -322,238 +352,241 @@ const AdminArticleEditor = () => {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Tabs pour organiser l'interface */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="contenu">Contenu</TabsTrigger>
-              <TabsTrigger value="parametres">Paramètres</TabsTrigger>
-              <TabsTrigger value="seo">SEO</TabsTrigger>
-            </TabsList>
-            
-            {/* Onglet Contenu */}
-            <TabsContent value="contenu" className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Titre *</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={article.title}
-                  onChange={handleTitleChange}
-                  placeholder="Titre de l'article"
-                  required
-                  className="text-xl font-medium"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <RichTextEditor
-                  label="Contenu *"
-                  value={article.content || ""}
-                  onChange={handleContentChange}
-                  height={500}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="image">Image principale</Label>
-                <div className="flex items-center gap-4">
-                  <Input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="max-w-md"
-                  />
-                  {article.image_url && (
-                    <div className="w-16 h-16 rounded overflow-hidden">
-                      <img 
-                        src={article.image_url} 
-                        alt="Aperçu" 
-                        className="w-full h-full object-cover" 
-                      />
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500">
-                  Format recommandé: 1200x630px
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">Extrait</Label>
-                <Input
-                  id="excerpt"
-                  name="excerpt"
-                  value={article.excerpt || ''}
-                  onChange={handleChange}
-                  placeholder="Bref résumé de l'article"
-                />
-                <p className="text-sm text-gray-500">
-                  Si non renseigné, les premiers caractères du contenu seront utilisés
-                </p>
-              </div>
-            </TabsContent>
-            
-            {/* Onglet Paramètres */}
-            <TabsContent value="parametres" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              {/* Section principale - Contenu */}
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug URL</Label>
+                  <Label htmlFor="title">Titre *</Label>
                   <Input
-                    id="slug"
-                    name="slug"
-                    value={article.slug || ''}
-                    onChange={handleChange}
-                    placeholder="titre-de-larticle"
+                    id="title"
+                    name="title"
+                    value={article.title}
+                    onChange={handleTitleChange}
+                    placeholder="Titre de l'article"
+                    required
+                    className="text-xl font-medium"
                   />
-                  <p className="text-sm text-gray-500">
-                    Identifiant unique dans l'URL de l'article
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Catégorie</Label>
+                    <Select 
+                      value={article.category || ''} 
+                      onValueChange={handleCategoryChange}
+                    >
+                      <SelectTrigger id="category">
+                        <SelectValue placeholder="Sélectionner une catégorie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="non-categorise">Non catégorisé</SelectItem>
+                        {categories.map(category => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="slug">URL personnalisée (slug)</Label>
+                    <Input
+                      id="slug"
+                      name="slug"
+                      value={article.slug || ''}
+                      onChange={handleChange}
+                      placeholder="titre-de-larticle"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Identifiant unique dans l'URL de l'article
+                    </p>
+                  </div>
+                </div>
+              
+                <div className="space-y-2">
+                  <RichTextEditor
+                    label="Contenu *"
+                    value={article.content || ""}
+                    onChange={handleContentChange}
+                    height={500}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="excerpt">Extrait / Résumé</Label>
+                  <Textarea
+                    id="excerpt"
+                    name="excerpt"
+                    value={article.excerpt || ''}
+                    onChange={handleChange}
+                    placeholder="Bref résumé de l'article"
+                    className="min-h-[80px]"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Affiché sur la page d'accueil. Si non renseigné, les premiers caractères du contenu seront utilisés.
                   </p>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Catégorie</Label>
-                  <Select 
-                    value={article.category || ''} 
-                    onValueChange={handleCategoryChange}
-                  >
-                    <SelectTrigger id="category">
-                      <SelectValue placeholder="Sélectionner une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="non-categorise">Non catégorisé</SelectItem>
-                      {categories.map(category => (
-                        <SelectItem key={category.id} value={category.name}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <TagInput
-                  label="Tags"
-                  tags={article.tags?.map(tag => typeof tag === 'string' ? tag : tag.name) || []}
-                  onChange={handleTagsChange}
-                  placeholder="Ajouter un tag..."
-                />
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Publication</h3>
-                
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="draft"
-                      name="publishMode"
-                      checked={publishMode === "draft"}
-                      onChange={() => handlePublishModeChange("draft")}
+                  <Label htmlFor="image">Image principale</Label>
+                  <div className="flex items-center gap-4">
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="max-w-md"
                     />
-                    <Label htmlFor="draft" className="cursor-pointer">
-                      Enregistrer comme brouillon
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="publish"
-                      name="publishMode"
-                      checked={publishMode === "publish"}
-                      onChange={() => handlePublishModeChange("publish")}
-                    />
-                    <Label htmlFor="publish" className="cursor-pointer">
-                      Publier immédiatement
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="schedule"
-                      name="publishMode"
-                      checked={publishMode === "schedule"}
-                      onChange={() => handlePublishModeChange("schedule")}
-                    />
-                    <Label htmlFor="schedule" className="cursor-pointer">
-                      Programmer la publication
-                    </Label>
-                    
-                    {publishMode === "schedule" && (
-                      <div className="ml-6">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-[240px] justify-start text-left font-normal",
-                                !scheduledDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {scheduledDate ? format(scheduledDate, "PPP", { locale: fr }) : "Choisir une date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={scheduledDate}
-                              onSelect={(date) => {
-                                setScheduledDate(date);
-                                if (date) {
-                                  setArticle(prev => ({ 
-                                    ...prev, 
-                                    scheduled_for: date.toISOString() 
-                                  }));
-                                }
-                              }}
-                              initialFocus
-                              disabled={(date) => date < new Date()}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                    {article.image_url && (
+                      <div className="w-16 h-16 rounded overflow-hidden">
+                        <img 
+                          src={article.image_url} 
+                          alt="Aperçu" 
+                          className="w-full h-full object-cover" 
+                        />
                       </div>
                     )}
                   </div>
+                  <p className="text-xs text-gray-500">
+                    Format recommandé: 1200x630px
+                  </p>
                 </div>
               </div>
-            </TabsContent>
-            
-            {/* Onglet SEO */}
-            <TabsContent value="seo" className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="seo_description">Méta-description SEO</Label>
-                <Input
-                  id="seo_description"
-                  name="seo_description"
-                  value={article.seo_description || ''}
-                  onChange={handleChange}
-                  placeholder="Description pour les moteurs de recherche"
-                />
-                <p className="text-sm text-gray-500">
-                  Recommandation: 150-160 caractères maximum
-                </p>
+
+              <Separator className="my-6" />
+              
+              {/* Section Tags et Publication */}
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <TagInput
+                    label="Tags"
+                    tags={article.tags?.map(tag => typeof tag === 'string' ? tag : tag.name) || []}
+                    onChange={handleTagsChange}
+                    placeholder="Ajouter un tag..."
+                  />
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Publication</h3>
+                  
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="draft"
+                        name="publishMode"
+                        checked={publishMode === "draft"}
+                        onChange={() => handlePublishModeChange("draft")}
+                      />
+                      <Label htmlFor="draft" className="cursor-pointer">
+                        Enregistrer comme brouillon
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="publish"
+                        name="publishMode"
+                        checked={publishMode === "publish"}
+                        onChange={() => handlePublishModeChange("publish")}
+                      />
+                      <Label htmlFor="publish" className="cursor-pointer">
+                        Publier immédiatement
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="schedule"
+                        name="publishMode"
+                        checked={publishMode === "schedule"}
+                        onChange={() => handlePublishModeChange("schedule")}
+                      />
+                      <Label htmlFor="schedule" className="cursor-pointer">
+                        Programmer la publication
+                      </Label>
+                      
+                      {publishMode === "schedule" && (
+                        <div className="ml-6">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-[240px] justify-start text-left font-normal",
+                                  !scheduledDate && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {scheduledDate ? format(scheduledDate, "PPP", { locale: fr }) : "Choisir une date"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={scheduledDate}
+                                onSelect={(date) => {
+                                  setScheduledDate(date);
+                                  if (date) {
+                                    setArticle(prev => ({ 
+                                      ...prev, 
+                                      scheduled_for: date.toISOString() 
+                                    }));
+                                  }
+                                }}
+                                initialFocus
+                                disabled={(date) => date < new Date()}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <Label>Mots-clés SEO</Label>
-                <TagInput
-                  tags={article.keywords || []}
-                  onChange={(keywords) => setArticle(prev => ({ ...prev, keywords }))}
-                  placeholder="Ajouter un mot-clé..."
-                />
-                <p className="text-sm text-gray-500">
-                  5-10 mots-clés pertinents pour votre article
-                </p>
+              <Separator className="my-6" />
+              
+              {/* Section SEO */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium">Référencement (SEO)</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="seo_description">Méta-description</Label>
+                  <Textarea
+                    id="seo_description"
+                    name="seo_description"
+                    value={article.seo_description || ''}
+                    onChange={handleChange}
+                    placeholder="Description pour les moteurs de recherche"
+                    className="min-h-[80px]"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Recommandation: 150-160 caractères maximum
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Mots-clés SEO</Label>
+                  <TagInput
+                    tags={article.keywords || []}
+                    onChange={handleKeywordsChange}
+                    placeholder="Ajouter un mot-clé..."
+                  />
+                  <p className="text-xs text-gray-500">
+                    5-10 mots-clés pertinents pour votre article
+                  </p>
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
+            </CardContent>
+          </Card>
           
-          <div className="pt-6 border-t border-gray-200">
+          <div className="pt-6">
             <Button
               type="submit"
               className="brand-gradient"

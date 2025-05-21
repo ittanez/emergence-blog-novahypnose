@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,51 +30,55 @@ const queryClient = new QueryClient({
   }
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/article/:slug" element={<ArticlePage />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/category/:categoryId" element={<CategoryPage />} />
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/setup" element={<AdminSetup />} />
-            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
-            <Route 
-              path="/admin/dashboard" 
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/admin/articles" 
-              element={
-                <AdminRoute>
-                  <AdminArticles />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/admin/article/:id" 
-              element={
-                <AdminRoute>
-                  <AdminArticleEditor />
-                </AdminRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/article/:slug" element={<ArticlePage />} />
+                <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/category/:categoryId" element={<CategoryPage />} />
+                <Route path="/admin" element={<AdminLogin />} />
+                <Route path="/admin/setup" element={<AdminSetup />} />
+                <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+                <Route 
+                  path="/admin/dashboard" 
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/articles" 
+                  element={
+                    <AdminRoute>
+                      <AdminArticles />
+                    </AdminRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/article/:id" 
+                  element={
+                    <AdminRoute>
+                      <AdminArticleEditor />
+                    </AdminRoute>
+                  } 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;

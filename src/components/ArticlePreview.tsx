@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Article } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";

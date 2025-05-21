@@ -24,7 +24,7 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
       )}
       <Editor
         id="content"
-        apiKey="no-api-key" // En production, utilisez une vraie clé API
+        apiKey="6q2l0qo2d981lsmsnugf2o15m593samljjw043nc4ol1ao8t"
         onInit={(evt, editor) => {
           editorRef.current = editor;
           setIsReady(true);
@@ -60,7 +60,7 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
             });
           },
           language: 'fr_FR',
-          language_url: 'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/langs/fr_FR.js',
+          language_url: 'https://cdn.tiny.cloud/1/6q2l0qo2d981lsmsnugf2o15m593samljjw043nc4ol1ao8t/tinymce/6/langs/fr_FR.js',
           skin: "oxide",
           branding: false,
         }}

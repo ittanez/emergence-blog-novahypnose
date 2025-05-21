@@ -41,7 +41,8 @@ export interface Article {
   published: boolean;
   created_at: string;
   updated_at: string;
-  tags?: Tag[];
+  scheduled_for?: string;
+  tags?: Tag[] | string[];
   author?: Author;
 }
 

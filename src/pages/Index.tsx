@@ -5,13 +5,11 @@ import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticles, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
 
 const Index = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("newest");
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -47,17 +45,9 @@ const Index = () => {
     
     fetchData();
   }, []);
-  
-  // Filtrer les articles par catégorie
-  const filteredArticles = selectedCategory 
-    ? articles.filter(article => {
-        // Vérifier si l'article a une catégorie qui correspond
-        return article.category === selectedCategory;
-      })
-    : articles;
     
   // Trier les articles
-  const sortedArticles = [...filteredArticles].sort((a, b) => {
+  const sortedArticles = [...articles].sort((a, b) => {
     switch (sortBy) {
       case "newest":
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -71,11 +61,6 @@ const Index = () => {
         return 0;
     }
   });
-  
-  // Trouver l'objet de la catégorie sélectionnée
-  const selectedCategoryObj = selectedCategory
-    ? categories.find(cat => cat.name === selectedCategory)
-    : null;
   
   const handleSortChange = (value: string) => {
     setSortBy(value);
@@ -93,38 +78,10 @@ const Index = () => {
           </p>
         </div>
         
-        {/* Category selection - Affichage de toutes les catégories */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2 justify-center">
-            <Button
-              variant={selectedCategory === null ? "default" : "outline"}
-              onClick={() => setSelectedCategory(null)}
-              className={selectedCategory === null ? "brand-gradient" : ""}
-            >
-              Tous les articles
-            </Button>
-            
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.name ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category.name)}
-                className={selectedCategory === category.name ? "brand-gradient" : ""}
-              >
-                {category.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-        
         {/* Sorting and results count */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
           <div className="mb-4 sm:mb-0">
-            {selectedCategoryObj ? (
-              <h2 className="text-xl font-medium">{selectedCategoryObj.name} <span className="text-gray-500 font-normal">({sortedArticles.length} article{sortedArticles.length !== 1 ? 's' : ''})</span></h2>
-            ) : (
-              <h2 className="text-xl font-medium">Tous les articles <span className="text-gray-500 font-normal">({sortedArticles.length} article{sortedArticles.length !== 1 ? 's' : ''})</span></h2>
-            )}
+            <h2 className="text-xl font-medium">Tous les articles <span className="text-gray-500 font-normal">({sortedArticles.length} article{sortedArticles.length !== 1 ? 's' : ''})</span></h2>
           </div>
           
           <div className="flex items-center">
@@ -158,9 +115,7 @@ const Index = () => {
           <div className="text-center py-12">
             <h3 className="text-xl text-gray-600">Aucun article trouvé</h3>
             <p className="mt-2 text-gray-500">
-              {selectedCategory 
-                ? "Aucun article dans cette catégorie." 
-                : "Aucun article n'a encore été publié."}
+              Aucun article n'a encore été publié.
             </p>
           </div>
         )}

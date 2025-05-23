@@ -16,6 +16,9 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
     locale: fr
   });
   
+  // Utiliser l'auteur de l'article ou un nom par défaut
+  const authorName = article.author?.name || "Alain Zenatti";
+  
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
       <CardHeader className="p-0">
@@ -46,7 +49,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
       </CardContent>
       <CardFooter className="text-xs text-gray-500 pt-0 pb-4">
         <div className="flex items-center justify-between w-full">
-          <span>Alain Zenatti</span>
+          <span>{authorName}</span>
           <div className="flex items-center">
             <span>{formattedDate}</span>
             <span className="mx-2">•</span>

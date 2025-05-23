@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Category, SortOption, Article } from "@/lib/types";
+import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
@@ -50,7 +50,10 @@ const Index = () => {
   
   // Filtrer les articles par catégorie
   const filteredArticles = selectedCategory 
-    ? articles.filter(article => article.category === selectedCategory)
+    ? articles.filter(article => {
+        // Vérifier si l'article a une catégorie qui correspond
+        return article.category === selectedCategory;
+      })
     : articles;
     
   // Trier les articles
@@ -90,7 +93,7 @@ const Index = () => {
           </p>
         </div>
         
-        {/* Category selection */}
+        {/* Category selection - Affichage de toutes les catégories */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-2 justify-center">
             <Button
@@ -162,7 +165,7 @@ const Index = () => {
           </div>
         )}
         
-        {/* Newsletter */}
+        {/* Newsletter avec notification activée */}
         <div className="mt-16 max-w-2xl mx-auto">
           <NewsletterForm />
         </div>

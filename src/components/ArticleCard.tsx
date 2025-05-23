@@ -32,11 +32,9 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
       <CardContent className="flex-grow pt-6">
         <div className="flex flex-wrap gap-2 mb-2">
           {article.tags?.slice(0, 3).map(tag => (
-            <Link to={`/tag/${tag.slug}`} key={tag.id}>
-              <Badge variant="outline" className="hover:bg-nova-50">
-                {tag.name}
-              </Badge>
-            </Link>
+            <Badge key={tag.id} variant="outline" className="hover:bg-nova-50">
+              {tag.name}
+            </Badge>
           ))}
         </div>
         <Link to={`/article/${article.slug}`} className="group">
@@ -48,7 +46,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
       </CardContent>
       <CardFooter className="text-xs text-gray-500 pt-0 pb-4">
         <div className="flex items-center justify-between w-full">
-          <span>{article.author?.name || "Auteur inconnu"}</span>
+          <span>Alain Zenatti</span>
           <div className="flex items-center">
             <span>{formattedDate}</span>
             <span className="mx-2">•</span>

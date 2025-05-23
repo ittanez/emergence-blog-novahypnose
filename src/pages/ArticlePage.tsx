@@ -87,6 +87,9 @@ const ArticlePage = () => {
   
   const formattedDate = format(new Date(article.created_at), "d MMMM yyyy", { locale: fr });
   
+  // Utiliser l'auteur de l'article ou un nom par défaut
+  const authorName = article.author?.name || "Alain Zenatti";
+  
   // Handle social sharing
   const handleShare = (platform: string) => {
     const url = window.location.href;
@@ -132,7 +135,7 @@ const ArticlePage = () => {
               <div className="max-w-3xl">
                 <h1 className="text-3xl md:text-4xl font-serif mb-4">{article.title}</h1>
                 <div className="flex flex-wrap items-center text-sm">
-                  <span>{article.author?.name}</span>
+                  <span>{authorName}</span>
                   <span className="mx-2">•</span>
                   <span>{formattedDate}</span>
                   <span className="mx-2">•</span>
@@ -213,11 +216,11 @@ const ArticlePage = () => {
                 <div className="flex items-center mb-4">
                   <img
                     src={article.author?.avatar_url || "/placeholder.svg"}
-                    alt={article.author?.name}
+                    alt={authorName}
                     className="w-12 h-12 rounded-full mr-4"
                   />
                   <div>
-                    <h3 className="font-semibold">{article.author?.name}</h3>
+                    <h3 className="font-semibold">{authorName}</h3>
                     <p className="text-sm text-gray-600">Hypnothérapeute</p>
                   </div>
                 </div>

@@ -1,4 +1,3 @@
-
 export interface Author {
   id: string;
   name: string;
@@ -7,6 +6,7 @@ export interface Author {
   email: string;
   created_at: string;
   updated_at: string;
+  role?: string; // Adding role property as optional
 }
 
 export interface Category {

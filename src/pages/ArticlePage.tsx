@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -221,7 +220,7 @@ const ArticlePage = () => {
                   />
                   <div>
                     <h3 className="font-semibold">{authorName}</h3>
-                    <p className="text-sm text-gray-600">Hypnothérapeute</p>
+                    <p className="text-sm text-gray-600">{article.author?.role || ""}</p>
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">

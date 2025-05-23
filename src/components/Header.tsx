@@ -12,7 +12,6 @@ const Header = () => {
   const menuItems = [
     { label: "NovaHypnose", href: "https://novahypnose.fr", external: true },
     { label: "Articles", href: "/", external: false },
-    { label: "Catégories", href: "/categories", external: false },
     { label: "À propos", href: "https://novahypnose.fr/#about", external: true },
     { label: "Rendez-vous", href: "https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris", external: true },
   ];

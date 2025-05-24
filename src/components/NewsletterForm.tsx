@@ -24,12 +24,27 @@ const NewsletterForm = () => {
       return;
     }
 
+    // Validation basique de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez entrer une adresse email valide.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
+      console.log('Début de l\'inscription pour:', email);
       const { data, error } = await addSubscriber(email);
       
       if (error) {
+        console.error('Erreur reçue:', error);
+        
+        // Gestion spécifique de l'erreur de duplication
         if (error.code === '23505') {
           toast({
             title: "Déjà inscrit",
@@ -37,12 +52,18 @@ const NewsletterForm = () => {
             variant: "destructive",
           });
         } else {
-          throw error;
+          // Autres erreurs
+          toast({
+            title: "Erreur d'inscription",
+            description: error.message || "Une erreur est survenue lors de l'inscription. Veuillez réessayer.",
+            variant: "destructive",
+          });
         }
         return;
       }
 
       if (data) {
+        console.log('Inscription réussie pour:', data);
         toast({
           title: "Inscription réussie !",
           description: "Vous recevrez désormais nos notifications d'articles.",
@@ -50,10 +71,10 @@ const NewsletterForm = () => {
         setEmail("");
       }
     } catch (error) {
-      console.error("Erreur lors de l'inscription:", error);
+      console.error("Exception lors de l'inscription:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue. Veuillez réessayer.",
+        description: "Une erreur inattendue est survenue. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {

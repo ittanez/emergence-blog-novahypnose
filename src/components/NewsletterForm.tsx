@@ -3,35 +3,26 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { addSubscriber } from "@/lib/services/subscriberService";
 import { Bell } from "lucide-react";
 
 const NewsletterForm = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer votre adresse email.",
-        variant: "destructive",
-      });
+      toast.error("Veuillez entrer votre adresse email.");
       return;
     }
 
     // Validation basique de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer une adresse email valide.",
-        variant: "destructive",
-      });
+      toast.error("Veuillez entrer une adresse email valide.");
       return;
     }
 
@@ -46,37 +37,22 @@ const NewsletterForm = () => {
         
         // Gestion spécifique de l'erreur de duplication
         if (error.code === '23505') {
-          toast({
-            title: "Déjà inscrit",
-            description: "Cette adresse email est déjà inscrite à notre newsletter.",
-            variant: "destructive",
-          });
+          toast.error("Cette adresse email est déjà inscrite à notre newsletter.");
         } else {
           // Autres erreurs
-          toast({
-            title: "Erreur d'inscription",
-            description: error.message || "Une erreur est survenue lors de l'inscription. Veuillez réessayer.",
-            variant: "destructive",
-          });
+          toast.error(error.message || "Une erreur est survenue lors de l'inscription. Veuillez réessayer.");
         }
         return;
       }
 
       if (data) {
         console.log('Inscription réussie pour:', data);
-        toast({
-          title: "Inscription réussie !",
-          description: "Vous recevrez désormais nos notifications d'articles.",
-        });
+        toast.success("Inscription réussie ! Vous recevrez désormais nos notifications d'articles.");
         setEmail("");
       }
     } catch (error) {
       console.error("Exception lors de l'inscription:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur inattendue est survenue. Veuillez réessayer.",
-        variant: "destructive",
-      });
+      toast.error("Une erreur inattendue est survenue. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }

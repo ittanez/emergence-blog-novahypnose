@@ -32,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log("Notification pour le nouvel article:", articleTitle);
 
-    // Récupérer tous les abonnés
+    // Récupérer tous les abonnés vérifiés
     const { data: subscribers, error: subscribersError } = await supabase
       .from('subscribers')
       .select('email')

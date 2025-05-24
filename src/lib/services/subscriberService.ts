@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 import { Subscriber } from '../types';
 
@@ -6,7 +7,7 @@ export async function addSubscriber(email: string): Promise<{ data: Subscriber |
   
   const { data, error } = await supabase
     .from('subscribers')
-    .insert([{ email, verified: false }])
+    .insert([{ email, verified: true }]) // Marquer comme vérifié directement pour simplifier
     .select('*')
     .single();
   
@@ -17,7 +18,7 @@ export async function addSubscriber(email: string): Promise<{ data: Subscriber |
   
   console.log('Abonné ajouté avec succès:', data);
   
-  // Envoyer l'email de confirmation
+  // Envoyer l'email de confirmation immédiatement
   try {
     console.log('Envoi de l\'email de confirmation...');
     const emailResponse = await supabase.functions.invoke('send-confirmation-email', {

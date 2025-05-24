@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`Envoi email ${index + 1}/${subscribers.length} à: ${subscriber.email}`);
         
         const result = await resend.emails.send({
-          from: "NovaHypnose <onboarding@resend.dev>",
+          from: "NovaHypnose <noreply@updates.novahypnose.fr>",
           to: [subscriber.email],
           subject: `Nouvel article: ${articleTitle}`,
           html: `

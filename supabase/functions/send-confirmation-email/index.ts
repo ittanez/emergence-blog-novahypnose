@@ -34,7 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Préparation de l'envoi de l'email...");
 
     const emailResponse = await resend.emails.send({
-      from: "NovaHypnose <onboarding@resend.dev>",
+      from: "NovaHypnose <noreply@updates.novahypnose.fr>",
       to: [email],
       subject: "Bienvenue ! Votre inscription aux notifications NovaHypnose",
       html: `

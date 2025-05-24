@@ -5,15 +5,18 @@ import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
+import SEOHead from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticles, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
+import { useStructuredData } from "@/hooks/useStructuredData";
 
 const Index = () => {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { generateWebsiteStructuredData, generateBlogStructuredData } = useStructuredData();
   
   // Charger les articles et les catégories
   useEffect(() => {
@@ -66,8 +69,19 @@ const Index = () => {
     setSortBy(value);
   };
 
+  // Générer les données structurées pour la page d'accueil
+  const websiteStructuredData = generateWebsiteStructuredData();
+  const blogStructuredData = generateBlogStructuredData();
+
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Émergences - le blog de NovaHypnose"
+        description="Regards sur l'hypnose, la transformation intérieure et le bien-être. Découvrez nos articles sur l'hypnothérapie, la gestion du stress et le développement personnel."
+        keywords={["hypnose", "hypnothérapie", "bien-être", "transformation", "développement personnel", "gestion du stress"]}
+        structuredData={[websiteStructuredData, blogStructuredData]}
+      />
+      
       <Header />
       
       <main className="flex-grow container mx-auto px-4 pt-8 pb-12">

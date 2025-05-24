@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Article } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import OptimizedImage from "./OptimizedImage";
 
 interface ArticleCardProps {
   article: Article;
@@ -24,7 +25,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
       <CardHeader className="p-0">
         <Link to={`/article/${article.slug}`}>
           <div className="aspect-video overflow-hidden">
-            <img
+            <OptimizedImage
               src={article.image_url || "/placeholder.svg"}
               alt={article.title}
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -6,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
+import SEOHead from "@/components/SEOHead";
+import OptimizedImage from "@/components/OptimizedImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Facebook, Linkedin, Link2, Share2 } from "lucide-react";
@@ -19,10 +22,12 @@ import { toast } from "sonner";
 import { getArticleBySlug, getRelatedArticles } from "@/lib/services/articleService";
 import { articles } from "@/lib/mock-data"; // Keep as fallback
 import { Article } from "@/lib/types";
+import { useStructuredData } from "@/hooks/useStructuredData";
 
 const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { generateArticleStructuredData } = useStructuredData();
   
   // Use React Query to fetch the article data
   const { 
@@ -89,6 +94,9 @@ const ArticlePage = () => {
   // Utiliser l'auteur de l'article ou un nom par défaut
   const authorName = article.author?.name || "Alain Zenatti";
   
+  // Générer les données structurées pour l'article
+  const structuredData = generateArticleStructuredData(article, article.author);
+  
   // Handle social sharing
   const handleShare = (platform: string) => {
     const url = window.location.href;
@@ -119,15 +127,28 @@ const ArticlePage = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title={article.title}
+        description={article.seo_description || article.excerpt}
+        image={article.image_url}
+        type="article"
+        publishedTime={article.created_at}
+        modifiedTime={article.updated_at}
+        author={authorName}
+        keywords={Array.isArray(article.keywords) ? article.keywords : []}
+        structuredData={structuredData}
+      />
+      
       <Header />
       
       <main className="flex-grow">
         {/* Article header with image */}
         <div className="w-full h-[40vh] relative">
-          <img
+          <OptimizedImage
             src={article.image_url || "/placeholder.svg"}
             alt={article.title}
             className="w-full h-full object-cover"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-black bg-opacity-30 flex items-end">
             <div className="container mx-auto px-4 pb-8 text-white">
@@ -213,7 +234,7 @@ const ArticlePage = () => {
             <aside className="lg:w-1/3 space-y-8">
               <div className="bg-gray-50 border rounded-lg p-6">
                 <div className="flex items-center mb-4">
-                  <img
+                  <OptimizedImage
                     src={article.author?.avatar_url || "/placeholder.svg"}
                     alt={authorName}
                     className="w-12 h-12 rounded-full mr-4"

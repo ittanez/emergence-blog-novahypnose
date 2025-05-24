@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -21,19 +20,21 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, Pencil, Plus, Trash2, Send } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Article } from "@/lib/types";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getAllArticles, deleteArticle } from "@/lib/services/articleService";
+import { notifySubscribersOfNewArticle } from "@/lib/services/notificationService";
 
 const AdminArticles = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [isNotifying, setIsNotifying] = useState<string | null>(null);
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -96,6 +97,39 @@ const AdminArticles = () => {
       setDeleteDialogOpen(false);
       setSelectedArticle(null);
       setIsLoading(false);
+    }
+  };
+
+  // Nouvelle fonction pour notifier les abonnés
+  const handleNotifySubscribers = async (article: Article) => {
+    if (!article.published) {
+      toast.error("L'article doit être publié pour notifier les abonnés");
+      return;
+    }
+
+    setIsNotifying(article.id);
+    
+    try {
+      console.log('Envoi des notifications pour l\'article:', article.title);
+      const { success, error } = await notifySubscribersOfNewArticle(
+        article.id,
+        article.title,
+        article.slug,
+        article.excerpt
+      );
+      
+      if (!success || error) {
+        throw new Error(error || "Erreur lors de l'envoi des notifications");
+      }
+      
+      toast.success("Notifications envoyées avec succès aux abonnés !");
+    } catch (error: any) {
+      console.error("Erreur lors de l'envoi des notifications:", error);
+      toast.error("Erreur lors de l'envoi des notifications", { 
+        description: error.message 
+      });
+    } finally {
+      setIsNotifying(null);
     }
   };
 
@@ -186,6 +220,23 @@ const AdminArticles = () => {
                       >
                         <Pencil size={16} />
                       </Button>
+
+                      {article.published && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleNotifySubscribers(article)}
+                          disabled={isNotifying === article.id}
+                          className="text-blue-500 hover:text-blue-700"
+                          title="Notifier les abonnés"
+                        >
+                          {isNotifying === article.id ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+                          ) : (
+                            <Send size={16} />
+                          )}
+                        </Button>
+                      )}
                       
                       <Button 
                         variant="outline" 

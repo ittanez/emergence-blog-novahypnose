@@ -8,8 +8,10 @@ export async function notifySubscribersOfNewArticle(
   articleExcerpt?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log('Notification des abonnés pour l\'article:', articleTitle);
+    console.log('=== DÉBUT NOTIFICATION ABONNÉS ===');
+    console.log('Article:', { articleId, articleTitle, articleSlug, articleExcerpt });
     
+    console.log('Appel de la fonction notify-subscribers...');
     const { data, error } = await supabase.functions.invoke('notify-subscribers', {
       body: {
         articleId,
@@ -19,15 +21,19 @@ export async function notifySubscribersOfNewArticle(
       }
     });
     
+    console.log('Réponse complète de notify-subscribers:', { data, error });
+    
     if (error) {
-      console.error('Erreur lors de la notification des abonnés:', error);
+      console.error('Erreur de la fonction notify-subscribers:', error);
       return { success: false, error: error.message };
     }
     
-    console.log('Notification des abonnés réussie:', data);
+    console.log('Notification des abonnés réussie');
+    console.log('=== FIN NOTIFICATION ABONNÉS - SUCCÈS ===');
     return { success: true };
   } catch (err: any) {
     console.error('Exception lors de la notification des abonnés:', err);
+    console.log('=== FIN NOTIFICATION ABONNÉS - ÉCHEC ===');
     return { success: false, error: err.message };
   }
 }

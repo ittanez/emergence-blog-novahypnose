@@ -3,39 +3,57 @@ import { supabase } from './supabase';
 import { Subscriber } from '../types';
 
 export async function addSubscriber(email: string): Promise<{ data: Subscriber | null; error: any }> {
-  console.log('Tentative d\'ajout d\'un abonné:', email);
+  console.log('=== DÉBUT INSCRIPTION ABONNÉ ===');
+  console.log('Email à inscrire:', email);
   
-  const { data, error } = await supabase
-    .from('subscribers')
-    .insert([{ email, verified: true }]) // Marquer comme vérifié directement pour simplifier
-    .select('*')
-    .single();
-  
-  if (error) {
-    console.error('Erreur lors de l\'ajout de l\'abonné:', error);
-    return { data: null, error };
-  }
-  
-  console.log('Abonné ajouté avec succès:', data);
-  
-  // Envoyer l'email de confirmation immédiatement
   try {
-    console.log('Envoi de l\'email de confirmation...');
-    const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
-      body: { email: data.email }
-    });
+    // 1. Insérer l'abonné dans la base de données
+    console.log('Étape 1: Insertion en base de données...');
+    const { data, error } = await supabase
+      .from('subscribers')
+      .insert([{ email, verified: true }])
+      .select('*')
+      .single();
     
-    if (emailResponse.error) {
-      console.error('Erreur lors de l\'envoi de l\'email de confirmation:', emailResponse.error);
-    } else {
-      console.log('Email de confirmation envoyé avec succès');
+    if (error) {
+      console.error('Erreur lors de l\'insertion en base:', error);
+      return { data: null, error };
     }
-  } catch (emailError) {
-    console.error('Exception lors de l\'envoi de l\'email de confirmation:', emailError);
-    // On ne fait pas échouer l'inscription si l'email ne peut pas être envoyé
+    
+    console.log('Abonné ajouté en base avec succès:', data);
+    
+    // 2. Envoyer l'email de confirmation
+    console.log('Étape 2: Envoi de l\'email de confirmation...');
+    try {
+      console.log('Appel de la fonction send-confirmation-email...');
+      const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
+        body: { email: data.email }
+      });
+      
+      console.log('Réponse complète de la fonction email:', emailResponse);
+      
+      if (emailResponse.error) {
+        console.error('Erreur de la fonction edge:', emailResponse.error);
+        // On ne fait pas échouer l'inscription si l'email échoue
+        console.warn('L\'email de confirmation n\'a pas pu être envoyé, mais l\'inscription est réussie');
+      } else {
+        console.log('Email de confirmation envoyé avec succès!');
+        console.log('Données de l\'email:', emailResponse.data);
+      }
+    } catch (emailError) {
+      console.error('Exception lors de l\'envoi de l\'email:', emailError);
+      // On ne fait pas échouer l'inscription si l'email échoue
+      console.warn('Exception email, mais inscription réussie');
+    }
+    
+    console.log('=== FIN INSCRIPTION ABONNÉ - SUCCÈS ===');
+    return { data, error: null };
+    
+  } catch (globalError) {
+    console.error('Exception globale lors de l\'inscription:', globalError);
+    console.log('=== FIN INSCRIPTION ABONNÉ - ÉCHEC ===');
+    return { data: null, error: globalError };
   }
-  
-  return { data, error: null };
 }
 
 export async function getSubscribers(): Promise<{ data: Subscriber[] | null; error: any }> {

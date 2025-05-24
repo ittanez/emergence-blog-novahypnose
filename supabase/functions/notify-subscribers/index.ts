@@ -22,6 +22,8 @@ interface NotifyRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log("=== DÉBUT NOTIFY-SUBSCRIBERS ===");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,35 +32,43 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { articleId, articleTitle, articleSlug, articleExcerpt }: NotifyRequest = await req.json();
     
-    console.log("Notification pour le nouvel article:", articleTitle);
+    console.log("Données reçues:", { articleId, articleTitle, articleSlug, articleExcerpt });
 
     // Récupérer tous les abonnés vérifiés
+    console.log("Récupération des abonnés vérifiés...");
     const { data: subscribers, error: subscribersError } = await supabase
       .from('subscribers')
       .select('email')
       .eq('verified', true);
 
+    console.log("Requête abonnés exécutée. Error:", subscribersError, "Data:", subscribers);
+
     if (subscribersError) {
+      console.error("Erreur lors de la récupération des abonnés:", subscribersError);
       throw new Error(`Erreur lors de la récupération des abonnés: ${subscribersError.message}`);
     }
 
     if (!subscribers || subscribers.length === 0) {
       console.log("Aucun abonné trouvé");
-      return new Response(JSON.stringify({ message: "Aucun abonné trouvé" }), {
+      return new Response(JSON.stringify({ message: "Aucun abonné trouvé", subscriberCount: 0 }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    console.log(`Envoi des notifications à ${subscribers.length} abonnés`);
+    console.log(`${subscribers.length} abonnés trouvés:`, subscribers.map(s => s.email));
 
     // Préparer l'URL de l'article
     const articleUrl = `https://akrlyzmfszumibwgocae.supabase.co/article/${articleSlug}`;
+    console.log("URL de l'article:", articleUrl);
 
     // Envoyer l'email à tous les abonnés
-    const emailPromises = subscribers.map(async (subscriber) => {
+    console.log("Début de l'envoi des emails...");
+    const emailPromises = subscribers.map(async (subscriber, index) => {
       try {
-        return await resend.emails.send({
+        console.log(`Envoi email ${index + 1}/${subscribers.length} à: ${subscriber.email}`);
+        
+        const result = await resend.emails.send({
           from: "NovaHypnose <onboarding@resend.dev>",
           to: [subscriber.email],
           subject: `Nouvel article: ${articleTitle}`,
@@ -98,24 +108,34 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
           `,
         });
+
+        console.log(`Email envoyé avec succès à ${subscriber.email}:`, result);
+        return { success: true, email: subscriber.email, result };
       } catch (error) {
         console.error(`Erreur envoi email à ${subscriber.email}:`, error);
-        return { error: error.message, email: subscriber.email };
+        return { success: false, email: subscriber.email, error: error.message };
       }
     });
 
+    console.log("Attente de tous les envois d'emails...");
     const results = await Promise.allSettled(emailPromises);
     
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.filter(result => result.status === 'rejected').length;
+    const successful = results.filter(result => 
+      result.status === 'fulfilled' && result.value.success
+    ).length;
+    const failed = results.filter(result => 
+      result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)
+    ).length;
 
-    console.log(`Emails envoyés: ${successful} réussis, ${failed} échoués`);
+    console.log(`Résultats des envois: ${successful} réussis, ${failed} échoués`);
+    console.log("=== FIN NOTIFY-SUBSCRIBERS ===");
 
     return new Response(JSON.stringify({ 
       success: true, 
       sent: successful, 
       failed: failed,
-      totalSubscribers: subscribers.length 
+      totalSubscribers: subscribers.length,
+      details: results
     }), {
       status: 200,
       headers: {
@@ -124,9 +144,15 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Erreur lors de la notification des abonnés:", error);
+    console.error("ERREUR dans notify-subscribers:", error);
+    console.error("Stack trace:", error.stack);
+    console.log("=== FIN NOTIFY-SUBSCRIBERS - ERREUR ===");
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

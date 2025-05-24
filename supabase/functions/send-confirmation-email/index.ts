@@ -14,15 +14,24 @@ interface ConfirmationEmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log("Fonction send-confirmation-email démarrée");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log("Traitement de la requête...");
     const { email }: ConfirmationEmailRequest = await req.json();
     
-    console.log("Envoi de l'email de confirmation à:", email);
+    console.log("Email reçu pour confirmation:", email);
+
+    if (!email) {
+      throw new Error("Email manquant dans la requête");
+    }
+
+    console.log("Préparation de l'envoi de l'email...");
 
     const emailResponse = await resend.emails.send({
       from: "NovaHypnose <onboarding@resend.dev>",
@@ -63,9 +72,20 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Email de confirmation envoyé avec succès:", emailResponse);
+    console.log("Réponse de Resend:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true, emailResponse }), {
+    if (emailResponse.error) {
+      console.error("Erreur de Resend:", emailResponse.error);
+      throw new Error(`Erreur Resend: ${emailResponse.error.message}`);
+    }
+
+    console.log("Email de confirmation envoyé avec succès pour:", email);
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      messageId: emailResponse.data?.id,
+      email: email 
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -73,9 +93,14 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Erreur lors de l'envoi de l'email de confirmation:", error);
+    console.error("ERREUR dans send-confirmation-email:", error);
+    console.error("Stack trace:", error.stack);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

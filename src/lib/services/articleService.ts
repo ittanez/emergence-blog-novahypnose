@@ -30,7 +30,7 @@ export const transformArticleData = (data: any): Article => {
     seo_description: "",
     keywords: [],
     category: data.category || "",
-    author_id: typeof data.author === 'string' ? data.author : "",
+    author_id: typeof data.author === 'string' ? data.author : data.author_id || "",
     slug: data.slug || "",
     read_time: readTime,
     published: data.published || false,
@@ -95,7 +95,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     // Ensuite, récupérer les données complètes de l'article avec l'ID récupéré
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
+      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at, category')
       .eq('id', articleId)
       .single();
     
@@ -124,20 +124,6 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       }
     }
     
-    // Récupérer la catégorie directement depuis la table categories en utilisant la colonne category de l'article
-    let categoryName = '';
-    if (articleData.category) {
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('name')
-        .eq('name', articleData.category)
-        .single();
-        
-      if (categoryData) {
-        categoryName = categoryData.name;
-      }
-    }
-    
     // Récupérer les détails de l'auteur avec une requête séparée
     let author: Author | null = null;
     if (articleData.author && typeof articleData.author === 'string') {
@@ -163,7 +149,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       content: articleData.content,
       excerpt: cleanExcerpt,
       image_url: articleData.image_url || '',
-      category: categoryName, 
+      category: articleData.category || '', 
       author_id: typeof articleData.author === 'string' ? articleData.author : '',
       slug: slug,
       read_time: readTime,
@@ -306,9 +292,9 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
   try {
     // Vérifier si la catégorie est utilisée par des articles
     const { data: usedByArticles, error: checkError } = await supabase
-      .from('article_categories')
-      .select('article_id')
-      .eq('category_id', categoryId);
+      .from('articles')
+      .select('id')
+      .eq('category', categoryId);
       
     if (checkError) {
       throw checkError;
@@ -318,24 +304,6 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
       return { 
         success: false, 
         error: new Error(`Cette catégorie est utilisée par ${usedByArticles.length} article(s) et ne peut pas être supprimée.`) 
-      };
-    }
-    
-    // Vérifier si la catégorie a des enfants
-// @ts-ignore - Contournement temporaire de l'erreur TS2589 
-    const { data: childCategories, error: childCheckError } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('parent_id', categoryId);
-      
-    if (childCheckError) {
-      throw childCheckError;
-    }
-    
-    if (childCategories && childCategories.length > 0) {
-      return {
-        success: false,
-        error: new Error(`Cette catégorie a ${childCategories.length} sous-catégorie(s) et ne peut pas être supprimée.`)
       };
     }
     
@@ -493,14 +461,14 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
 // Supprimer un article
 export async function deleteArticle(articleId: string): Promise<{ success: boolean; error: any }> {
   try {
-    // Supprimer les relations avec les catégories
+    // Supprimer les relations avec les tags
     const { error: relError } = await supabase
-      .from('article_categories')
+      .from('article_tags')
       .delete()
       .eq('article_id', articleId);
       
     if (relError) {
-      console.error('Error deleting article-category relations:', relError);
+      console.error('Error deleting article-tag relations:', relError);
     }
     
     // Supprimer l'article

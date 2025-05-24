@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -19,7 +18,7 @@ export interface Database {
           image_url: string | null
           seo_description: string | null
           keywords: string[] | null
-          category: string
+          category: string | null
           author_id: string
           slug: string
           read_time: number | null
@@ -35,7 +34,7 @@ export interface Database {
           image_url?: string | null
           seo_description?: string | null
           keywords?: string[] | null
-          category: string
+          category?: string | null
           author_id: string
           slug: string
           read_time?: number | null
@@ -51,7 +50,7 @@ export interface Database {
           image_url?: string | null
           seo_description?: string | null
           keywords?: string[] | null
-          category?: string
+          category?: string | null
           author_id?: string
           slug?: string
           read_time?: number | null

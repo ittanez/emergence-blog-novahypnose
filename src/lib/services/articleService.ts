@@ -1,20 +1,38 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
+// Fonction utilitaire pour nettoyer le HTML
+function stripHtml(html: string): string {
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  return temp.textContent || temp.innerText || '';
+}
+
+// Fonction utilitaire pour calculer le temps de lecture
+function calculateReadTime(content: string): number {
+  const cleanText = stripHtml(content);
+  const wordsPerMinute = 200;
+  const wordCount = cleanText.trim().split(/\s+/).length;
+  return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+}
+
 // Transformation des données d'un article récupéré de Supabase
 export const transformArticleData = (data: any): Article => {
+  const readTime = calculateReadTime(data.content || '');
+  const cleanExcerpt = data.excerpt ? stripHtml(data.excerpt) : stripHtml(data.content || '').substring(0, 150) + '...';
+  
   return {
     id: data.id,
     title: data.title,
     content: data.content,
-    excerpt: data.excerpt || "",
+    excerpt: cleanExcerpt,
     image_url: data.image_url || "",
     seo_description: "",
     keywords: [],
     category: data.category || "",
     author_id: typeof data.author === 'string' ? data.author : "",
     slug: data.slug || "",
-    read_time: 0,
+    read_time: readTime,
     published: data.published || false,
     created_at: data.created_at,
     updated_at: data.updated_at || data.created_at,
@@ -106,23 +124,17 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       }
     }
     
-    // Récupérer les catégories pour cet article
-    let categories: Category[] = [];
-    const { data: categoryRelations, error: categoriesError } = await supabase
-      .from('article_categories')
-      .select('category_id')
-      .eq('article_id', articleData.id);
-      
-    if (!categoriesError && categoryRelations && categoryRelations.length > 0) {
-      const categoryIds = categoryRelations.map(relation => relation.category_id);
-      
-      const { data: categoriesData } = await supabase
+    // Récupérer la catégorie directement depuis la table categories en utilisant la colonne category de l'article
+    let categoryName = '';
+    if (articleData.category) {
+      const { data: categoryData } = await supabase
         .from('categories')
-        .select('id, name, slug, description, created_at')
-        .in('id', categoryIds);
+        .select('name')
+        .eq('name', articleData.category)
+        .single();
         
-      if (categoriesData) {
-        categories = categoriesData as Category[];
+      if (categoryData) {
+        categoryName = categoryData.name;
       }
     }
     
@@ -140,17 +152,21 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       }
     }
     
+    // Calculer le temps de lecture et nettoyer l'extrait
+    const readTime = calculateReadTime(articleData.content || '');
+    const cleanExcerpt = articleData.excerpt ? stripHtml(articleData.excerpt) : stripHtml(articleData.content || '').substring(0, 150) + '...';
+    
     // Construire l'objet final de l'article avec des propriétés explicites
     const article: Article = {
       id: articleData.id,
       title: articleData.title,
       content: articleData.content,
-      excerpt: articleData.excerpt || '',
+      excerpt: cleanExcerpt,
       image_url: articleData.image_url || '',
-      category: categories.length > 0 ? categories[0].name : '', 
+      category: categoryName, 
       author_id: typeof articleData.author === 'string' ? articleData.author : '',
       slug: slug,
-      read_time: 0,
+      read_time: readTime,
       published: articleData.published || false,
       created_at: articleData.created_at,
       updated_at: articleData.updated_at,
@@ -172,7 +188,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
   try {
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at')
+      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at, category')
       .neq('id', currentArticleId)
       .limit(limit);
     
@@ -186,52 +202,33 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
     }
     
     // Transformer les données en type Article avec des valeurs par défaut
-    const articles: Article[] = await Promise.all(
-      relatedArticlesData.map(async (data) => {
-        // Générer un slug à partir du titre
-        const generatedSlug = data.title ? 
-          data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 
-          `article-${data.id}`;
-        
-        // Récupérer les catégories pour cet article
-        const { data: categoryRelations } = await supabase
-          .from('article_categories')
-          .select('category_id')
-          .eq('article_id', data.id);
-        
-        let categoryName = '';
-        
-        if (categoryRelations && categoryRelations.length > 0) {
-          const { data: categoryData } = await supabase
-            .from('categories')
-            .select('name')
-            .eq('id', categoryRelations[0].category_id)
-            .single();
-            
-          if (categoryData) {
-            categoryName = categoryData.name;
-          }
-        }
-        
-        return {
-          id: data.id,
-          title: data.title,
-          content: data.content,
-          excerpt: data.excerpt || '',
-          image_url: data.image_url || '',
-          category: categoryName,
-          author_id: typeof data.author === 'string' ? data.author : '',
-          slug: generatedSlug,
-          read_time: 0,
-          published: data.published || false,
-          created_at: data.created_at,
-          updated_at: data.updated_at,
-          seo_description: '',
-          keywords: [],
-          tags: []
-        };
-      })
-    );
+    const articles: Article[] = relatedArticlesData.map((data) => {
+      // Générer un slug à partir du titre
+      const generatedSlug = data.title ? 
+        data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 
+        `article-${data.id}`;
+      
+      const readTime = calculateReadTime(data.content || '');
+      const cleanExcerpt = data.excerpt ? stripHtml(data.excerpt) : stripHtml(data.content || '').substring(0, 150) + '...';
+      
+      return {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        excerpt: cleanExcerpt,
+        image_url: data.image_url || '',
+        category: data.category || '',
+        author_id: typeof data.author === 'string' ? data.author : '',
+        slug: generatedSlug,
+        read_time: readTime,
+        published: data.published || false,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        seo_description: '',
+        keywords: [],
+        tags: []
+      };
+    });
     
     return { data: articles, error: null };
   } catch (error) {
@@ -399,16 +396,21 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
   try {
     let articleId = article.id;
     
+    // Calculer le temps de lecture si le contenu est fourni
+    const readTime = article.content ? calculateReadTime(article.content) : 0;
+    const cleanExcerpt = article.excerpt ? stripHtml(article.excerpt) : (article.content ? stripHtml(article.content).substring(0, 150) + '...' : '');
+    
     // Préparer les données pour Supabase
     const supabaseData = {
       title: article.title,
       content: article.content,
-      excerpt: article.excerpt || (article.content && article.content.substring(0, 150) + '...'),
+      excerpt: cleanExcerpt,
       image_url: article.image_url,
       published: article.published || false,
       updated_at: new Date().toISOString(),
       slug: article.slug || article.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-      tags: article.tags ? article.tags.map(tag => (typeof tag === 'string') ? tag : tag.name) : []
+      tags: article.tags ? article.tags.map(tag => (typeof tag === 'string') ? tag : tag.name) : [],
+      category: article.category || '' // Stocker directement le nom de la catégorie
     };
     
     let result;
@@ -437,9 +439,9 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
     // Récupérer l'ID de l'article créé ou mis à jour
     articleId = data[0].id;
     
-    // Gérer les catégories si spécifiées
+    // Vérifier/créer la catégorie si spécifiée
     if (article.category) {
-      console.log("Traitement de la catégorie:", article.category);
+      console.log("Vérification de la catégorie:", article.category);
       
       // Chercher si la catégorie existe déjà
       const { data: categoryData, error: categoryError } = await supabase
@@ -451,8 +453,6 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       if (categoryError && categoryError.code !== 'PGRST116') {  // PGRST116 signifie "no rows returned"
         console.error('Erreur lors de la recherche de la catégorie:', categoryError);
       }
-      
-      let categoryId;
       
       if (!categoryData) {
         console.log("La catégorie n'existe pas, création d'une nouvelle catégorie");
@@ -469,47 +469,21 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
         if (createError) {
           console.error('Erreur lors de la création de la catégorie:', createError);
         } else if (newCategory && newCategory.length > 0) {
-          categoryId = newCategory[0].id;
-          console.log("Nouvelle catégorie créée avec l'ID:", categoryId);
+          console.log("Nouvelle catégorie créée avec l'ID:", newCategory[0].id);
         }
       } else {
-        categoryId = categoryData.id;
-        console.log("Catégorie existante trouvée avec l'ID:", categoryId);
+        console.log("Catégorie existante trouvée avec l'ID:", categoryData.id);
       }
-      
-      if (categoryId) {
-        console.log("Suppression des anciennes relations de catégorie pour l'article:", articleId);
-        // Supprimer les anciennes relations de catégorie
-        const { error: deleteError } = await supabase
-          .from('article_categories')
-          .delete()
-          .eq('article_id', articleId);
-          
-        if (deleteError) {
-          console.error('Erreur lors de la suppression des relations de catégorie:', deleteError);
-        }
-        
-        console.log("Création de la nouvelle relation article-catégorie");
-        // Ajouter la nouvelle relation
-        const { error: insertError } = await supabase
-          .from('article_categories')
-          .insert({
-            article_id: articleId,
-            category_id: categoryId
-          });
-          
-        if (insertError) {
-          console.error('Erreur lors de la création de la relation article-catégorie:', insertError);
-        } else {
-          console.log("Relation article-catégorie créée avec succès");
-        }
-      }
-    } else {
-      console.log("Aucune catégorie spécifiée pour l'article");
     }
     
-    // Transformer l'article pour le retour
-    return { data: transformArticleData(data[0]), error: null };
+    // Transformer l'article pour le retour avec le bon temps de lecture
+    const transformedData = {
+      ...data[0],
+      read_time: readTime,
+      excerpt: cleanExcerpt
+    };
+    
+    return { data: transformArticleData(transformedData), error: null };
   } catch (error) {
     console.error('Error in saveArticle:', error);
     return { data: null, error };
@@ -546,22 +520,47 @@ export async function deleteArticle(articleId: string): Promise<{ success: boole
   }
 }
 
-// Récupérer tous les articles
-export async function getAllArticles(): Promise<{ data: Article[] | null; error: any }> {
+// Récupérer tous les articles avec filtres et recherche
+export async function getAllArticles(filters?: {
+  search?: string;
+  category?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: Article[] | null; error: any; totalCount?: number }> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('articles')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' });
+    
+    // Appliquer les filtres
+    if (filters?.search) {
+      query = query.ilike('title', `%${filters.search}%`);
+    }
+    
+    if (filters?.category) {
+      query = query.eq('category', filters.category);
+    }
+    
+    // Pagination
+    if (filters?.page && filters?.limit) {
+      const from = (filters.page - 1) * filters.limit;
+      const to = from + filters.limit - 1;
+      query = query.range(from, to);
+    }
+    
+    // Tri par date de création (plus récent en premier)
+    query = query.order('created_at', { ascending: false });
+    
+    const { data, error, count } = await query;
       
     if (error) {
       throw error;
     }
     
     // Transformer les données pour correspondre au type Article
-    const transformedArticles = data.map(transformArticleData);
+    const transformedArticles = data ? data.map(transformArticleData) : [];
     
-    return { data: transformedArticles, error: null };
+    return { data: transformedArticles, error: null, totalCount: count || 0 };
   } catch (error) {
     console.error('Error fetching all articles:', error);
     return { data: null, error };

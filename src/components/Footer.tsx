@@ -1,8 +1,11 @@
 
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { isAdmin } = useAuth();
   
   return (
     <footer className="bg-gray-50 border-t mt-12">
@@ -25,11 +28,6 @@ const Footer = () => {
                 <li>
                   <Link to="/" className="text-gray-600 hover:text-nova-700 transition-colors text-sm">
                     Articles
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/categories" className="text-gray-600 hover:text-nova-700 transition-colors text-sm">
-                    Catégories
                   </Link>
                 </li>
               </ul>
@@ -73,10 +71,18 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <p className="text-center text-xs text-gray-500">
+        <div className="mt-8 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-center text-xs text-gray-500 mb-4 md:mb-0">
             © {currentYear} NovaHypnose – Tous droits réservés
           </p>
+          
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700">
+                Administration
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </footer>

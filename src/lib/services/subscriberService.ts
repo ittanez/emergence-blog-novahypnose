@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 import { Subscriber } from '../types';
 
@@ -17,6 +16,24 @@ export async function addSubscriber(email: string): Promise<{ data: Subscriber |
   }
   
   console.log('Abonné ajouté avec succès:', data);
+  
+  // Envoyer l'email de confirmation
+  try {
+    console.log('Envoi de l\'email de confirmation...');
+    const emailResponse = await supabase.functions.invoke('send-confirmation-email', {
+      body: { email: data.email }
+    });
+    
+    if (emailResponse.error) {
+      console.error('Erreur lors de l\'envoi de l\'email de confirmation:', emailResponse.error);
+    } else {
+      console.log('Email de confirmation envoyé avec succès');
+    }
+  } catch (emailError) {
+    console.error('Exception lors de l\'envoi de l\'email de confirmation:', emailError);
+    // On ne fait pas échouer l'inscription si l'email ne peut pas être envoyé
+  }
+  
   return { data, error: null };
 }
 

@@ -30,7 +30,7 @@ export const transformArticleData = (data: any): Article => {
     seo_description: "",
     keywords: [],
     category: data.category || "",
-    author_id: typeof data.author === 'string' ? data.author : data.author_id || "",
+    author_id: data.author || "", // Using 'author' field from database
     slug: data.slug || "",
     read_time: readTime,
     published: data.published || false,
@@ -122,11 +122,11 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     
     // Récupérer les détails de l'auteur
     let author: Author | null = null;
-    if (articleData.author_id) {
+    if (articleData.author) { // Using 'author' field instead of 'author_id'
       const { data: authorData, error: authorError } = await supabase
         .from('authors')
         .select('id, name, bio, avatar_url, email, created_at, updated_at')
-        .eq('id', articleData.author_id)
+        .eq('id', articleData.author) // Using 'author' field
         .single();
       
       if (!authorError && authorData) {

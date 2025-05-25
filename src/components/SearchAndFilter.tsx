@@ -34,12 +34,12 @@ const SearchAndFilter = ({
       </div>
       
       <div className="w-full md:w-64">
-        <Select value={categoryValue} onValueChange={onCategoryChange}>
+        <Select value={categoryValue || "all"} onValueChange={(value) => onCategoryChange(value === "all" ? "" : value)}>
           <SelectTrigger>
             <SelectValue placeholder="Toutes les catégories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les catégories</SelectItem>
+            <SelectItem value="all">Toutes les catégories</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.name}>
                 {category.name}

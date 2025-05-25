@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
@@ -357,7 +358,8 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       updated_at: new Date().toISOString(),
       slug: article.slug || article.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       tags: article.tags ? article.tags.map(tag => (typeof tag === 'string') ? tag : tag.name) : [],
-      category: article.category || '' // Stocker directement le nom de la catégorie
+      category: article.category || '', // Stocker directement le nom de la catégorie
+      author: article.author_id || '' // Using 'author' field in database
     };
     
     let result;

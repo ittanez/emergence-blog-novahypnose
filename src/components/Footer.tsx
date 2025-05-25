@@ -75,13 +75,15 @@ const Footer = () => {
             © {currentYear} NovaHypnose – Tous droits réservés
           </p>
           
-          {isAdmin && (
-            <div className="text-xs text-gray-400">
-              <Link to="/admin" className="hover:text-gray-600 transition-colors">
-                Administration
-              </Link>
-            </div>
-          )}
+          <div className="admin-link text-center">
+            <Link 
+              to="/admin" 
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors opacity-70"
+              style={{ textDecoration: 'none' }}
+            >
+              Administration
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

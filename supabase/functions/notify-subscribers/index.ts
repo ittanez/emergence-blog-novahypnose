@@ -1,163 +1,153 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
+import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { Resend } from 'npm:resend@2.0.0';
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface NotifyRequest {
-  articleId: string;
-  articleTitle: string;
-  articleSlug: string;
-  articleExcerpt?: string;
-}
-
 const handler = async (req: Request): Promise<Response> => {
-  console.log("=== DÉBUT NOTIFY-SUBSCRIBERS ===");
+  console.log('=== DÉBUT NOTIFY-SUBSCRIBERS ===');
   
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { articleId, articleTitle, articleSlug, articleExcerpt }: NotifyRequest = await req.json();
-    
-    console.log("Données reçues:", { articleId, articleTitle, articleSlug, articleExcerpt });
+    const { articleId, articleTitle, articleSlug, articleExcerpt } = await req.json();
+    console.log('Données reçues:', { articleId, articleTitle, articleSlug, articleExcerpt });
 
     // Récupérer tous les abonnés vérifiés
-    console.log("Récupération des abonnés vérifiés...");
+    console.log('Récupération des abonnés vérifiés...');
     const { data: subscribers, error: subscribersError } = await supabase
       .from('subscribers')
       .select('email')
       .eq('verified', true);
 
-    console.log("Requête abonnés exécutée. Error:", subscribersError, "Data:", subscribers);
+    console.log('Requête abonnés exécutée. Error:', subscribersError, 'Data:', subscribers);
 
     if (subscribersError) {
-      console.error("Erreur lors de la récupération des abonnés:", subscribersError);
-      throw new Error(`Erreur lors de la récupération des abonnés: ${subscribersError.message}`);
+      throw subscribersError;
     }
 
     if (!subscribers || subscribers.length === 0) {
-      console.log("Aucun abonné trouvé");
-      return new Response(JSON.stringify({ message: "Aucun abonné trouvé", subscriberCount: 0 }), {
+      console.log('Aucun abonné trouvé');
+      return new Response(JSON.stringify({ message: 'Aucun abonné à notifier' }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
 
-    console.log(`${subscribers.length} abonnés trouvés:`, subscribers.map(s => s.email));
+    const subscriberEmails = subscribers.map(sub => sub.email);
+    console.log(`${subscribers.length} abonnés trouvés:`, subscriberEmails);
 
-    // Préparer l'URL de l'article
-    const articleUrl = `https://akrlyzmfszumibwgocae.supabase.co/article/${articleSlug}`;
-    console.log("URL de l'article:", articleUrl);
+    // URL complète de l'article
+    const articleUrl = `${supabaseUrl}/article/${articleSlug}`;
+    console.log('URL de l\'article:', articleUrl);
 
-    // Envoyer l'email à tous les abonnés
-    console.log("Début de l'envoi des emails...");
-    const emailPromises = subscribers.map(async (subscriber, index) => {
-      try {
-        console.log(`Envoi email ${index + 1}/${subscribers.length} à: ${subscriber.email}`);
+    // Template email enrichi pour les notifications
+    const emailContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #2c3e50; font-size: 24px; margin-bottom: 20px;">Nouvel article : ${articleTitle} ✨</h1>
         
+        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+          Un nouvel article vient d'être publié sur mon blog :
+        </p>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h2 style="color: #2c3e50; font-size: 18px; margin-bottom: 10px;">${articleTitle}</h2>
+          <p style="font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 15px;">${articleExcerpt}</p>
+          <a href="${articleUrl}" style="display: inline-block; background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">👉 Lire l'article complet</a>
+        </div>
+        
+        <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #2c3e50; font-size: 16px; margin-bottom: 10px;">Ressources utiles :</h3>
+          
+          <p style="font-size: 14px; margin-bottom: 8px;">
+            🧠 <strong>Faites le test : Suis-je hypnotisable ?</strong><br>
+            Découvrez-le en 2 minutes ! <a href="https://hypnokick.novahypnose.fr/" style="color: #3498db;">https://hypnokick.novahypnose.fr/</a>
+          </p>
+          
+          <p style="font-size: 14px; margin-bottom: 8px;">
+            👨‍⚕️ <strong>À propos de moi</strong> - Mon approche de l'hypnothérapie<br>
+            <a href="https://novahypnose.fr/#about" style="color: #3498db;">https://novahypnose.fr/#about</a>
+          </p>
+          
+          <p style="font-size: 14px;">
+            📅 <strong>Prendre rendez-vous</strong> pour une séance<br>
+            <a href="https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris" style="color: #3498db;">https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris</a>
+          </p>
+        </div>
+        
+        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+          Bonne lecture !<br>
+          <strong>Alain Zenatti - Hypnothérapeute</strong>
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        
+        <div style="font-size: 12px; color: #888; text-align: center;">
+          <p>📖 <a href="${supabaseUrl}" style="color: #888;">Tous mes articles</a></p>
+          <p>⚙️ Gérer mon abonnement | ✉️ <a href="#" style="color: #888;">Se désabonner</a></p>
+        </div>
+      </div>
+    `;
+
+    // Envoyer les emails
+    console.log('Début de l\'envoi des emails...');
+    const emailPromises = subscriberEmails.map(async (email, index) => {
+      console.log(`Envoi email ${index + 1}/${subscriberEmails.length} à: ${email}`);
+      
+      try {
         const result = await resend.emails.send({
-          from: "NovaHypnose <noreply@updates.novahypnose.fr>",
-          to: [subscriber.email],
-          subject: `Nouvel article: ${articleTitle}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #6b46c1; text-align: center;">Nouvel article publié !</h1>
-              
-              <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: #1e293b; margin-top: 0;">${articleTitle}</h2>
-                ${articleExcerpt ? `
-                  <p style="color: #475569; line-height: 1.6; font-style: italic;">
-                    ${articleExcerpt}
-                  </p>
-                ` : ''}
-                <p style="color: #475569; line-height: 1.6;">
-                  Un nouvel article vient d'être publié sur notre blog <strong>Émergences</strong>. 
-                  Découvrez-le dès maintenant !
-                </p>
-              </div>
-
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${articleUrl}" 
-                   style="background-color: #6b46c1; color: white; padding: 12px 24px; 
-                          text-decoration: none; border-radius: 6px; display: inline-block;">
-                  Lire l'article
-                </a>
-              </div>
-
-              <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
-                <p style="color: #64748b; font-size: 14px; text-align: center;">
-                  Vous recevez cet email car vous êtes abonné(e) aux notifications du blog NovaHypnose.
-                </p>
-                <p style="color: #64748b; font-size: 14px; text-align: center;">
-                  <strong>NovaHypnose</strong> - Regards sur l'hypnose et la transformation intérieure
-                </p>
-              </div>
-            </div>
-          `,
+          from: 'NovaHypnose <onboarding@resend.dev>',
+          to: [email],
+          subject: `Nouvel article : ${articleTitle}`,
+          html: emailContent,
         });
-
-        console.log(`Email envoyé avec succès à ${subscriber.email}:`, result);
-        return { success: true, email: subscriber.email, result };
+        
+        console.log(`Email envoyé avec succès à ${email}:`, result);
+        return { email, success: true, result };
       } catch (error) {
-        console.error(`Erreur envoi email à ${subscriber.email}:`, error);
-        return { success: false, email: subscriber.email, error: error.message };
+        console.error(`Erreur envoi email à ${email}:`, error);
+        return { email, success: false, error };
       }
     });
 
-    console.log("Attente de tous les envois d'emails...");
-    const results = await Promise.allSettled(emailPromises);
+    console.log('Attente de tous les envois d\'emails...');
+    const results = await Promise.all(emailPromises);
     
-    const successful = results.filter(result => 
-      result.status === 'fulfilled' && result.value.success
-    ).length;
-    const failed = results.filter(result => 
-      result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)
-    ).length;
+    const successCount = results.filter(r => r.success).length;
+    const failureCount = results.filter(r => !r.success).length;
+    
+    console.log(`Résultats des envois: ${successCount} réussis, ${failureCount} échoués`);
+    console.log('=== FIN NOTIFY-SUBSCRIBERS ===');
 
-    console.log(`Résultats des envois: ${successful} réussis, ${failed} échoués`);
-    console.log("=== FIN NOTIFY-SUBSCRIBERS ===");
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      sent: successful, 
-      failed: failed,
-      totalSubscribers: subscribers.length,
-      details: results
+    return new Response(JSON.stringify({
+      message: `Notifications envoyées à ${successCount} abonnés`,
+      successCount,
+      failureCount,
+      results
     }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
+
   } catch (error: any) {
-    console.error("ERREUR dans notify-subscribers:", error);
-    console.error("Stack trace:", error.stack);
-    console.log("=== FIN NOTIFY-SUBSCRIBERS - ERREUR ===");
-    
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        stack: error.stack
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    console.error('Erreur dans notify-subscribers:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 };
 

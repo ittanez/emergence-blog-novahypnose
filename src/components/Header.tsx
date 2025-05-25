@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,11 +47,6 @@ const Header = () => {
                 </Link>
               )
             ))}
-            <Link to="/admin">
-              <Button variant="outline" size="sm" className="ml-2">
-                Admin
-              </Button>
-            </Link>
           </nav>
           
           {/* Mobile menu button */}
@@ -92,13 +86,6 @@ const Header = () => {
                   </Link>
                 )
               ))}
-              <Link 
-                to="/admin" 
-                className="text-gray-600 hover:text-nova-700 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Admin
-              </Link>
             </nav>
           </div>
         )}

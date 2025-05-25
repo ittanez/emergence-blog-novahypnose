@@ -1,111 +1,90 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
+import { Resend } from 'npm:resend@2.0.0';
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ConfirmationEmailRequest {
-  email: string;
-}
-
 const handler = async (req: Request): Promise<Response> => {
-  console.log("Fonction send-confirmation-email démarrée");
+  console.log('=== DÉBUT SEND-CONFIRMATION-EMAIL ===');
   
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Traitement de la requête...");
-    const { email }: ConfirmationEmailRequest = await req.json();
-    
-    console.log("Email reçu pour confirmation:", email);
+    const { email } = await req.json();
+    console.log('Email de bienvenue à envoyer à:', email);
 
-    if (!email) {
-      throw new Error("Email manquant dans la requête");
-    }
-
-    console.log("Préparation de l'envoi de l'email...");
-
-    const emailResponse = await resend.emails.send({
-      from: "NovaHypnose <noreply@updates.novahypnose.fr>",
-      to: [email],
-      subject: "Bienvenue ! Votre inscription aux notifications NovaHypnose",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #6b46c1; text-align: center;">Bienvenue chez NovaHypnose !</h1>
+    const emailContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #2c3e50; font-size: 24px; margin-bottom: 20px;">Bienvenue sur le blog NovaHypnose ! 🌟</h1>
+        
+        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+          Merci de vous être abonné(e) à mon blog sur l'hypnothérapie ! Vous recevrez désormais mes derniers articles directement dans votre boîte mail.
+        </p>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h2 style="color: #2c3e50; font-size: 18px; margin-bottom: 15px;">Ressources utiles :</h2>
           
-          <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #1e293b; margin-top: 0;">Merci pour votre inscription !</h2>
-            <p style="color: #475569; line-height: 1.6;">
-              Vous êtes maintenant inscrit(e) aux notifications de notre blog <strong>Émergences</strong>.
-            </p>
-            <p style="color: #475569; line-height: 1.6;">
-              Vous recevrez désormais un email à chaque fois qu'un nouvel article sur l'hypnose, 
-              la transformation intérieure et le bien-être sera publié.
-            </p>
+          <div style="margin-bottom: 15px;">
+            <strong>🧠 Faites le test : Suis-je hypnotisable ?</strong><br>
+            C'est LA question que tout le monde se pose. Découvrez-le en 2 minutes !<br>
+            <a href="https://hypnokick.novahypnose.fr/" style="color: #3498db; text-decoration: none;">👉 Faire le test maintenant</a>
           </div>
-
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="https://akrlyzmfszumibwgocae.supabase.co" 
-               style="background-color: #6b46c1; color: white; padding: 12px 24px; 
-                      text-decoration: none; border-radius: 6px; display: inline-block;">
-              Découvrir le blog
-            </a>
+          
+          <div style="margin-bottom: 15px;">
+            <strong>👨‍⚕️ À propos de moi</strong><br>
+            Découvrez qui je suis et mon approche unique de l'hypnothérapie.<br>
+            <a href="https://novahypnose.fr/#about" style="color: #3498db; text-decoration: none;">👉 En savoir plus</a>
           </div>
-
-          <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
-            <p style="color: #64748b; font-size: 14px; text-align: center;">
-              Si vous souhaitez vous désabonner, vous pourrez le faire depuis n'importe quel email que nous vous enverrons.
-            </p>
-            <p style="color: #64748b; font-size: 14px; text-align: center;">
-              <strong>NovaHypnose</strong> - Regards sur l'hypnose et la transformation intérieure
-            </p>
+          
+          <div style="margin-bottom: 15px;">
+            <strong>📅 Prendre rendez-vous</strong><br>
+            Envie d'essayer une séance ? Prenez rendez-vous dès maintenant<br>
+            <a href="https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris" style="color: #3498db; text-decoration: none;">👉 Réserver une séance</a>
           </div>
         </div>
-      `,
+        
+        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+          À très bientôt,<br>
+          <strong>Alain Zenatti - Hypnothérapeute</strong>
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        
+        <div style="font-size: 12px; color: #888; text-align: center;">
+          <p>📖 <a href="https://akrlyzmfszumibwgocae.supabase.co/" style="color: #888;">Consulter tous mes articles</a></p>
+          <p>✉️ Vous ne souhaitez plus recevoir ces emails ? <a href="#" style="color: #888;">Se désabonner</a></p>
+        </div>
+      </div>
+    `;
+
+    const emailResponse = await resend.emails.send({
+      from: 'NovaHypnose <onboarding@resend.dev>',
+      to: [email],
+      subject: 'Bienvenue sur le blog NovaHypnose ! 🌟',
+      html: emailContent,
     });
 
-    console.log("Réponse de Resend:", emailResponse);
+    console.log('Email de bienvenue envoyé avec succès:', emailResponse);
+    console.log('=== FIN SEND-CONFIRMATION-EMAIL - SUCCÈS ===');
 
-    if (emailResponse.error) {
-      console.error("Erreur de Resend:", emailResponse.error);
-      throw new Error(`Erreur Resend: ${emailResponse.error.message}`);
-    }
-
-    console.log("Email de confirmation envoyé avec succès pour:", email);
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      messageId: emailResponse.data?.id,
-      email: email 
-    }), {
+    return new Response(JSON.stringify(emailResponse), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("ERREUR dans send-confirmation-email:", error);
-    console.error("Stack trace:", error.stack);
-    
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        stack: error.stack
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    console.error('Erreur lors de l\'envoi de l\'email de bienvenue:', error);
+    console.log('=== FIN SEND-CONFIRMATION-EMAIL - ÉCHEC ===');
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
   }
 };
 

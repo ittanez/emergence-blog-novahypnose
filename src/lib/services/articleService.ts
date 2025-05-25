@@ -79,32 +79,28 @@ export async function getArticleById(id: string): Promise<{ data: Article | null
 // Récupérer un article par son slug
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
-    // D'abord, obtenir l'ID de l'article en utilisant notre fonction RPC personnalisée
-    const { data: articleId, error: slugError } = await supabase
-      .rpc('get_article_id_by_slug', { slug_param: slug });
+    console.log('Recherche article avec slug:', slug);
     
-    if (slugError) {
-      console.error('Error fetching article ID by slug:', slugError);
-      return { data: null, error: slugError };
-    }
-    
-    if (!articleId) {
-      return { data: null, error: new Error('Article not found') };
-    }
-    
-    // Ensuite, récupérer les données complètes de l'article avec l'ID récupéré
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at, category')
-      .eq('id', articleId)
+      .select('*')
+      .eq('slug', slug)
+      .eq('published', true)
       .single();
     
     if (articleError) {
-      console.error('Error fetching article details:', articleError);
+      console.error('Error fetching article by slug:', articleError);
       return { data: null, error: articleError };
     }
     
-    // Récupérer les tags pour cet article avec une requête séparée
+    if (!articleData) {
+      console.log('Aucun article trouvé avec ce slug');
+      return { data: null, error: new Error('Article not found') };
+    }
+    
+    console.log('Article trouvé:', articleData.title);
+    
+    // Récupérer les tags pour cet article
     let tags: Tag[] = [];
     const { data: tagRelations, error: tagsError } = await supabase
       .from('article_tags')
@@ -124,13 +120,13 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       }
     }
     
-    // Récupérer les détails de l'auteur avec une requête séparée
+    // Récupérer les détails de l'auteur
     let author: Author | null = null;
-    if (articleData.author && typeof articleData.author === 'string') {
+    if (articleData.author_id) {
       const { data: authorData, error: authorError } = await supabase
         .from('authors')
         .select('id, name, bio, avatar_url, email, created_at, updated_at')
-        .eq('id', articleData.author)
+        .eq('id', articleData.author_id)
         .single();
       
       if (!authorError && authorData) {
@@ -138,29 +134,12 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       }
     }
     
-    // Calculer le temps de lecture et nettoyer l'extrait
-    const readTime = calculateReadTime(articleData.content || '');
-    const cleanExcerpt = articleData.excerpt ? stripHtml(articleData.excerpt) : stripHtml(articleData.content || '').substring(0, 150) + '...';
-    
-    // Construire l'objet final de l'article avec des propriétés explicites
-    const article: Article = {
-      id: articleData.id,
-      title: articleData.title,
-      content: articleData.content,
-      excerpt: cleanExcerpt,
-      image_url: articleData.image_url || '',
-      category: articleData.category || '', 
-      author_id: typeof articleData.author === 'string' ? articleData.author : '',
-      slug: slug,
-      read_time: readTime,
-      published: articleData.published || false,
-      created_at: articleData.created_at,
-      updated_at: articleData.updated_at,
-      seo_description: '',
-      keywords: [],
-      tags: tags,
-      author: author
-    };
+    // Transformer les données
+    const article = transformArticleData({
+      ...articleData,
+      tags,
+      author
+    });
     
     return { data: article, error: null };
   } catch (error) {

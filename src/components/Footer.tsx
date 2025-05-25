@@ -1,6 +1,5 @@
 
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 const Footer = () => {
@@ -43,7 +42,7 @@ const Footer = () => {
                     rel="noopener noreferrer"
                     className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
                   >
-                    Site principal
+                    NovaHypnose
                   </a>
                 </li>
                 <li>
@@ -77,11 +76,11 @@ const Footer = () => {
           </p>
           
           {isAdmin && (
-            <Link to="/admin">
-              <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700">
+            <div className="text-xs text-gray-400">
+              <Link to="/admin" className="hover:text-gray-600 transition-colors">
                 Administration
-              </Button>
-            </Link>
+              </Link>
+            </div>
           )}
         </div>
       </div>

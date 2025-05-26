@@ -1,3 +1,4 @@
+
 export interface Author {
   id: string;
   name: string;
@@ -6,7 +7,7 @@ export interface Author {
   email: string;
   created_at: string;
   updated_at: string;
-  role?: string; // Adding role property as optional
+  role?: string;
 }
 
 export interface Category {
@@ -15,8 +16,8 @@ export interface Category {
   description: string;
   created_at: string;
   slug: string;
-  parent_id?: string | null; // Optionnel car toutes les catégories n'ont pas de parent
-  updated_at?: string | null; // Optionnel pour la compatibilité avec les données existantes
+  parent_id?: string | null;
+  updated_at?: string | null;
 }
 
 export interface Tag {
@@ -34,7 +35,7 @@ export interface Article {
   image_url: string;
   seo_description: string;
   keywords: string[];
-  category: string;
+  categories: string[];
   author_id: string;
   slug: string;
   read_time: number;
@@ -63,7 +64,6 @@ export interface SortOption {
   value: string;
 }
 
-// Define a base category interface without children
 export interface CategoryBase {
   id: string;
   name: string;
@@ -74,8 +74,6 @@ export interface CategoryBase {
   updated_at?: string | null;
 }
 
-// Define CategoryNode interface for the tree structure
-// This breaks the infinite recursion by using an explicit type definition
 export interface CategoryNode {
   id: string;
   name: string;
@@ -84,8 +82,7 @@ export interface CategoryNode {
   slug: string;
   parent_id?: string | null;
   updated_at?: string | null;
-  children: CategoryNode[]; // Array of child categories
+  children: CategoryNode[];
 }
 
-// For backward compatibility
 export type CategoryWithChildren = CategoryNode;

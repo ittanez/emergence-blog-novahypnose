@@ -45,8 +45,8 @@ export const transformArticleData = (data: any): Article => {
     image_url: data.image_url || "",
     seo_description: "",
     keywords: [],
-    category: data.category || "",
-    author_id: data.author || "", // Using 'author' field from database
+    categories: Array.isArray(data.categories) ? data.categories : (data.category ? [data.category] : []),
+    author_id: data.author || "",
     slug: cleanSlug,
     read_time: readTime,
     published: data.published || false,
@@ -399,8 +399,8 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       updated_at: new Date().toISOString(),
       slug: cleanSlug,
       tags: article.tags ? article.tags.map(tag => (typeof tag === 'string') ? tag : tag.name) : [],
-      category: article.category || '', // Stocker directement le nom de la catégorie
-      author: article.author_id || '' // Using 'author' field in database
+      categories: article.categories || [],
+      author: article.author_id || ''
     };
     
     let result;
@@ -429,40 +429,41 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
     // Récupérer l'ID de l'article créé ou mis à jour
     articleId = data[0].id;
     
-    // Vérifier/créer la catégorie si spécifiée
-    if (article.category) {
-      console.log("Vérification de la catégorie:", article.category);
-      
-      // Chercher si la catégorie existe déjà
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('name', article.category)
-        .single();
+    // Vérifier/créer les catégories si spécifiées
+    if (article.categories && article.categories.length > 0) {
+      for (const categoryName of article.categories) {
+        console.log("Vérification de la catégorie:", categoryName);
         
-      if (categoryError && categoryError.code !== 'PGRST116') {  // PGRST116 signifie "no rows returned"
-        console.error('Erreur lors de la recherche de la catégorie:', categoryError);
-      }
-      
-      if (!categoryData) {
-        console.log("La catégorie n'existe pas, création d'une nouvelle catégorie");
-        // Créer la catégorie si elle n'existe pas
-        const slug = article.category.toLowerCase().replace(/\s+/g, '-');
-        const { data: newCategory, error: createError } = await supabase
+        // Chercher si la catégorie existe déjà
+        const { data: categoryData, error: categoryError } = await supabase
           .from('categories')
-          .insert({
-            name: article.category,
-            slug: slug
-          })
-          .select();
+          .select('id')
+          .eq('name', categoryName)
+          .single();
           
-        if (createError) {
-          console.error('Erreur lors de la création de la catégorie:', createError);
-        } else if (newCategory && newCategory.length > 0) {
-          console.log("Nouvelle catégorie créée avec l'ID:", newCategory[0].id);
+        if (categoryError && categoryError.code !== 'PGRST116') {
+          console.error('Erreur lors de la recherche de la catégorie:', categoryError);
         }
-      } else {
-        console.log("Catégorie existante trouvée avec l'ID:", categoryData.id);
+        
+        if (!categoryData) {
+          console.log("La catégorie n'existe pas, création d'une nouvelle catégorie");
+          const slug = categoryName.toLowerCase().replace(/\s+/g, '-');
+          const { data: newCategory, error: createError } = await supabase
+            .from('categories')
+            .insert({
+              name: categoryName,
+              slug: slug
+            })
+            .select();
+            
+          if (createError) {
+            console.error('Erreur lors de la création de la catégorie:', createError);
+          } else if (newCategory && newCategory.length > 0) {
+            console.log("Nouvelle catégorie créée avec l'ID:", newCategory[0].id);
+          }
+        } else {
+          console.log("Catégorie existante trouvée avec l'ID:", categoryData.id);
+        }
       }
     }
     

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -20,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { getArticleBySlug, getRelatedArticles } from "@/lib/services/articleService";
-import { articles } from "@/lib/mock-data"; // Keep as fallback
+import { articles } from "@/lib/mock-data";
 import { Article } from "@/lib/types";
 import { useStructuredData } from "@/hooks/useStructuredData";
 
@@ -214,9 +213,21 @@ const ArticlePage = () => {
               
               <div className="mt-8 pt-8 border-t flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  <div>Catégorie: <Link to={`/category/${article.category}`} className="text-nova-700 hover:underline">
-                    {article.category}
-                  </Link></div>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {article.categories && article.categories.length > 0 ? (
+                      <>
+                        <span>Catégories: </span>
+                        {article.categories.map((category, index) => (
+                          <span key={category}>
+                            <Link to={`/category/${category}`} className="text-nova-700 hover:underline">
+                              {category}
+                            </Link>
+                            {index < article.categories.length - 1 && ", "}
+                          </span>
+                        ))}
+                      </>
+                    ) : null}
+                  </div>
                   <div>Publié le {formattedDate}</div>
                 </div>
                 
@@ -259,31 +270,6 @@ const ArticlePage = () => {
             </div>
             
             <aside className="lg:w-1/3 space-y-8">
-              <div className="bg-gray-50 border rounded-lg p-6">
-                <div className="flex items-center mb-4">
-                  <OptimizedImage
-                    src={article.author?.avatar_url || "/placeholder.svg"}
-                    alt={authorName}
-                    className="w-12 h-12 rounded-full mr-4"
-                  />
-                  <div>
-                    <h3 className="font-semibold">{authorName}</h3>
-                    <p className="text-sm text-gray-600">{article.author?.role || ""}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  {article.author?.bio || ""}
-                </p>
-                <a 
-                  href="https://novahypnose.fr/#about" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-nova-700 text-sm hover:underline"
-                >
-                  En savoir plus
-                </a>
-              </div>
-              
               <NewsletterForm />
               
               <div className="bg-gray-50 border rounded-lg p-6">

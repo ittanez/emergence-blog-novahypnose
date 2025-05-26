@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
@@ -17,10 +16,25 @@ function calculateReadTime(content: string): number {
   return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
 }
 
+// Fonction pour générer un slug propre
+function generateSlugFromTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .normalize('NFD') // Décomposer les caractères accentués
+    .replace(/[\u0300-\u036f]/g, '') // Supprimer les diacritiques
+    .replace(/[^a-z0-9\s-]/g, '') // Garder seulement lettres, chiffres, espaces et tirets
+    .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
+    .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
+    .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
+}
+
 // Transformation des données d'un article récupéré de Supabase
 export const transformArticleData = (data: any): Article => {
   const readTime = calculateReadTime(data.content || '');
   const cleanExcerpt = data.excerpt ? stripHtml(data.excerpt) : stripHtml(data.content || '').substring(0, 150) + '...';
+  
+  // Générer un slug propre si nécessaire
+  const cleanSlug = data.slug ? generateSlugFromTitle(data.slug) : generateSlugFromTitle(data.title || '');
   
   return {
     id: data.id,
@@ -32,7 +46,7 @@ export const transformArticleData = (data: any): Article => {
     keywords: [],
     category: data.category || "",
     author_id: data.author || "", // Using 'author' field from database
-    slug: data.slug || "",
+    slug: cleanSlug,
     read_time: readTime,
     published: data.published || false,
     created_at: data.created_at,
@@ -348,6 +362,9 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
     const readTime = article.content ? calculateReadTime(article.content) : 0;
     const cleanExcerpt = article.excerpt ? stripHtml(article.excerpt) : (article.content ? stripHtml(article.content).substring(0, 150) + '...' : '');
     
+    // Générer un slug propre
+    const cleanSlug = article.slug ? generateSlugFromTitle(article.slug) : generateSlugFromTitle(article.title || '');
+    
     // Préparer les données pour Supabase
     const supabaseData = {
       title: article.title,
@@ -356,7 +373,7 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       image_url: article.image_url,
       published: article.published || false,
       updated_at: new Date().toISOString(),
-      slug: article.slug || article.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      slug: cleanSlug,
       tags: article.tags ? article.tags.map(tag => (typeof tag === 'string') ? tag : tag.name) : [],
       category: article.category || '', // Stocker directement le nom de la catégorie
       author: article.author_id || '' // Using 'author' field in database
@@ -539,13 +556,13 @@ export async function isSlugAvailable(slug: string, ignoreId?: string): Promise<
 
 // Générer un slug unique basé sur un titre
 export async function generateUniqueSlug(title: string, articleId?: string): Promise<string> {
-  const baseSlug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const baseSlug = generateSlugFromTitle(title);
   
   if (await isSlugAvailable(baseSlug, articleId)) {
     return baseSlug;
   }
   
-  // Ajouter un nombre aléatoire si le slug est déjà pris
+  // Ajouter un nombre si le slug est déjà pris
   let uniqueSlug = '';
   let counter = 1;
   

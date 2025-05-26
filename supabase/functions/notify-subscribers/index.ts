@@ -15,18 +15,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Fonction pour nettoyer le slug
-function cleanSlug(slug: string): string {
-  return slug
-    .toLowerCase()
-    .normalize('NFD') // Décomposer les caractères accentués
-    .replace(/[\u0300-\u036f]/g, '') // Supprimer les diacritiques
-    .replace(/[^a-z0-9\s-]/g, '') // Garder seulement lettres, chiffres, espaces et tirets
-    .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
-    .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
-    .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
-}
-
 const handler = async (req: Request): Promise<Response> => {
   console.log('=== DÉBUT NOTIFY-SUBSCRIBERS ===');
   
@@ -62,9 +50,8 @@ const handler = async (req: Request): Promise<Response> => {
     const subscriberEmails = subscribers.map(sub => sub.email);
     console.log(`${subscribers.length} abonnés trouvés:`, subscriberEmails);
 
-    // Nettoyer le slug et construire l'URL correcte
-    const cleanedSlug = cleanSlug(articleSlug);
-    const articleUrl = `https://emergences.novahypnose.fr/article/${cleanedSlug}`;
+    // Utiliser directement le slug fourni sans modification
+    const articleUrl = `https://emergences.novahypnose.fr/article/${articleSlug}`;
     console.log('URL de l\'article:', articleUrl);
 
     // Template email enrichi pour les notifications

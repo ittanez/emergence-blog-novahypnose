@@ -16,18 +16,6 @@ interface ArticleNotificationRequest {
   subscribers: string[];
 }
 
-// Fonction pour nettoyer le slug
-function cleanSlug(slug: string): string {
-  return slug
-    .toLowerCase()
-    .normalize('NFD') // Décomposer les caractères accentués
-    .replace(/[\u0300-\u036f]/g, '') // Supprimer les diacritiques
-    .replace(/[^a-z0-9\s-]/g, '') // Garder seulement lettres, chiffres, espaces et tirets
-    .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
-    .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
-    .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
-}
-
 const handler = async (req: Request): Promise<Response> => {
   console.log('=== DÉBUT SEND-ARTICLE-NOTIFICATION ===');
   
@@ -39,14 +27,8 @@ const handler = async (req: Request): Promise<Response> => {
     const { articleTitle, articleExcerpt, articleUrl, subscribers }: ArticleNotificationRequest = await req.json();
     console.log(`Notification d'article à envoyer à ${subscribers.length} abonnés`);
 
-    // Extraire le slug de l'URL et le nettoyer
-    const urlParts = articleUrl.split('/');
-    const originalSlug = urlParts[urlParts.length - 1];
-    const cleanedSlug = cleanSlug(originalSlug);
-    const correctedUrl = `https://emergences.novahypnose.fr/article/${cleanedSlug}`;
-    
-    console.log('URL originale:', articleUrl);
-    console.log('URL corrigée:', correctedUrl);
+    // Utiliser directement l'URL fournie sans modification
+    console.log('URL de l\'article:', articleUrl);
 
     const emailContent = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #f8f9fa;">
@@ -60,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; margin: 30px 0; text-align: center;">
             <h2 style="color: white; font-size: 22px; margin-bottom: 15px; line-height: 1.4;">${articleTitle}</h2>
             <p style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.6; margin-bottom: 25px;">${articleExcerpt}</p>
-            <a href="${correctedUrl}" 
+            <a href="${articleUrl}" 
                style="display: inline-block; background-color: #ffd700; color: #2c3e50; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px;">
               👉 Lire l'article complet
             </a>

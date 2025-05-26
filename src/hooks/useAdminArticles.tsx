@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Article } from "@/lib/types";
@@ -36,23 +35,25 @@ export const useAdminArticles = () => {
     fetchCategories();
   }, []);
 
-  // Charger les articles avec filtres et pagination
+  // Charger les articles avec filtres et pagination (INCLURE LES BROUILLONS)
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         setIsLoading(true);
+        // Modifier l'appel pour inclure tous les articles (publiés ET brouillons)
         const { data, error, totalCount: count } = await getAllArticles({
           search: filters.search,
           category: filters.category,
           page: currentPage,
-          limit: articlesPerPage
+          limit: articlesPerPage,
+          includeDrafts: true // Nouveau paramètre pour inclure les brouillons
         });
           
         if (error) {
           throw error;
         }
 
-        console.log("Articles récupérés:", data);
+        console.log("Articles récupérés (incluant brouillons):", data);
         
         if (data) {
           setArticles(data);
@@ -109,7 +110,8 @@ export const useAdminArticles = () => {
         search: filters.search,
         category: filters.category,
         page: currentPage,
-        limit: articlesPerPage
+        limit: articlesPerPage,
+        includeDrafts: true
       });
       
       if (!fetchError && data) {

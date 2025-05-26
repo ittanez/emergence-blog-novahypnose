@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
@@ -21,12 +20,12 @@ function calculateReadTime(content: string): number {
 function generateSlugFromTitle(title: string): string {
   return title
     .toLowerCase()
-    .normalize('NFD') // Décomposer les caractères accentués
-    .replace(/[\u0300-\u036f]/g, '') // Supprimer les diacritiques
-    .replace(/[^a-z0-9\s-]/g, '') // Garder seulement lettres, chiffres, espaces et tirets
-    .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
-    .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
-    .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 // Transformation des données d'un article récupéré de Supabase
@@ -52,7 +51,7 @@ export const transformArticleData = (data: any): Article => {
     published: data.published || false,
     created_at: data.created_at,
     updated_at: data.updated_at || data.created_at,
-    // Conversion des tags
+    scheduled_for: data.scheduled_for,
     tags: Array.isArray(data.tags) 
       ? data.tags.map(tag => ({ 
           id: "", 
@@ -97,8 +96,6 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
   try {
     console.log('=== getArticleBySlug START ===');
     console.log('Recherche article avec slug:', slug);
-    console.log('Type du slug:', typeof slug);
-    console.log('Longueur du slug:', slug.length);
     
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
@@ -113,15 +110,12 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     
     if (articleError) {
       console.error('Error fetching article by slug:', articleError);
-      console.error('Error code:', articleError.code);
-      console.error('Error message:', articleError.message);
       return { data: null, error: articleError };
     }
     
     if (!articleData) {
       console.log('Aucun article trouvé avec ce slug');
       
-      // Vérifier s'il y a des articles avec des slugs similaires
       const { data: similarArticles } = await supabase
         .from('articles')
         .select('slug, title')
@@ -134,9 +128,7 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
     }
     
     console.log('Article trouvé:', articleData.title);
-    console.log('Slug de l\'article trouvé:', articleData.slug);
     
-    // Récupérer les tags pour cet article
     let tags: Tag[] = [];
     const { data: tagRelations, error: tagsError } = await supabase
       .from('article_tags')
@@ -156,13 +148,12 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       }
     }
     
-    // Récupérer les détails de l'auteur
     let author: Author | null = null;
-    if (articleData.author) { // Using 'author' field instead of 'author_id'
+    if (articleData.author) {
       const { data: authorData, error: authorError } = await supabase
         .from('authors')
         .select('id, name, bio, avatar_url, email, created_at, updated_at')
-        .eq('id', articleData.author) // Using 'author' field
+        .eq('id', articleData.author)
         .single();
       
       if (!authorError && authorData) {
@@ -170,14 +161,12 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       }
     }
     
-    // Transformer les données
     const article = transformArticleData({
       ...articleData,
       tags,
       author
     });
     
-    console.log('Article final transformé:', article.title);
     console.log('=== getArticleBySlug END ===');
     
     return { data: article, error: null };
@@ -205,9 +194,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
       return { data: [], error: null };
     }
     
-    // Transformer les données en type Article avec des valeurs par défaut
     const articles: Article[] = relatedArticlesData.map((data) => {
-      // Générer un slug à partir du titre
       const generatedSlug = data.title ? 
         data.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 
         `article-${data.id}`;
@@ -267,7 +254,6 @@ export async function saveCategory(category: Partial<Category>): Promise<{ data:
     let result;
     
     if (category.id) {
-      // Mise à jour d'une catégorie existante
       result = await supabase
         .from('categories')
         .update({
@@ -280,7 +266,6 @@ export async function saveCategory(category: Partial<Category>): Promise<{ data:
         .eq('id', category.id)
         .select();
     } else {
-      // Création d'une nouvelle catégorie
       result = await supabase
         .from('categories')
         .insert({
@@ -308,7 +293,6 @@ export async function saveCategory(category: Partial<Category>): Promise<{ data:
 // Supprimer une catégorie avec vérification
 export async function deleteCategory(categoryId: string): Promise<{ success: boolean; error: Error | string | null }> {
   try {
-    // Vérifier si la catégorie est utilisée par des articles
     const { data: usedByArticles, error: checkError } = await supabase
       .from('articles')
       .select('id')
@@ -325,7 +309,6 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
       };
     }
     
-    // Supprimer la catégorie
     const { error } = await supabase
       .from('categories')
       .delete()
@@ -346,30 +329,22 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
 export function organizeCategoriesHierarchy(
   categories: CategoryBase[]
 ): CategoryNode[] {
-  // Create a map to store all categories by their ID
   const categoryMap: Record<string, CategoryNode> = {};
-  
-  // Create an array to store root categories
   const rootCategories: CategoryNode[] = [];
 
-  // First pass: populate the map with all categories, each with an empty children array
   categories.forEach(category => {
     categoryMap[category.id] = {
       ...category,
-      children: [] // Initialize with empty array for all categories
+      children: []
     };
   });
 
-  // Second pass: build the hierarchy
   categories.forEach(category => {
     const categoryNode = categoryMap[category.id];
     
-    // If the category has a parent and the parent exists in our map
     if (category.parent_id && categoryMap[category.parent_id]) {
-      // Add this category as a child of its parent
       categoryMap[category.parent_id].children.push(categoryNode);
     } else {
-      // This is a root category
       rootCategories.push(categoryNode);
     }
   });
@@ -382,20 +357,18 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
   try {
     let articleId = article.id;
     
-    // Calculer le temps de lecture si le contenu est fourni
     const readTime = article.content ? calculateReadTime(article.content) : 0;
     const cleanExcerpt = article.excerpt ? stripHtml(article.excerpt) : (article.content ? stripHtml(article.content).substring(0, 150) + '...' : '');
     
-    // Générer un slug propre
     const cleanSlug = article.slug ? generateSlugFromTitle(article.slug) : generateSlugFromTitle(article.title || '');
     
-    // Préparer les données pour Supabase
     const supabaseData = {
       title: article.title,
       content: article.content,
       excerpt: cleanExcerpt,
       image_url: article.image_url,
       published: article.published || false,
+      scheduled_for: article.scheduled_for || null,
       updated_at: new Date().toISOString(),
       slug: cleanSlug,
       tags: article.tags ? article.tags.map(tag => (typeof tag === 'string') ? tag : tag.name) : [],
@@ -403,17 +376,17 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       author: article.author_id || ''
     };
     
+    console.log("Données à sauvegarder:", supabaseData);
+    
     let result;
     
     if (articleId) {
-      // Mise à jour d'un article existant
       result = await supabase
         .from('articles')
         .update(supabaseData)
         .eq('id', articleId)
         .select();
     } else {
-      // Création d'un nouvel article
       result = await supabase
         .from('articles')
         .insert(supabaseData)
@@ -426,15 +399,12 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       throw error;
     }
     
-    // Récupérer l'ID de l'article créé ou mis à jour
     articleId = data[0].id;
     
-    // Vérifier/créer les catégories si spécifiées
     if (article.categories && article.categories.length > 0) {
       for (const categoryName of article.categories) {
         console.log("Vérification de la catégorie:", categoryName);
         
-        // Chercher si la catégorie existe déjà
         const { data: categoryData, error: categoryError } = await supabase
           .from('categories')
           .select('id')
@@ -467,7 +437,6 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
       }
     }
     
-    // Transformer l'article pour le retour avec le bon temps de lecture
     const transformedData = {
       ...data[0],
       read_time: readTime,
@@ -484,7 +453,6 @@ export async function saveArticle(article: Partial<Article>): Promise<{ data: Ar
 // Supprimer un article
 export async function deleteArticle(articleId: string): Promise<{ success: boolean; error: any }> {
   try {
-    // Supprimer les relations avec les tags
     const { error: relError } = await supabase
       .from('article_tags')
       .delete()
@@ -494,7 +462,6 @@ export async function deleteArticle(articleId: string): Promise<{ success: boole
       console.error('Error deleting article-tag relations:', relError);
     }
     
-    // Supprimer l'article
     const { error } = await supabase
       .from('articles')
       .delete()
@@ -517,13 +484,17 @@ export async function getAllArticles(filters?: {
   category?: string;
   page?: number;
   limit?: number;
+  includeDrafts?: boolean; // NOUVEAU paramètre
 }): Promise<{ data: Article[] | null; error: any; totalCount?: number }> {
   try {
     let query = supabase
       .from('articles')
       .select('*', { count: 'exact' });
     
-    // Appliquer les filtres
+    if (!filters?.includeDrafts) {
+      query = query.eq('published', true);
+    }
+    
     if (filters?.search) {
       query = query.ilike('title', `%${filters.search}%`);
     }
@@ -532,14 +503,12 @@ export async function getAllArticles(filters?: {
       query = query.contains('categories', [filters.category]);
     }
     
-    // Pagination
     if (filters?.page && filters?.limit) {
       const from = (filters.page - 1) * filters.limit;
       const to = from + filters.limit - 1;
       query = query.range(from, to);
     }
     
-    // Tri par date de création (plus récent en premier)
     query = query.order('created_at', { ascending: false });
     
     const { data, error, count } = await query;
@@ -548,7 +517,8 @@ export async function getAllArticles(filters?: {
       throw error;
     }
     
-    // Transformer les données pour correspondre au type Article
+    console.log("Articles récupérés (includeDrafts=" + filters?.includeDrafts + "):", data?.length);
+    
     const transformedArticles = data ? data.map(transformArticleData) : [];
     
     return { data: transformedArticles, error: null, totalCount: count || 0 };
@@ -587,7 +557,6 @@ export async function generateUniqueSlug(title: string, articleId?: string): Pro
     return baseSlug;
   }
   
-  // Ajouter un nombre si le slug est déjà pris
   let uniqueSlug = '';
   let counter = 1;
   

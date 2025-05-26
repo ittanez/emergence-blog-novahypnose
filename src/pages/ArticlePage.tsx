@@ -74,7 +74,7 @@ const ArticlePage = () => {
   const relatedArticles = relatedData?.data || 
     articles.filter(a => a.id !== article?.id).slice(0, 3);
   
-  // Handle case where article is not found
+  // Handle case where article is not found - FIXED: Navigate to home instead of /not-found
   useEffect(() => {
     console.log("=== useEffect for article check ===");
     console.log("articleLoading:", articleLoading);
@@ -82,8 +82,11 @@ const ArticlePage = () => {
     console.log("articleError:", articleError);
     
     if (!articleLoading && !article) {
-      console.log("Navigating to not-found page");
-      navigate("/not-found");
+      console.log("Article not found, redirecting to home page");
+      toast.error("Article non trouvé", {
+        description: "L'article que vous recherchez n'existe pas ou a été supprimé."
+      });
+      navigate("/");
     }
   }, [article, articleLoading, navigate, articleError]);
   
@@ -106,7 +109,15 @@ const ArticlePage = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <div className="flex-grow flex items-center justify-center">
-          <p>Impossible de charger l'article. Erreur: {articleError?.message || "Article non trouvé"}</p>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Article non trouvé</h1>
+            <p className="text-gray-600 mb-4">
+              L'article que vous recherchez n'existe pas ou a été supprimé.
+            </p>
+            <Link to="/" className="text-nova-700 hover:underline">
+              Retour à l'accueil
+            </Link>
+          </div>
         </div>
         <Footer />
       </div>

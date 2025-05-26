@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="text-align: center;">
             <p style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">
-              📖 <a href="https://akrlyzmfszumibwgocae.supabase.co/" style="color: #667eea; text-decoration: none;">Consulter tous mes articles</a>
+              📖 <a href="https://novahypnose.fr/" style="color: #667eea; text-decoration: none;">Consulter tous mes articles</a>
             </p>
             <p style="font-size: 12px; color: #adb5bd;">
               ✉️ Vous ne souhaitez plus recevoir ces emails ? <a href="#" style="color: #adb5bd;">Se désabonner</a>

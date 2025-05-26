@@ -50,54 +50,64 @@ const handler = async (req: Request): Promise<Response> => {
     const subscriberEmails = subscribers.map(sub => sub.email);
     console.log(`${subscribers.length} abonnés trouvés:`, subscriberEmails);
 
-    // URL complète de l'article
-    const articleUrl = `${supabaseUrl}/article/${articleSlug}`;
+    // URL complète de l'article - CORRIGÉE
+    const articleUrl = `https://novahypnose.fr/article/${articleSlug}`;
     console.log('URL de l\'article:', articleUrl);
 
     // Template email enrichi pour les notifications
     const emailContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #2c3e50; font-size: 24px; margin-bottom: 20px;">Nouvel article : ${articleTitle} ✨</h1>
-        
-        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-          Un nouvel article vient d'être publié sur mon blog :
-        </p>
-        
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h2 style="color: #2c3e50; font-size: 18px; margin-bottom: 10px;">${articleTitle}</h2>
-          <p style="font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 15px;">${articleExcerpt}</p>
-          <a href="${articleUrl}" style="display: inline-block; background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">👉 Lire l'article complet</a>
-        </div>
-        
-        <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #2c3e50; font-size: 16px; margin-bottom: 10px;">Ressources utiles :</h3>
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #f8f9fa;">
+        <div style="background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           
-          <p style="font-size: 14px; margin-bottom: 8px;">
-            🧠 <strong>Faites le test : Suis-je hypnotisable ?</strong><br>
-            Découvrez-le en 2 minutes ! <a href="https://hypnokick.novahypnose.fr/" style="color: #3498db;">https://hypnokick.novahypnose.fr/</a>
-          </p>
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2c3e50; font-size: 24px; margin-bottom: 10px; font-weight: 600;">📚 Nouvel article disponible</h1>
+            <p style="color: #6c757d; font-size: 16px; margin: 0;">Blog NovaHypnose</p>
+          </div>
           
-          <p style="font-size: 14px; margin-bottom: 8px;">
-            👨‍⚕️ <strong>À propos de moi</strong> - Mon approche de l'hypnothérapie<br>
-            <a href="https://novahypnose.fr/#about" style="color: #3498db;">https://novahypnose.fr/#about</a>
-          </p>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; margin: 30px 0; text-align: center;">
+            <h2 style="color: white; font-size: 22px; margin-bottom: 15px; line-height: 1.4;">${articleTitle}</h2>
+            <p style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.6; margin-bottom: 25px;">${articleExcerpt}</p>
+            <a href="${articleUrl}" 
+               style="display: inline-block; background-color: #ffd700; color: #2c3e50; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px;">
+              👉 Lire l'article complet
+            </a>
+          </div>
           
-          <p style="font-size: 14px;">
-            📅 <strong>Prendre rendez-vous</strong> pour une séance<br>
-            <a href="https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris" style="color: #3498db;">https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris</a>
-          </p>
-        </div>
-        
-        <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-          Bonne lecture !<br>
-          <strong>Alain Zenatti - Hypnothérapeute</strong>
-        </p>
-        
-        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-        
-        <div style="font-size: 12px; color: #888; text-align: center;">
-          <p>📖 <a href="${supabaseUrl}" style="color: #888;">Tous mes articles</a></p>
-          <p>⚙️ Gérer mon abonnement | ✉️ <a href="#" style="color: #888;">Se désabonner</a></p>
+          <div style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin: 25px 0;">
+            <h3 style="color: #2c3e50; font-size: 18px; margin-bottom: 20px; text-align: center;">🎯 Ressources utiles</h3>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
+              <a href="https://hypnokick.novahypnose.fr/" 
+                 style="display: inline-block; background-color: #ffd700; color: #2c3e50; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                🧠 Test d'hypnotisabilité
+              </a>
+              <a href="https://novahypnose.fr/#about" 
+                 style="display: inline-block; background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                👨‍⚕️ À propos
+              </a>
+              <a href="https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris" 
+                 style="display: inline-block; background-color: #17a2b8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                📅 Prendre RDV
+              </a>
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 16px; line-height: 1.6; color: #495057;">
+              Bonne lecture !<br>
+              <strong style="color: #2c3e50;">Alain Zenatti</strong><br>
+              <span style="color: #6c757d;">Hypnothérapeute</span>
+            </p>
+          </div>
+          
+          <hr style="border: none; border-top: 2px solid #e9ecef; margin: 30px 0;">
+          
+          <div style="text-align: center;">
+            <p style="font-size: 12px; color: #adb5bd;">
+              ✉️ Vous ne souhaitez plus recevoir ces emails ? <a href="#" style="color: #adb5bd;">Se désabonner</a>
+            </p>
+          </div>
+          
         </div>
       </div>
     `;

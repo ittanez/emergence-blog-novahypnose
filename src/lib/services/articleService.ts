@@ -45,7 +45,7 @@ export const transformArticleData = (data: any): Article => {
     image_url: data.image_url || "",
     seo_description: "",
     keywords: [],
-    categories: Array.isArray(data.categories) ? data.categories : (data.category ? [data.category] : []),
+    categories: Array.isArray(data.categories) ? data.categories : [],
     author_id: data.author || "",
     slug: cleanSlug,
     read_time: readTime,
@@ -192,7 +192,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
   try {
     const { data: relatedArticlesData, error } = await supabase
       .from('articles')
-      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at, category')
+      .select('id, title, content, excerpt, image_url, author, published, created_at, updated_at, categories')
       .neq('id', currentArticleId)
       .limit(limit);
     
@@ -221,7 +221,7 @@ export async function getRelatedArticles(currentArticleId: string, limit: number
         content: data.content,
         excerpt: cleanExcerpt,
         image_url: data.image_url || '',
-        category: data.category || '',
+        categories: Array.isArray(data.categories) ? data.categories : [],
         author_id: typeof data.author === 'string' ? data.author : '',
         slug: generatedSlug,
         read_time: readTime,
@@ -529,7 +529,7 @@ export async function getAllArticles(filters?: {
     }
     
     if (filters?.category) {
-      query = query.eq('category', filters.category);
+      query = query.contains('categories', [filters.category]);
     }
     
     // Pagination

@@ -39,10 +39,10 @@ const ArticlePreview = ({ article, open, onClose }: ArticlePreviewProps) => {
           
           <div className="flex flex-wrap items-center text-sm text-gray-500 mb-6">
             <span>Publié {formattedDate}</span>
-            {article.category && (
+            {article.categories && article.categories.length > 0 && (
               <>
                 <span className="mx-2">•</span>
-                <span>{article.category}</span>
+                <span>{article.categories[0]}</span>
               </>
             )}
             {article.read_time && (
@@ -52,6 +52,16 @@ const ArticlePreview = ({ article, open, onClose }: ArticlePreviewProps) => {
               </>
             )}
           </div>
+          
+          {article.categories && article.categories.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {article.categories.map((categoryName, index) => (
+                <Badge key={index} variant="outline">
+                  {categoryName}
+                </Badge>
+              ))}
+            </div>
+          )}
           
           {article.tags && article.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">

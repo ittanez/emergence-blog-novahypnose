@@ -38,11 +38,11 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
       </CardHeader>
       <CardContent className="flex-grow pt-6">
         <div className="flex flex-wrap gap-2 mb-2">
-          {article.category && (
-            <Badge variant="outline" className="hover:bg-nova-50">
-              {article.category}
+          {article.categories && article.categories.slice(0, 2).map(categoryName => (
+            <Badge key={categoryName} variant="outline" className="hover:bg-nova-50">
+              {categoryName}
             </Badge>
-          )}
+          ))}
           {article.tags?.slice(0, 2).map(tag => (
             <Badge key={tag.id} variant="outline" className="hover:bg-nova-50">
               {tag.name}

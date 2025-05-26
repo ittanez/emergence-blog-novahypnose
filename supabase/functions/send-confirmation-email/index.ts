@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: 'NovaHypnose <onboarding@resend.dev>',
+      from: 'NovaHypnose <contact@updates.novahypnose.fr>',
       to: [email],
       subject: 'Bienvenue sur le blog NovaHypnose ! 🌟',
       html: emailContent,

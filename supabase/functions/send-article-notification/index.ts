@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Envoyer l'email à tous les abonnés
     const emailResponse = await resend.emails.send({
-      from: 'NovaHypnose <onboarding@resend.dev>',
+      from: 'NovaHypnose <contact@updates.novahypnose.fr>',
       to: subscribers,
       subject: `Nouvel article : ${articleTitle}`,
       html: emailContent,

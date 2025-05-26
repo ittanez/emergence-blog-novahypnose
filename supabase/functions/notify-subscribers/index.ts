@@ -132,7 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       try {
         const result = await resend.emails.send({
-          from: 'NovaHypnose <onboarding@resend.dev>',
+          from: 'NovaHypnose <contact@updates.novahypnose.fr>',
           to: [email],
           subject: `Nouvel article : ${articleTitle}`,
           html: emailContent,

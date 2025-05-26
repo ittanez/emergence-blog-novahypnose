@@ -29,6 +29,12 @@ const ArticlePage = () => {
   const navigate = useNavigate();
   const { generateArticleStructuredData } = useStructuredData();
   
+  // Logs détaillés pour le debugging
+  console.log("=== ArticlePage Component Loading ===");
+  console.log("URL slug from params:", slug);
+  console.log("Current URL:", window.location.href);
+  console.log("Current pathname:", window.location.pathname);
+  
   // Use React Query to fetch the article data
   const { 
     data: articleData, 
@@ -36,12 +42,23 @@ const ArticlePage = () => {
     isLoading: articleLoading 
   } = useQuery({
     queryKey: ['article', slug],
-    queryFn: () => getArticleBySlug(slug!),
+    queryFn: async () => {
+      console.log("=== Fetching article with slug ===", slug);
+      const result = await getArticleBySlug(slug!);
+      console.log("Article fetch result:", result);
+      return result;
+    },
     enabled: !!slug,
   });
 
   // Get the article from Supabase or use mock data as fallback
-  const article = articleData?.data || articles.find(article => article.slug === slug);
+  const article = articleData?.data || articles.find(article => {
+    console.log("Checking mock article slug:", article.slug, "against URL slug:", slug);
+    return article.slug === slug;
+  });
+  
+  console.log("Final article found:", article ? article.title : "NO ARTICLE FOUND");
+  console.log("Article error:", articleError);
   
   // Use React Query to fetch related articles
   const { 
@@ -60,12 +77,19 @@ const ArticlePage = () => {
   
   // Handle case where article is not found
   useEffect(() => {
+    console.log("=== useEffect for article check ===");
+    console.log("articleLoading:", articleLoading);
+    console.log("article exists:", !!article);
+    console.log("articleError:", articleError);
+    
     if (!articleLoading && !article) {
+      console.log("Navigating to not-found page");
       navigate("/not-found");
     }
-  }, [article, articleLoading, navigate]);
+  }, [article, articleLoading, navigate, articleError]);
   
   if (articleLoading) {
+    console.log("Showing loading state");
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -78,16 +102,19 @@ const ArticlePage = () => {
   }
   
   if (articleError || !article) {
+    console.log("Showing error state");
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
         <div className="flex-grow flex items-center justify-center">
-          <p>Impossible de charger l'article.</p>
+          <p>Impossible de charger l'article. Erreur: {articleError?.message || "Article non trouvé"}</p>
         </div>
         <Footer />
       </div>
     );
   }
+  
+  console.log("Rendering article successfully:", article.title);
   
   const formattedDate = format(new Date(article.created_at), "d MMMM yyyy", { locale: fr });
   

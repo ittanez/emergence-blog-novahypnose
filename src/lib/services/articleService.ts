@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Article, Author, Category, Tag, CategoryBase, CategoryNode } from '../types';
 
@@ -94,7 +95,10 @@ export async function getArticleById(id: string): Promise<{ data: Article | null
 // Récupérer un article par son slug
 export async function getArticleBySlug(slug: string): Promise<{ data: Article | null; error: any }> {
   try {
+    console.log('=== getArticleBySlug START ===');
     console.log('Recherche article avec slug:', slug);
+    console.log('Type du slug:', typeof slug);
+    console.log('Longueur du slug:', slug.length);
     
     const { data: articleData, error: articleError } = await supabase
       .from('articles')
@@ -103,17 +107,34 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       .eq('published', true)
       .single();
     
+    console.log('Requête Supabase terminée');
+    console.log('Data reçue:', articleData);
+    console.log('Erreur reçue:', articleError);
+    
     if (articleError) {
       console.error('Error fetching article by slug:', articleError);
+      console.error('Error code:', articleError.code);
+      console.error('Error message:', articleError.message);
       return { data: null, error: articleError };
     }
     
     if (!articleData) {
       console.log('Aucun article trouvé avec ce slug');
+      
+      // Vérifier s'il y a des articles avec des slugs similaires
+      const { data: similarArticles } = await supabase
+        .from('articles')
+        .select('slug, title')
+        .eq('published', true)
+        .limit(5);
+      
+      console.log('Articles similaires disponibles:', similarArticles);
+      
       return { data: null, error: new Error('Article not found') };
     }
     
     console.log('Article trouvé:', articleData.title);
+    console.log('Slug de l\'article trouvé:', articleData.slug);
     
     // Récupérer les tags pour cet article
     let tags: Tag[] = [];
@@ -155,6 +176,9 @@ export async function getArticleBySlug(slug: string): Promise<{ data: Article | 
       tags,
       author
     });
+    
+    console.log('Article final transformé:', article.title);
+    console.log('=== getArticleBySlug END ===');
     
     return { data: article, error: null };
   } catch (error) {

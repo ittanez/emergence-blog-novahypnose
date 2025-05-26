@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Article } from "@/lib/types";
@@ -40,22 +41,37 @@ export const useAdminArticles = () => {
     const fetchArticles = async () => {
       try {
         setIsLoading(true);
-        // Modifier l'appel pour inclure tous les articles (publiés ET brouillons)
+        console.log("Récupération des articles avec les filtres:", {
+          search: filters.search,
+          category: filters.category,
+          page: currentPage,
+          limit: articlesPerPage,
+          includeDrafts: true
+        });
+        
+        // Récupérer TOUS les articles (publiés ET brouillons)
         const { data, error, totalCount: count } = await getAllArticles({
           search: filters.search,
           category: filters.category,
           page: currentPage,
           limit: articlesPerPage,
-          includeDrafts: true // Nouveau paramètre pour inclure les brouillons
+          includeDrafts: true // IMPORTANT: inclure les brouillons
         });
           
         if (error) {
+          console.error("Erreur lors de la récupération des articles:", error);
           throw error;
         }
 
-        console.log("Articles récupérés (incluant brouillons):", data);
+        console.log("Articles récupérés:", data);
+        console.log("Nombre total d'articles:", count);
         
         if (data) {
+          // Log pour vérifier les statuts des articles
+          data.forEach(article => {
+            console.log(`Article "${article.title}": published=${article.published}, scheduled_for=${article.scheduled_for}`);
+          });
+          
           setArticles(data);
           setTotalCount(count || 0);
           setTotalPages(Math.ceil((count || 0) / articlesPerPage));

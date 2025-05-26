@@ -484,28 +484,38 @@ export async function getAllArticles(filters?: {
   category?: string;
   page?: number;
   limit?: number;
-  includeDrafts?: boolean; // NOUVEAU paramètre
+  includeDrafts?: boolean;
 }): Promise<{ data: Article[] | null; error: any; totalCount?: number }> {
   try {
+    console.log("getAllArticles appelé avec les filtres:", filters);
+    
     let query = supabase
       .from('articles')
       .select('*', { count: 'exact' });
     
+    // IMPORTANT: Si includeDrafts est false ou non défini, on filtre sur published = true
+    // Si includeDrafts est true, on récupère TOUS les articles (publiés ET brouillons)
     if (!filters?.includeDrafts) {
+      console.log("Filtrage sur published = true seulement");
       query = query.eq('published', true);
+    } else {
+      console.log("Récupération de tous les articles (publiés et brouillons)");
     }
     
     if (filters?.search) {
+      console.log("Recherche par titre:", filters.search);
       query = query.ilike('title', `%${filters.search}%`);
     }
     
     if (filters?.category) {
+      console.log("Filtrage par catégorie:", filters.category);
       query = query.contains('categories', [filters.category]);
     }
     
     if (filters?.page && filters?.limit) {
       const from = (filters.page - 1) * filters.limit;
       const to = from + filters.limit - 1;
+      console.log("Pagination:", { from, to, page: filters.page, limit: filters.limit });
       query = query.range(from, to);
     }
     
@@ -514,10 +524,18 @@ export async function getAllArticles(filters?: {
     const { data, error, count } = await query;
       
     if (error) {
+      console.error("Erreur dans la requête Supabase:", error);
       throw error;
     }
     
-    console.log("Articles récupérés (includeDrafts=" + filters?.includeDrafts + "):", data?.length);
+    console.log("Résultats de la requête:");
+    console.log("- Nombre d'articles récupérés:", data?.length || 0);
+    console.log("- Nombre total:", count);
+    console.log("- Articles:", data?.map(a => ({ 
+      title: a.title, 
+      published: a.published, 
+      scheduled_for: a.scheduled_for 
+    })));
     
     const transformedArticles = data ? data.map(transformArticleData) : [];
     

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -258,7 +257,7 @@ const AdminArticles = () => {
                     <TableHead>Titre</TableHead>
                     <TableHead className="hidden md:table-cell">Date de création</TableHead>
                     <TableHead className="hidden md:table-cell">Statut</TableHead>
-                    <TableHead className="hidden md:table-cell">Catégorie</TableHead>
+                    <TableHead className="hidden md:table-cell">Catégories</TableHead>
                     <TableHead className="hidden lg:table-cell">Temps de lecture</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -277,7 +276,10 @@ const AdminArticles = () => {
                         }
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {article.category || "Non catégorisé"}
+                        {article.categories && article.categories.length > 0 
+                          ? article.categories.join(", ") 
+                          : "Non catégorisé"
+                        }
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         {article.read_time} min

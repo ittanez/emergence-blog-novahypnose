@@ -1,4 +1,3 @@
-
 import { useState, useEffect, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -25,6 +24,7 @@ import Footer from "@/components/Footer";
 import RichTextEditor from "@/components/RichTextEditor";
 import TagInput from "@/components/TagInput";
 import ArticlePreview from "@/components/ArticlePreview";
+import CategoryMultiSelect from "@/components/CategoryMultiSelect";
 import { getAllCategories, saveArticle, generateUniqueSlug, getArticleById } from "@/lib/services/articleService";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,7 +48,7 @@ const AdminArticleEditor = () => {
     excerpt: "",
     image_url: "",
     published: false,
-    category: "",
+    categories: [],
     slug: "",
     tags: [],
     keywords: [],
@@ -236,10 +236,10 @@ const AdminArticleEditor = () => {
     }
   };
 
-  // Mettre à jour la catégorie
-  const handleCategoryChange = (value: string) => {
-    console.log("Nouvelle catégorie sélectionnée:", value);
-    setArticle(prev => ({ ...prev, category: value }));
+  // Mettre à jour les catégories
+  const handleCategoriesChange = (categories: string[]) => {
+    console.log("Nouvelles catégories sélectionnées:", categories);
+    setArticle(prev => ({ ...prev, categories }));
   };
 
   // Gérer l'upload d'image
@@ -277,7 +277,7 @@ const AdminArticleEditor = () => {
         article.scheduled_for = undefined;
       }
       
-      console.log("Sauvegarde de l'article avec catégorie:", article.category);
+      console.log("Sauvegarde de l'article avec catégories:", article.categories);
       const { data, error } = await saveArticle(article);
       
       if (error) throw error;
@@ -371,23 +371,10 @@ const AdminArticleEditor = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Catégorie</Label>
-                    <Select 
-                      value={article.category || ''} 
-                      onValueChange={handleCategoryChange}
-                    >
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Sélectionner une catégorie" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="non-categorise">Non catégorisé</SelectItem>
-                        {categories.map(category => (
-                          <SelectItem key={category.id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <CategoryMultiSelect
+                      selectedCategories={article.categories || []}
+                      onChange={handleCategoriesChange}
+                    />
                   </div>
                   
                   <div className="space-y-2">

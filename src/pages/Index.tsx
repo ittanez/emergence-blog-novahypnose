@@ -68,7 +68,9 @@ const Index = () => {
 
     // Filtrage par catégorie
     if (selectedCategory) {
-      filtered = filtered.filter(article => article.category === selectedCategory);
+      filtered = filtered.filter(article => 
+        article.categories && article.categories.includes(selectedCategory)
+      );
     }
 
     // Tri

@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 const CategoriesPage = () => {
   // Count articles in each category
   const categoryArticleCounts = categories.map(category => {
-    const count = articles.filter(article => article.category === category.id).length;
+    const count = articles.filter(article => 
+      article.categories && article.categories.includes(category.name)
+    ).length;
     return { ...category, count };
   });
   

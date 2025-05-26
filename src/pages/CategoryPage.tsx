@@ -17,7 +17,9 @@ const CategoryPage = () => {
   const category = categories.find(cat => cat.id === categoryId);
   
   // Filter articles by category
-  const filteredArticles = articles.filter(article => article.category === categoryId);
+  const filteredArticles = articles.filter(article => 
+    article.categories && article.categories.includes(category?.name || "")
+  );
   
   // Sort articles based on the selected option
   const sortedArticles = [...filteredArticles].sort((a, b) => {

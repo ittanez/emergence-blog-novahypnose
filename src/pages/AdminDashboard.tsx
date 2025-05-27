@@ -51,6 +51,11 @@ const AdminDashboard = () => {
       return;
     }
     
+    if (action === "Gestion des administrateurs") {
+      navigate("/admin/users");
+      return;
+    }
+    
     toast.info(`Fonctionnalité "${action}" en cours de développement`, {
       description: "Cette fonctionnalité sera disponible prochainement."
     });
@@ -120,7 +125,7 @@ const AdminDashboard = () => {
             </CardFooter>
           </Card>
           
-          {/* Carte pour gérer les utilisateurs */}
+          {/* Carte pour gérer les administrateurs */}
           <Card>
             <CardHeader>
               <CardTitle>Administrateurs</CardTitle>
@@ -136,66 +141,6 @@ const AdminDashboard = () => {
                 onClick={() => handleAction("Gestion des administrateurs")}
               >
                 Gérer les administrateurs
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Carte pour les statistiques */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Statistiques</CardTitle>
-              <CardDescription>Analyser la performance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Consultez les statistiques de votre blog : vues, interactions, etc.</p>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                variant="default" 
-                className="w-full brand-gradient"
-                onClick={() => handleAction("Affichage des statistiques")}
-              >
-                Voir les statistiques
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Carte pour les commentaires */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Commentaires</CardTitle>
-              <CardDescription>Gérer les interactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Modérez les commentaires des visiteurs sur vos articles.</p>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                variant="default" 
-                className="w-full brand-gradient"
-                onClick={() => handleAction("Modération des commentaires")}
-              >
-                Gérer les commentaires
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Carte pour les réglages */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Réglages</CardTitle>
-              <CardDescription>Configurer le blog</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Modifiez les paramètres généraux du blog.</p>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                variant="default" 
-                className="w-full brand-gradient"
-                onClick={() => handleAction("Configuration des réglages")}
-              >
-                Configurer
               </Button>
             </CardFooter>
           </Card>

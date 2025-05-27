@@ -13,6 +13,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminArticles from "./pages/AdminArticles";
 import AdminArticleEditor from "./pages/AdminArticleEditor";
+import AdminUsers from "./pages/AdminUsers";
 import AdminSetup from "./pages/AdminSetup";
 import AdminResetPassword from "./pages/AdminResetPassword";
 import NotFound from "./pages/NotFound";
@@ -67,6 +68,14 @@ const App = () => {
                   element={
                     <AdminRoute>
                       <AdminArticleEditor />
+                    </AdminRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin/users" 
+                  element={
+                    <AdminRoute>
+                      <AdminUsers />
                     </AdminRoute>
                   } 
                 />

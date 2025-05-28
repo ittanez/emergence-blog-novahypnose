@@ -1,0 +1,164 @@
+
+/* Styles globaux pour tous les articles d'hypnothérapie */
+.article-hypnose {
+    max-width: 100%;
+    line-height: 1.7;
+    color: #333;
+    font-family: inherit;
+}
+
+.article-hypnose h1 {
+    color: #2c3e50;
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.article-hypnose h2 {
+    color: #34495e;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.article-hypnose h3 {
+    color: #2980b9;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.article-hypnose h4 {
+    color: #7f8c8d;
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 1.2rem;
+}
+
+.article-hypnose .intro-section {
+    font-size: 1.15rem;
+    color: #555;
+    font-style: italic;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.article-hypnose .highlight-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 4px solid #3498db;
+    padding: 20px;
+    margin: 25px 0;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.article-hypnose .author-note {
+    background: linear-gradient(135deg, #ecf0f1 0%, #d5dbdb 100%);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 3rem;
+    text-align: center;
+    font-size: 0.95rem;
+    border: 1px solid #bdc3c7;
+    font-weight: 500;
+}
+
+.article-hypnose .author-note a {
+    color: #2980b9;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.article-hypnose .author-note a:hover {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+.article-hypnose blockquote {
+    border-left: 4px solid #3498db;
+    padding-left: 20px;
+    margin: 25px 0;
+    font-style: italic;
+    color: #666;
+    background: #f8f9fa;
+    padding: 15px 15px 15px 25px;
+    border-radius: 0 5px 5px 0;
+}
+
+.article-hypnose p {
+    margin-bottom: 1.2rem;
+    text-align: justify;
+}
+
+.article-hypnose ul, .article-hypnose ol {
+    margin: 1.5rem 0;
+    padding-left: 2rem;
+}
+
+.article-hypnose li {
+    margin-bottom: 0.8rem;
+    line-height: 1.6;
+}
+
+.article-hypnose strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.article-hypnose em {
+    color: #7f8c8d;
+}
+
+/* Styles pour les techniques et exercices */
+.article-hypnose .technique-box {
+    background: linear-gradient(135deg, #e8f5e8 0%, #d4edd4 100%);
+    border: 1px solid #27ae60;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 25px 0;
+}
+
+.article-hypnose .exercise-box {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #f39c12;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 25px 0;
+}
+
+.article-hypnose .warning-box {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 25px 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .article-hypnose h1 {
+        font-size: 1.8rem;
+    }
+    
+    .article-hypnose h2 {
+        font-size: 1.5rem;
+    }
+    
+    .article-hypnose h3 {
+        font-size: 1.3rem;
+    }
+    
+    .article-hypnose .intro-section {
+        font-size: 1.05rem;
+    }
+    
+    .article-hypnose p {
+        text-align: left;
+    }
+}

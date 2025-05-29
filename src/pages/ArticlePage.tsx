@@ -11,6 +11,19 @@ import OptimizedImage from "@/components/OptimizedImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Facebook, Linkedin, Link2, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import NewsletterForm from "@/components/NewsletterForm";
+import SEOHead from "@/components/SEOHead";
+import OptimizedImage from "@/components/OptimizedImage";
+import "../styles/article-hypnose.css"; // ← AJOUTEZ CETTE LIGNE
+import { Badge } from "@/components/ui/badge";
+// ... reste des imports
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -218,7 +231,7 @@ const ArticlePage = () => {
               </div>
               
               <div 
-                className="article-content"
+                className="article-hypnose"
                 dangerouslySetInnerHTML={{ __html: article.content }}
               />
               

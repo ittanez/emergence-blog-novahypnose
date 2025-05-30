@@ -1,4 +1,4 @@
-// src/hooks/useArticleEditor.tsx - VERSION MODIFIÉE
+// src/hooks/useArticleEditor.tsx - VERSION COMPLÈTE CORRIGÉE
 
 import { useState, useEffect, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -42,7 +42,159 @@ export const useArticleEditor = () => {
   });
   const [publishMode, setPublishMode] = useState<"draft" | "publish" | "schedule">("draft");
 
-  // ... (tout le reste du code reste identique jusqu'à handleImageUpload)
+  useEffect(() => {
+    if (isAdmin === false) {
+      toast.error("Accès non autorisé", {
+        description: "Vous devez être administrateur pour accéder à cette page"
+      });
+      navigate("/");
+    }
+  }, [isAdmin, navigate]);
+
+  useEffect(() => {
+    const fetchArticle = async () => {
+      if (!isEditing || !id) return;
+      
+      try {
+        setIsLoading(true);
+        
+        const { data, error } = await getArticleById(id);
+        
+        if (error) {
+          throw error;
+        }
+
+        if (!data) {
+          throw new Error("Article non trouvé");
+        }
+
+        console.log("Article récupéré:", data);
+        setArticle(data);
+        
+        if (data.scheduled_for) {
+          setPublishMode("schedule");
+          setScheduledDate(new Date(data.scheduled_for));
+        } else if (data.published) {
+          setPublishMode("publish");
+        } else {
+          setPublishMode("draft");
+        }
+      } catch (error: any) {
+        console.error("Erreur lors de la récupération de l'article:", error);
+        toast.error("Impossible de charger l'article", { 
+          description: error.message 
+        });
+        navigate('/admin/articles');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchArticle();
+  }, [id, isEditing, navigate]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setArticle(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleContentChange = (content: string) => {
+    setArticle(prev => ({ ...prev, content }));
+    
+    if (!article.excerpt || article.excerpt === "") {
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const excerpt = plainText.substring(0, 150) + (plainText.length > 150 ? '...' : '');
+      setArticle(prev => ({ ...prev, excerpt }));
+    }
+    
+    if (!article.seo_description || article.seo_description === "") {
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const seoDescription = plainText.substring(0, 160) + (plainText.length > 160 ? '...' : '');
+      setArticle(prev => ({ ...prev, seo_description: seoDescription }));
+    }
+    
+    const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const readTime = Math.max(1, Math.ceil(wordCount / 200));
+    setArticle(prev => ({ ...prev, read_time: readTime }));
+    
+    if (!article.keywords || article.keywords.length === 0) {
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const words = plainText.toLowerCase().split(/\s+/);
+      const commonWords = new Set(['le', 'la', 'les', 'un', 'une', 'des', 'et', 'ou', 'mais', 'donc', 'car', 'de', 'à', 'au', 'aux', 'en', 'dans', 'sur', 'pour', 'par', 'avec', 'sans']);
+      const frequency: Record<string, number> = {};
+      
+      words.forEach(word => {
+        if (word.length > 3 && !commonWords.has(word)) {
+          frequency[word] = (frequency[word] || 0) + 1;
+        }
+      });
+      
+      const potentialKeywords = Object.entries(frequency)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(entry => entry[0]);
+        
+      if (potentialKeywords.length > 0) {
+        setArticle(prev => ({ ...prev, keywords: potentialKeywords }));
+      }
+    }
+  };
+
+  const handleTagsChange = (tags: string[]) => {
+    const tagObjects = tags.map(tag => ({
+      id: tag.toLowerCase().replace(/\s+/g, '-'),
+      name: tag,
+      slug: tag.toLowerCase().replace(/\s+/g, '-'),
+      created_at: new Date().toISOString(),
+    }));
+    
+    setArticle(prev => ({ ...prev, tags: tagObjects }));
+  };
+
+  const handleKeywordsChange = (keywords: string[]) => {
+    setArticle(prev => ({ ...prev, keywords }));
+  };
+
+  // MODIFIÉ : Gestion correcte du mode de publication
+  const handlePublishModeChange = (mode: "draft" | "publish" | "schedule") => {
+    console.log("Changement de mode de publication:", mode);
+    setPublishMode(mode);
+    
+    if (mode === "publish") {
+      setArticle(prev => ({ 
+        ...prev, 
+        published: true, 
+        scheduled_for: undefined 
+      }));
+    } else if (mode === "draft") {
+      setArticle(prev => ({ 
+        ...prev, 
+        published: false, 
+        scheduled_for: undefined 
+      }));
+    } else if (mode === "schedule") {
+      setArticle(prev => ({ 
+        ...prev, 
+        published: false,
+        scheduled_for: scheduledDate ? scheduledDate.toISOString() : undefined
+      }));
+    }
+  };
+
+  const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setArticle(prev => ({ ...prev, title: newTitle }));
+    
+    if (!article.slug || article.slug === "") {
+      const newSlug = await generateUniqueSlug(newTitle, article.id);
+      setArticle(prev => ({ ...prev, slug: newSlug }));
+    }
+  };
+
+  const handleCategoriesChange = (categories: string[]) => {
+    console.log("Nouvelles catégories sélectionnées:", categories);
+    setArticle(prev => ({ ...prev, categories }));
+  };
 
   // 🚀 NOUVELLE VERSION : handleImageUpload avec Supabase Storage
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,47 +288,83 @@ export const useArticleEditor = () => {
     }
   };
 
-  // 🔄 FONCTION UTILITAIRE : Upload programmatique (pour usage futur)
-  const uploadImageFile = async (file: File): Promise<string | null> => {
-    try {
-      setIsUploadingImage(true);
-      
-      const fileExtension = file.name.split('.').pop()?.toLowerCase();
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substring(2, 8);
-      
-      const baseName = article.title 
-        ? article.title.toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '')
-            .substring(0, 30)
-        : 'article';
-        
-      const fileName = `${baseName}-${timestamp}-${random}.${fileExtension}`;
-
-      const { data, error } = await supabase.storage
-        .from('blog_images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from('blog_images')
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Erreur upload:', error);
-      return null;
-    } finally {
-      setIsUploadingImage(false);
+  const handleScheduledDateChange = (date: Date | undefined) => {
+    setScheduledDate(date);
+    if (date && publishMode === "schedule") {
+      setArticle(prev => ({ 
+        ...prev, 
+        scheduled_for: date.toISOString() 
+      }));
     }
   };
 
-  // ... (tout le reste du code reste identique)
+  // MODIFIÉ : Sauvegarde avec gestion correcte des modes
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!article.title || !article.content) {
+      toast.error("Veuillez remplir tous les champs obligatoires");
+      return;
+    }
+    
+    try {
+      setIsSaving(true);
+      
+      // Préparer l'article selon le mode de publication
+      const articleToSave = { ...article };
+      
+      if (publishMode === "schedule" && scheduledDate) {
+        articleToSave.scheduled_for = scheduledDate.toISOString();
+        articleToSave.published = false;
+      } else if (publishMode === "publish") {
+        articleToSave.published = true;
+        articleToSave.scheduled_for = undefined;
+      } else { // draft
+        articleToSave.published = false;
+        articleToSave.scheduled_for = undefined;
+      }
+      
+      console.log("Sauvegarde de l'article avec mode:", publishMode);
+      console.log("Article à sauvegarder:", articleToSave);
+      
+      const { data, error } = await saveArticle(articleToSave);
+      
+      if (error) throw error;
+      if (!data) throw new Error("Aucune donnée n'a été retournée lors de l'enregistrement");
+      
+      const successMessage = publishMode === "draft" 
+        ? "Article enregistré comme brouillon" 
+        : publishMode === "schedule" 
+        ? "Article programmé avec succès" 
+        : "Article publié avec succès";
+      
+      toast.success(successMessage);
+      navigate('/admin/articles');
+    } catch (error: any) {
+      console.error("Erreur lors de la sauvegarde de l'article:", error);
+      toast.error("Erreur lors de la sauvegarde", { 
+        description: error.message 
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const getTagsForPreview = () => {
+    if (!article.tags) return [];
+    
+    return article.tags.map(tag => {
+      if (typeof tag === 'string') {
+        return {
+          id: tag.toLowerCase().replace(/\s+/g, '-'),
+          name: tag,
+          slug: tag.toLowerCase().replace(/\s+/g, '-'),
+          created_at: new Date().toISOString()
+        };
+      }
+      return tag;
+    });
+  };
 
   return {
     isEditing,
@@ -197,7 +385,6 @@ export const useArticleEditor = () => {
     handleTitleChange,
     handleCategoriesChange,
     handleImageUpload, // ✅ Fonction modifiée
-    uploadImageFile,   // ✅ Nouvelle fonction utilitaire
     handleScheduledDateChange,
     handleSubmit,
     getTagsForPreview,

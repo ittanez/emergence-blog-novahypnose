@@ -7,7 +7,9 @@ interface OptimizedImageProps {
   className?: string;
   width?: number;
   height?: number;
-  loading?: "lazy" | "eager";
+  loading="eager"        // ✅ AJOUTEZ CECI
+  fetchPriority="high"   // ✅ AJOUTEZ CECI
+  style={{ aspectRatio: '16/9' }} // ✅ AJOUTEZ CECI pour éviter le layout shift
   placeholder?: string;
 }
 
@@ -17,7 +19,9 @@ const OptimizedImage = ({
   className = "",
   width,
   height,
-  loading = "lazy",
+  loading="eager"        // ✅ AJOUTEZ CECI
+  fetchPriority="high"   // ✅ AJOUTEZ CECI
+  style={{ aspectRatio: '16/9' }} // ✅ AJOUTEZ CECI pour éviter le layout shift,
   placeholder = "/placeholder.svg"
 }: OptimizedImageProps) => {
   const [imageSrc, setImageSrc] = useState(placeholder);

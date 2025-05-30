@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 
 interface OptimizedImageProps {
@@ -7,9 +6,9 @@ interface OptimizedImageProps {
   className?: string;
   width?: number;
   height?: number;
-  loading="eager"        // ✅ AJOUTEZ CECI
-  fetchPriority="high"   // ✅ AJOUTEZ CECI
-  style={{ aspectRatio: '16/9' }} // ✅ AJOUTEZ CECI pour éviter le layout shift
+  loading?: "eager" | "lazy";        // ✅ Syntaxe TypeScript correcte
+  fetchPriority?: "high" | "low" | "auto";   // ✅ Syntaxe TypeScript correcte
+  style?: React.CSSProperties;       // ✅ Type correct pour style
   placeholder?: string;
 }
 
@@ -19,9 +18,9 @@ const OptimizedImage = ({
   className = "",
   width,
   height,
-  loading="eager"        // ✅ AJOUTEZ CECI
-  fetchPriority="high"   // ✅ AJOUTEZ CECI
-  style={{ aspectRatio: '16/9' }} // ✅ AJOUTEZ CECI pour éviter le layout shift,
+  loading = "eager",        // ✅ Valeur par défaut correcte
+  fetchPriority = "high",   // ✅ Valeur par défaut correcte
+  style = { aspectRatio: '16/9' }, // ✅ Valeur par défaut correcte
   placeholder = "/placeholder.svg"
 }: OptimizedImageProps) => {
   const [imageSrc, setImageSrc] = useState(placeholder);
@@ -51,6 +50,7 @@ const OptimizedImage = ({
     if (loading === "lazy") {
       observer.observe(img);
     } else {
+      // Pour eager loading, charger immédiatement
       setImageSrc(src);
     }
 
@@ -80,9 +80,11 @@ const OptimizedImage = ({
       } ${className}`}
       width={width}
       height={height}
+      style={style}
       onLoad={handleLoad}
       onError={handleError}
       loading={loading}
+      fetchPriority={fetchPriority}  // ✅ Ajouté l'attribut fetchPriority
     />
   );
 };

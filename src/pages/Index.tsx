@@ -168,9 +168,13 @@ const Index = () => {
           </div>
         ) : filteredAndSortedArticles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAndSortedArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
+           {filteredAndSortedArticles.map((article, index) => (
+  <ArticleCard 
+    key={article.id} 
+    article={article} 
+    isFirst={index === 0}  // ✅ Premier article = true
+  />
+))}
           </div>
         ) : (
           <div className="text-center py-12">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+  import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
@@ -91,52 +91,6 @@ const Index = () => {
     return sorted;
   }, [articles, searchQuery, selectedCategory, sortBy]);
   
-  const handleSortChange = (value: string) => {
-    setSortBy(value);
-  };
-
-  const handleSearchChange = (search: string) => {
-    setSearchQuery(search);
-  };
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-  };
- // ✅ AJOUTEZ ce useEffect pour précharger l'image du premier article
-  useEffect(() => {
-    if (filteredAndSortedArticles.length > 0) {
-      const firstArticle = filteredAndSortedArticles[0];
-      if (firstArticle.image_url) {
-        // Créer un élément link pour précharger l'image
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = firstArticle.image_url;
-        link.fetchPriority = 'high';
-        
-        // Ajouter au head
-        document.head.appendChild(link);
-        
-        // Nettoyer au démontage du composant
-        return () => {
-          if (document.head.contains(link)) {
-            document.head.removeChild(link);
-          }
-        };
-      }
-    }
-  }, [filteredAndSortedArticles]);
-
-  // ... reste de votre code
-  
- // Ajoutez ceci dans votre Index.tsx
-
-import { useState, useEffect, useMemo } from "react";
-// ... autres imports
-
-const Index = () => {
-  // ... votre code existant
-
   // ✅ AJOUTEZ ce useEffect pour précharger l'image du premier article
   useEffect(() => {
     if (filteredAndSortedArticles.length > 0) {
@@ -162,12 +116,17 @@ const Index = () => {
     }
   }, [filteredAndSortedArticles]);
 
-  // ... reste de votre code
-  
-  
-};
-};
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+  };
 
+  const handleSearchChange = (search: string) => {
+    setSearchQuery(search);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+  };
   
   // Générer les données structurées pour la page d'accueil
   const websiteStructuredData = generateWebsiteStructuredData();
@@ -233,13 +192,13 @@ const Index = () => {
           </div>
         ) : filteredAndSortedArticles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-           {filteredAndSortedArticles.map((article, index) => (
-  <ArticleCard 
-    key={article.id} 
-    article={article}  
-    isFirst={index === 0}  // ✅ Premier article = true
-  />
-))}
+            {filteredAndSortedArticles.map((article, index) => (
+              <ArticleCard 
+                key={article.id} 
+                article={article}  
+                isFirst={index === 0}  // ✅ Premier article = true
+              />
+            ))}
           </div>
         ) : (
           <div className="text-center py-12">
@@ -263,3 +222,5 @@ const Index = () => {
     </div>
   );
 };
+
+export default Index;

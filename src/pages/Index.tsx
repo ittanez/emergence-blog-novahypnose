@@ -171,7 +171,7 @@ const Index = () => {
            {filteredAndSortedArticles.map((article, index) => (
   <ArticleCard 
     key={article.id} 
-    article={article} 
+    article={article}  
     isFirst={index === 0}  // ✅ Premier article = true
   />
 ))}

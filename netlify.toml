@@ -1,90 +1,30 @@
-# netlify.toml - Configuration optimisée
-
-[build]
-  command = "npm run build"
+ [build]
   publish = "dist"
+  command = "npm run build"
 
-# ✅ Headers optimisés pour les performances
-[[headers]]
-  for = "/*"
-  [headers.values]
-    # Sécurité
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    
-    # Performance
-    X-DNS-Prefetch-Control = "on"
-
-# ✅ Cache agressif pour les assets statiques
+# Cache pour les performances
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-    
-[[headers]]
-  for = "*.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    
-[[headers]]
-  for = "*.css"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
 
-# ✅ Cache pour les images
 [[headers]]
   for = "*.webp"
   [headers.values]
-    Cache-Control = "public, max-age=2592000" # 30 jours
+    Cache-Control = "public, max-age=31536000"
 
 [[headers]]
-  for = "*.jpg"
+  for = "*.css"
   [headers.values]
-    Cache-Control = "public, max-age=2592000"
-    
-[[headers]]
-  for = "*.jpeg"
-  [headers.values]
-    Cache-Control = "public, max-age=2592000"
-    
-[[headers]]
-  for = "*.png"
-  [headers.values]
-    Cache-Control = "public, max-age=2592000"
+    Cache-Control = "public, max-age=31536000"
 
-# ✅ Cache pour les polices
 [[headers]]
-  for = "*.woff2"
+  for = "*.js"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=31536000"
 
-# ✅ Préchargement DNS pour les domaines externes
-[[headers]]
-  for = "/"
-  [headers.values]
-    Link = '''
-    <https://fonts.googleapis.com>; rel=preconnect,
-    <https://fonts.gstatic.com>; rel=preconnect; crossorigin,
-    <https://akrlyzmfszumibwgocae.supabase.co>; rel=preconnect
-    '''
-
-# ✅ Redirections SPA
+# Redirection SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-
-
-# ✅ Variables d'environnement pour l'optimisation
-[build.environment]
-  NODE_ENV = "production"
-  VITE_BUILD_TARGET = "es2015"
-  
-# ✅ Fonctions edge pour l'optimisation des images (si besoin)
-[functions]
-  directory = "netlify/functions"

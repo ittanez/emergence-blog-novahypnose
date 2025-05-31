@@ -131,7 +131,7 @@ const Index = () => {
   // ... reste de votre code
   
   return (
-    // ... votre JSX existant
+    //
   );
 };
 

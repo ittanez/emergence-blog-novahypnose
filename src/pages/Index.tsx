@@ -103,7 +103,39 @@ const Index = () => {
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
   };
+ // ✅ AJOUTEZ ce useEffect pour précharger l'image du premier article
+  useEffect(() => {
+    if (filteredAndSortedArticles.length > 0) {
+      const firstArticle = filteredAndSortedArticles[0];
+      if (firstArticle.image_url) {
+        // Créer un élément link pour précharger l'image
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = firstArticle.image_url;
+        link.fetchPriority = 'high';
+        
+        // Ajouter au head
+        document.head.appendChild(link);
+        
+        // Nettoyer au démontage du composant
+        return () => {
+          if (document.head.contains(link)) {
+            document.head.removeChild(link);
+          }
+        };
+      }
+    }
+  }, [filteredAndSortedArticles]);
 
+  // ... reste de votre code
+  
+  return (
+    // ... votre JSX existant
+  );
+};
+
+  
   // Générer les données structurées pour la page d'accueil
   const websiteStructuredData = generateWebsiteStructuredData();
   const blogStructuredData = generateBlogStructuredData();

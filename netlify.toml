@@ -78,19 +78,7 @@
   to = "/index.html"
   status = 200
 
-# ✅ Plugin pour optimiser le CSS critique
-[[plugins]]
-  package = "netlify-plugin-inline-critical-css"
-  
-  [plugins.inputs]
-    # Optimiser le CSS critique
-    src = "dist"
-    target = "dist"
-    minify = true
-    extract = true
-    width = 1300
-    height = 900
-    penthouse = { blockJSRequests = false }
+
 
 # ✅ Variables d'environnement pour l'optimisation
 [build.environment]

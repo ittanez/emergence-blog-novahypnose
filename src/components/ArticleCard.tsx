@@ -27,11 +27,7 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
   );
 };
 
-const ArticleCard = ({ article }: ArticleCardProps) => {
-  const formattedDate = formatDistanceToNow(new Date(article.created_at), {
-    addSuffix: true,
-    locale: fr
-  });
+
   
   // Utiliser l'auteur de l'article ou un nom par défaut
   const authorName = article.author?.name || "Alain Zenatti";

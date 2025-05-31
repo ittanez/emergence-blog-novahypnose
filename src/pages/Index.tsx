@@ -1,15 +1,17 @@
-  import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import NewsletterForm from "@/components/NewsletterForm";
 import SEOHead from "@/components/SEOHead";
 import SearchAndFilter from "@/components/SearchAndFilter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticles, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
 import { useStructuredData } from "@/hooks/useStructuredData";
+
+// Lazy loading des composants non-critiques
+const NewsletterForm = lazy(() => import("@/components/NewsletterForm"));
 
 const Index = () => {
   const [sortBy, setSortBy] = useState<string>("newest");
@@ -91,7 +93,7 @@ const Index = () => {
     return sorted;
   }, [articles, searchQuery, selectedCategory, sortBy]);
   
-  // ✅ AJOUTEZ ce useEffect pour précharger l'image du premier article
+  // Précharger l'image du premier article
   useEffect(() => {
     if (filteredAndSortedArticles.length > 0) {
       const firstArticle = filteredAndSortedArticles[0];
@@ -196,7 +198,7 @@ const Index = () => {
               <ArticleCard 
                 key={article.id} 
                 article={article}  
-                isFirst={index === 0}  // ✅ Premier article = true
+                isFirst={index === 0}
               />
             ))}
           </div>
@@ -212,9 +214,11 @@ const Index = () => {
           </div>
         )}
         
-        {/* Newsletter avec notification activée */}
+        {/* Newsletter avec lazy loading */}
         <div className="mt-16 max-w-2xl mx-auto">
-          <NewsletterForm />
+          <Suspense fallback={<div className="h-32 bg-gray-50 rounded-lg animate-pulse"></div>}>
+            <NewsletterForm />
+          </Suspense>
         </div>
       </main>
       

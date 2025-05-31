@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 
 interface OptimizedImageProps {
@@ -8,6 +7,7 @@ interface OptimizedImageProps {
   width?: number;
   height?: number;
   loading?: "lazy" | "eager";
+  fetchPriority?: "high" | "low" | "auto";  // ✅ AJOUTEZ cette ligne
   placeholder?: string;
 }
 
@@ -18,6 +18,7 @@ const OptimizedImage = ({
   width,
   height,
   loading = "lazy",
+  fetchPriority = "auto",  // ✅ AJOUTEZ cette ligne
   placeholder = "/placeholder.svg"
 }: OptimizedImageProps) => {
   const [imageSrc, setImageSrc] = useState(placeholder);
@@ -79,6 +80,7 @@ const OptimizedImage = ({
       onLoad={handleLoad}
       onError={handleError}
       loading={loading}
+      fetchPriority={fetchPriority}  // ✅ AJOUTEZ cette ligne
     />
   );
 };

@@ -9,7 +9,23 @@ import OptimizedImage from "./OptimizedImage";
 
 interface ArticleCardProps {
   article: Article;
+  isFirst?: boolean;  // ✅ Nouveau prop
 }
+
+const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
+  return (
+    <div>
+      <OptimizedImage 
+        src={article.image_url}
+        alt={article.title}
+        loading={isFirst ? "eager" : "lazy"}        // ✅ Conditionnel
+        fetchPriority={isFirst ? "high" : "auto"}   // ✅ Conditionnel
+        className="w-full h-full object-cover"
+      />
+      {/* Reste du composant */}
+    </div>
+  );
+};
 
 const ArticleCard = ({ article }: ArticleCardProps) => {
   const formattedDate = formatDistanceToNow(new Date(article.created_at), {

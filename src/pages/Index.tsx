@@ -6,15 +6,20 @@ import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
 import SEOHead from "@/components/SEOHead";
 import SearchAndFilter from "@/components/SearchAndFilter";
+import Pagination from "@/components/Pagination"; // ✅ Import ajouté
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticles, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
 import { useStructuredData } from "@/hooks/useStructuredData";
 
+// ✅ Configuration de la pagination
+const ARTICLES_PER_PAGE = 9; // Nombre maximum d'articles par page
+
 const Index = () => {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1); // ✅ État pour la page actuelle
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,23 +95,31 @@ const Index = () => {
 
     return sorted;
   }, [articles, searchQuery, selectedCategory, sortBy]);
-  
-  // ✅ AJOUTEZ ce useEffect pour précharger l'image du premier article
+
+  // ✅ Calculer la pagination
+  const totalPages = Math.ceil(filteredAndSortedArticles.length / ARTICLES_PER_PAGE);
+  const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
+  const endIndex = startIndex + ARTICLES_PER_PAGE;
+  const currentPageArticles = filteredAndSortedArticles.slice(startIndex, endIndex);
+
+  // ✅ Réinitialiser la page quand les filtres changent
   useEffect(() => {
-    if (filteredAndSortedArticles.length > 0) {
-      const firstArticle = filteredAndSortedArticles[0];
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, sortBy]);
+  
+  // ✅ Précharger l'image du premier article de la page actuelle
+  useEffect(() => {
+    if (currentPageArticles.length > 0) {
+      const firstArticle = currentPageArticles[0];
       if (firstArticle.image_url) {
-        // Créer un élément link pour précharger l'image
         const link = document.createElement('link');
         link.rel = 'preload';
         link.as = 'image';
         link.href = firstArticle.image_url;
         link.fetchPriority = 'high';
         
-        // Ajouter au head
         document.head.appendChild(link);
         
-        // Nettoyer au démontage du composant
         return () => {
           if (document.head.contains(link)) {
             document.head.removeChild(link);
@@ -114,7 +127,7 @@ const Index = () => {
         };
       }
     }
-  }, [filteredAndSortedArticles]);
+  }, [currentPageArticles]);
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
@@ -126,6 +139,13 @@ const Index = () => {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
+  };
+
+  // ✅ Gestionnaire pour le changement de page
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Faire défiler vers le haut quand on change de page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
   // Générer les données structurées pour la page d'accueil
@@ -167,6 +187,13 @@ const Index = () => {
               {searchQuery || selectedCategory ? 'Résultats' : 'Tous les articles'} 
               <span className="text-gray-500 font-normal"> ({filteredAndSortedArticles.length} article{filteredAndSortedArticles.length !== 1 ? 's' : ''})</span>
             </h2>
+            {/* ✅ Afficher les informations de pagination */}
+            {filteredAndSortedArticles.length > ARTICLES_PER_PAGE && (
+              <p className="text-sm text-gray-500 mt-1">
+                Page {currentPage} sur {totalPages} • 
+                Affichage de {startIndex + 1} à {Math.min(endIndex, filteredAndSortedArticles.length)} sur {filteredAndSortedArticles.length}
+              </p>
+            )}
           </div>
           
           <div className="flex items-center">
@@ -190,16 +217,26 @@ const Index = () => {
           <div className="text-center py-12">
             <p className="text-xl text-gray-600">Chargement des articles...</p>
           </div>
-        ) : filteredAndSortedArticles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAndSortedArticles.map((article, index) => (
-              <ArticleCard 
-                key={article.id} 
-                article={article}  
-                isFirst={index === 0}  // ✅ Premier article = true
-              />
-            ))}
-          </div>
+        ) : currentPageArticles.length > 0 ? (
+          <>
+            {/* ✅ Grille des articles de la page actuelle */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {currentPageArticles.map((article, index) => (
+                <ArticleCard 
+                  key={article.id} 
+                  article={article}  
+                  isFirst={currentPage === 1 && index === 0} // ✅ Premier article seulement sur la première page
+                />
+              ))}
+            </div>
+            
+            {/* ✅ Composant de pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </>
         ) : (
           <div className="text-center py-12">
             <h3 className="text-xl text-gray-600">Aucun article trouvé</h3>

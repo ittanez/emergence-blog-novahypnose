@@ -194,12 +194,14 @@ const ArticlePage = () => {
       <main className="flex-grow">
         {/* Article header with image */}
         <div className="w-full h-[40vh] relative">
-          <OptimizedImage
-            src={article.image_url || "/placeholder.svg"}
-            alt={article.title}
-            className="w-full h-full object-cover"
-            loading="eager"
-          />
+        <OptimizedImage
+  src={article.image_url || "/placeholder.svg"}
+  alt={article.title}
+  className="w-full h-full object-cover"
+  loading="eager"
+  fetchPriority="high"    // ✅ AJOUTEZ ÇA
+  isHero={true}          // ✅ AJOUTEZ ÇA (si votre OptimizedImage le supporte)
+/>
           <div className="absolute inset-0 bg-black bg-opacity-30 flex items-end">
             <div className="container mx-auto px-4 pb-8 text-white">
               <div className="max-w-3xl">

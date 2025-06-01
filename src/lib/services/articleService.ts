@@ -1,4 +1,4 @@
-// articleService.ts - Version complète avec toutes les fonctions
+ // articleService.ts - Version complète avec toutes les fonctions
 
 import { supabase } from './supabase';
 
@@ -213,6 +213,29 @@ export async function updateArticle(id: string, updates: any) {
     return { data, error };
   } catch (error) {
     console.error('❌ Erreur lors de la mise à jour de l\'article:', error);
+    return { data: null, error };
+  }
+}
+
+// Fonction pour supprimer un article
+export async function deleteArticle(id: string) {
+  try {
+    console.log("🗑️ Suppression article:", id);
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (data) {
+      console.log("✅ Article supprimé:", data.title);
+    }
+
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la suppression de l\'article:', error);
     return { data: null, error };
   }
 }

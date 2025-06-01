@@ -6,26 +6,26 @@ import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
 import SEOHead from "@/components/SEOHead";
 import SearchAndFilter from "@/components/SearchAndFilter";
-import Pagination from "@/components/Pagination"; // ✅ Import ajouté
+import Pagination from "@/components/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticles, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
 import { useStructuredData } from "@/hooks/useStructuredData";
 
-// ✅ Configuration de la pagination
-const ARTICLES_PER_PAGE = 9; // Nombre maximum d'articles par page
+// Configuration de la pagination
+const ARTICLES_PER_PAGE = 9;
 
 const Index = () => {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1); // ✅ État pour la page actuelle
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { generateWebsiteStructuredData, generateBlogStructuredData } = useStructuredData();
   
-  // Charger les articles et les catégories
+  // 🔍 NOUVEAU USEEFFECT AVEC DEBUG POUSSÉ
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,31 +36,40 @@ const Index = () => {
         ]);
         
         if (articlesResult.data) {
-          // 🔍 DEBUG : Affichons tous les articles avant filtrage
-          console.log("=== TOUS LES ARTICLES CHARGÉS ===");
-          console.log("Total articles dans la DB:", articlesResult.data.length);
+          // 🔍 DEBUG COMPLET : Affichons TOUS les articles
+          console.log("=== TOUS LES ARTICLES DE LA BASE ===");
+          console.log("Total articles récupérés:", articlesResult.data.length);
           
           articlesResult.data.forEach((article, index) => {
-            console.log(`Article ${index + 1}: "${article.title}" - published: ${article.published}`);
+            console.log(`\n--- Article ${index + 1} ---`);
+            console.log(`Titre: "${article.title}"`);
+            console.log(`Published: ${article.published} (type: ${typeof article.published})`);
+            console.log(`ID: ${article.id}`);
+            console.log(`Created_at: ${article.created_at}`);
+            
+            // Vérifions si l'article a des propriétés étranges
+            if (article.published === null) console.log("⚠️  Published est NULL");
+            if (article.published === undefined) console.log("⚠️  Published est UNDEFINED");
+            if (article.published === "") console.log("⚠️  Published est une chaîne vide");
+            if (article.published === "false") console.log("⚠️  Published est la chaîne 'false'");
+            if (article.published === 0) console.log("⚠️  Published est 0");
           });
           
-          // Ne conserver que les articles publiés
-          const publishedArticles = articlesResult.data.filter(article => article.published);
-          
-          // 🔍 DEBUG : Affichons les articles publiés
-          console.log("\n=== ARTICLES PUBLIÉS FILTRÉS ===");
-          console.log("Nombre d'articles publiés:", publishedArticles.length);
-          
-          publishedArticles.forEach((article, index) => {
-            console.log(`Publié ${index + 1}: "${article.title}"`);
+          // Filtrage avec debug détaillé
+          console.log("\n=== FILTRAGE DES ARTICLES PUBLIÉS ===");
+          const publishedArticles = articlesResult.data.filter((article, index) => {
+            const isPublished = Boolean(article.published);
+            console.log(`Article ${index + 1}: "${article.title}" → ${article.published} → ${isPublished ? 'GARDE' : 'REJETE'}`);
+            return isPublished;
           });
+          
+          console.log(`\n✅ Résultat final: ${publishedArticles.length} articles publiés sur ${articlesResult.data.length}`);
           
           setArticles(publishedArticles);
         }
         
         if (categoriesResult.data) {
           setCategories(categoriesResult.data);
-          console.log("Catégories chargées:", categoriesResult.data.length);
         }
       } catch (error) {
         console.error("Erreur lors du chargement des données:", error);
@@ -112,36 +121,18 @@ const Index = () => {
     return sorted;
   }, [articles, searchQuery, selectedCategory, sortBy]);
 
-  // ✅ Calculer la pagination
+  // Calculer la pagination
   const totalPages = Math.ceil(filteredAndSortedArticles.length / ARTICLES_PER_PAGE);
   const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
   const endIndex = startIndex + ARTICLES_PER_PAGE;
   const currentPageArticles = filteredAndSortedArticles.slice(startIndex, endIndex);
 
-  // 🔍 DEBUG : Ajoutez ceci pour surveiller la pagination
-  useEffect(() => {
-    console.log("\n=== DEBUG PAGINATION ===");
-    console.log("Total articles state:", articles.length);
-    console.log("Articles après filtres:", filteredAndSortedArticles.length);
-    console.log("Page actuelle:", currentPage);
-    console.log("Articles par page:", ARTICLES_PER_PAGE);
-    console.log("Total pages calculé:", totalPages);
-    console.log("Start index:", startIndex);
-    console.log("End index:", endIndex);
-    console.log("Articles affichés sur cette page:", currentPageArticles.length);
-    
-    console.log("\nTitres des articles affichés:");
-    currentPageArticles.forEach((article, index) => {
-      console.log(`${index + 1}. ${article.title}`);
-    });
-  }, [articles, filteredAndSortedArticles, currentPage, currentPageArticles, totalPages, startIndex, endIndex]);
-
-  // ✅ Réinitialiser la page quand les filtres changent
+  // Réinitialiser la page quand les filtres changent
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, sortBy]);
   
-  // ✅ Précharger l'image du premier article de la page actuelle
+  // Précharger l'image du premier article de la page actuelle
   useEffect(() => {
     if (currentPageArticles.length > 0) {
       const firstArticle = currentPageArticles[0];
@@ -175,10 +166,8 @@ const Index = () => {
     setSelectedCategory(category);
   };
 
-  // ✅ Gestionnaire pour le changement de page
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Faire défiler vers le haut quand on change de page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
@@ -221,7 +210,6 @@ const Index = () => {
               {searchQuery || selectedCategory ? 'Résultats' : 'Tous les articles'} 
               <span className="text-gray-500 font-normal"> ({filteredAndSortedArticles.length} article{filteredAndSortedArticles.length !== 1 ? 's' : ''})</span>
             </h2>
-            {/* ✅ Afficher les informations de pagination */}
             {filteredAndSortedArticles.length > ARTICLES_PER_PAGE && (
               <p className="text-sm text-gray-500 mt-1">
                 Page {currentPage} sur {totalPages} • 
@@ -253,18 +241,16 @@ const Index = () => {
           </div>
         ) : currentPageArticles.length > 0 ? (
           <>
-            {/* ✅ Grille des articles de la page actuelle */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {currentPageArticles.map((article, index) => (
                 <ArticleCard 
                   key={article.id} 
                   article={article}  
-                  isFirst={currentPage === 1 && index === 0} // ✅ Premier article seulement sur la première page
+                  isFirst={currentPage === 1 && index === 0}
                 />
               ))}
             </div>
             
-            {/* ✅ Composant de pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -283,7 +269,6 @@ const Index = () => {
           </div>
         )}
         
-        {/* Newsletter avec notification activée */}
         <div className="mt-16 max-w-2xl mx-auto">
           <NewsletterForm />
         </div>

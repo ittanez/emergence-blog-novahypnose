@@ -93,15 +93,17 @@ export async function getArticleById(id: string) {
   }
 }
 
-// Fonction pour récupérer tous les articles
+// ✅ FONCTION CORRIGÉE : Récupérer tous les articles avec options complètes
 export async function getAllArticles(options: {
   page?: number;
   limit?: number;
   category?: string;
   featured?: boolean;
+  includeDrafts?: boolean; // ✅ NOUVEAU PARAMÈTRE
+  search?: string; // ✅ NOUVEAU PARAMÈTRE
 } = {}) {
   try {
-    const { page = 1, limit = 10, category, featured } = options;
+    const { page = 1, limit = 10, category, featured, includeDrafts = false, search } = options;
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
@@ -123,10 +125,19 @@ export async function getAllArticles(options: {
         updated_at,
         category,
         storage_image_url
-      `)
-      .eq('published', true)
+      `, { count: 'exact' }) // ✅ Ajout pour avoir le count total
       .order('created_at', { ascending: false })
       .range(from, to);
+
+    // ✅ Filtrage par statut published (nouveau)
+    if (!includeDrafts) {
+      query = query.eq('published', true);
+    }
+
+    // ✅ Recherche par texte (nouveau)
+    if (search && search.trim()) {
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
+    }
 
     if (category) {
       query = query.contains('categories', [category]);
@@ -141,6 +152,7 @@ export async function getAllArticles(options: {
     return {
       data,
       error,
+      totalCount: count, // ✅ Ajout du totalCount pour l'admin
       pagination: {
         page,
         limit,
@@ -150,7 +162,42 @@ export async function getAllArticles(options: {
     };
   } catch (error) {
     console.error('❌ Erreur lors de la récupération des articles:', error);
-    return { data: null, error, pagination: null };
+    return { data: null, error, totalCount: 0, pagination: null };
+  }
+}
+
+// ✅ NOUVELLE FONCTION : Récupérer TOUS les articles publiés sans pagination
+export async function getAllArticlesNoPagination() {
+  try {
+    console.log("🔍 Récupération de TOUS les articles publiés...");
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .select(`
+        id,
+        title,
+        content,
+        slug,
+        excerpt,
+        image_url,
+        author,
+        categories,
+        tags,
+        published,
+        featured,
+        created_at,
+        updated_at,
+        category,
+        storage_image_url
+      `)
+      .eq('published', true)
+      .order('created_at', { ascending: false });
+
+    console.log(`✅ ${data?.length || 0} articles récupérés`);
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération de tous les articles:', error);
+    return { data: null, error };
   }
 }
 
@@ -321,12 +368,13 @@ export async function deleteArticle(id: string) {
 
     if (data) {
       console.log("✅ Article supprimé:", data.title);
+      return { success: true, error: null };
     }
 
-    return { data, error };
+    return { success: false, error };
   } catch (error) {
     console.error('❌ Erreur lors de la suppression de l\'article:', error);
-    return { data: null, error };
+    return { success: false, error };
   }
 }
 

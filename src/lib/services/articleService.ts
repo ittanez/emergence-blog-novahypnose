@@ -1,6 +1,6 @@
 // articleService.ts - Version finale avec gestion des redirections
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from './supabase';
 
 export async function getArticleBySlug(slug: string) {
   try {

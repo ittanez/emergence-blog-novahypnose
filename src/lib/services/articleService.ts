@@ -145,6 +145,41 @@ export async function getAllCategories() {
   }
 }
 
+// Fonction pour récupérer un article par ID
+export async function getArticleById(id: string) {
+  try {
+    console.log("🔍 Recherche article par ID:", id);
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .select(`
+        id,
+        title,
+        content,
+        slug,
+        excerpt,
+        image_url,
+        author,
+        categories,
+        tags,
+        published,
+        featured,
+        created_at,
+        updated_at,
+        category,
+        scheduled_for,
+        storage_image_url
+      `)
+      .eq('id', id)
+      .single();
+
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération de l\'article par ID:', error);
+    return { data: null, error };
+  }
+}
+
 // Fonction pour récupérer les articles liés
 export async function getRelatedArticles(articleId: string, limit: number = 3) {
   try {
@@ -169,6 +204,61 @@ export async function getRelatedArticles(articleId: string, limit: number = 3) {
   } catch (error) {
     console.error('❌ Erreur lors de la récupération des articles liés:', error);
     return { data: null, error };
+  }
+}
+
+// Fonction pour sauvegarder un article (create ou update selon si ID existe)
+export async function saveArticle(articleData: any) {
+  try {
+    if (articleData.id) {
+      // Update existant
+      console.log("✏️ Mise à jour article:", articleData.id);
+      return await updateArticle(articleData.id, articleData);
+    } else {
+      // Création nouveau
+      console.log("📝 Création nouvel article:", articleData.title);
+      return await createArticle(articleData);
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de la sauvegarde de l\'article:', error);
+    return { data: null, error };
+  }
+}
+
+// Fonction pour générer un slug unique
+export async function generateUniqueSlug(title: string, excludeId?: string) {
+  try {
+    const baseSlug = await generateSlugPreview(title);
+    if (baseSlug.error) {
+      return baseSlug;
+    }
+
+    let finalSlug = baseSlug.slug;
+    let counter = 1;
+
+    // Vérifier l'unicité
+    while (true) {
+      const { data: existing } = await supabase
+        .from('articles')
+        .select('id')
+        .eq('slug', finalSlug)
+        .neq('id', excludeId || '')
+        .single();
+
+      if (!existing) {
+        // Slug disponible
+        break;
+      }
+
+      // Slug déjà pris, essayer avec un suffixe
+      finalSlug = `${baseSlug.slug}-${counter}`;
+      counter++;
+    }
+
+    return { slug: finalSlug, error: null };
+  } catch (error) {
+    console.error('❌ Erreur génération slug unique:', error);
+    return { slug: null, error };
   }
 }
 

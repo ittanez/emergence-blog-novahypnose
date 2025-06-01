@@ -1,4 +1,4 @@
-  import { useState, useEffect, useMemo } from "react";
+ import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
@@ -36,10 +36,26 @@ const Index = () => {
         ]);
         
         if (articlesResult.data) {
+          // 🔍 DEBUG : Affichons tous les articles avant filtrage
+          console.log("=== TOUS LES ARTICLES CHARGÉS ===");
+          console.log("Total articles dans la DB:", articlesResult.data.length);
+          
+          articlesResult.data.forEach((article, index) => {
+            console.log(`Article ${index + 1}: "${article.title}" - published: ${article.published}`);
+          });
+          
           // Ne conserver que les articles publiés
           const publishedArticles = articlesResult.data.filter(article => article.published);
+          
+          // 🔍 DEBUG : Affichons les articles publiés
+          console.log("\n=== ARTICLES PUBLIÉS FILTRÉS ===");
+          console.log("Nombre d'articles publiés:", publishedArticles.length);
+          
+          publishedArticles.forEach((article, index) => {
+            console.log(`Publié ${index + 1}: "${article.title}"`);
+          });
+          
           setArticles(publishedArticles);
-          console.log("Articles publiés chargés:", publishedArticles.length);
         }
         
         if (categoriesResult.data) {
@@ -101,6 +117,24 @@ const Index = () => {
   const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
   const endIndex = startIndex + ARTICLES_PER_PAGE;
   const currentPageArticles = filteredAndSortedArticles.slice(startIndex, endIndex);
+
+  // 🔍 DEBUG : Ajoutez ceci pour surveiller la pagination
+  useEffect(() => {
+    console.log("\n=== DEBUG PAGINATION ===");
+    console.log("Total articles state:", articles.length);
+    console.log("Articles après filtres:", filteredAndSortedArticles.length);
+    console.log("Page actuelle:", currentPage);
+    console.log("Articles par page:", ARTICLES_PER_PAGE);
+    console.log("Total pages calculé:", totalPages);
+    console.log("Start index:", startIndex);
+    console.log("End index:", endIndex);
+    console.log("Articles affichés sur cette page:", currentPageArticles.length);
+    
+    console.log("\nTitres des articles affichés:");
+    currentPageArticles.forEach((article, index) => {
+      console.log(`${index + 1}. ${article.title}`);
+    });
+  }, [articles, filteredAndSortedArticles, currentPage, currentPageArticles, totalPages, startIndex, endIndex]);
 
   // ✅ Réinitialiser la page quand les filtres changent
   useEffect(() => {

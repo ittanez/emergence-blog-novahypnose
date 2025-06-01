@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Article } from "@/lib/types";
@@ -17,7 +16,7 @@ export const useAdminArticles = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const articlesPerPage = 10;
+  const articlesPerPage = 50; // ✅ AUGMENTÉ de 10 à 50
 
   // Charger les catégories
   useEffect(() => {
@@ -26,7 +25,7 @@ export const useAdminArticles = () => {
         const { data, error } = await getAllCategories();
         if (error) throw error;
         if (data) {
-          setCategories(data.map(cat => ({ name: cat.name })));
+          setCategories(data.map(cat => ({ name: cat.name || cat })));
         }
       } catch (error: any) {
         console.error("Erreur lors de la récupération des catégories:", error);

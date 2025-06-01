@@ -1,4 +1,4 @@
- import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
@@ -8,7 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import SearchAndFilter from "@/components/SearchAndFilter";
 import Pagination from "@/components/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getAllArticles, getAllCategories } from "@/lib/services/articleService";
+import { getAllArticlesNoPagination, getAllCategories } from "@/lib/services/articleService"; // ✅ CHANGÉ
 import ArticleCard from "@/components/ArticleCard";
 import { useStructuredData } from "@/hooks/useStructuredData";
 
@@ -25,51 +25,25 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { generateWebsiteStructuredData, generateBlogStructuredData } = useStructuredData();
   
-  // 🔍 NOUVEAU USEEFFECT AVEC DEBUG POUSSÉ
+  // Charger les articles et les catégories
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const [articlesResult, categoriesResult] = await Promise.all([
-          getAllArticles(),
+          getAllArticlesNoPagination(), // ✅ CHANGÉ - Récupère TOUS les articles
           getAllCategories()
         ]);
         
         if (articlesResult.data) {
-          // 🔍 DEBUG COMPLET : Affichons TOUS les articles
-          console.log("=== TOUS LES ARTICLES DE LA BASE ===");
-          console.log("Total articles récupérés:", articlesResult.data.length);
-          
-          articlesResult.data.forEach((article, index) => {
-            console.log(`\n--- Article ${index + 1} ---`);
-            console.log(`Titre: "${article.title}"`);
-            console.log(`Published: ${article.published} (type: ${typeof article.published})`);
-            console.log(`ID: ${article.id}`);
-            console.log(`Created_at: ${article.created_at}`);
-            
-            // Vérifions si l'article a des propriétés étranges
-            if (article.published === null) console.log("⚠️  Published est NULL");
-            if (article.published === undefined) console.log("⚠️  Published est UNDEFINED");
-            if (article.published === "") console.log("⚠️  Published est une chaîne vide");
-            if (article.published === "false") console.log("⚠️  Published est la chaîne 'false'");
-            if (article.published === 0) console.log("⚠️  Published est 0");
-          });
-          
-          // Filtrage avec debug détaillé
-          console.log("\n=== FILTRAGE DES ARTICLES PUBLIÉS ===");
-          const publishedArticles = articlesResult.data.filter((article, index) => {
-            const isPublished = Boolean(article.published);
-            console.log(`Article ${index + 1}: "${article.title}" → ${article.published} → ${isPublished ? 'GARDE' : 'REJETE'}`);
-            return isPublished;
-          });
-          
-          console.log(`\n✅ Résultat final: ${publishedArticles.length} articles publiés sur ${articlesResult.data.length}`);
-          
+          const publishedArticles = articlesResult.data.filter(article => article.published);
           setArticles(publishedArticles);
+          console.log("Articles publiés chargés:", publishedArticles.length);
         }
         
         if (categoriesResult.data) {
           setCategories(categoriesResult.data);
+          console.log("Catégories chargées:", categoriesResult.data.length);
         }
       } catch (error) {
         console.error("Erreur lors du chargement des données:", error);

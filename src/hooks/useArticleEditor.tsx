@@ -1,4 +1,4 @@
-// src/hooks/useArticleEditor.tsx - VERSION COMPLÈTE AVEC SEO
+// src/hooks/useArticleEditor.tsx - VERSION COMPLÈTE CORRIGÉE
 
 import { useState, useEffect, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { Article, Tag } from "@/lib/types";
 import { saveArticle, generateUniqueSlug, getArticleById } from "@/lib/services/articleService";
 import { useAuth } from "@/lib/contexts/AuthContext";
+// ✅ AJOUT : Import Supabase
 import { createClient } from '@supabase/supabase-js';
 
-// Configuration Supabase
+// ✅ AJOUT : Configuration Supabase
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
   import.meta.env.VITE_SUPABASE_ANON_KEY!
@@ -24,26 +25,23 @@ export const useArticleEditor = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  // ✅ AJOUT : État pour l'upload d'image
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   
-  // 🎯 ÉTAT ARTICLE AVEC TOUS LES CHAMPS SEO
   const [article, setArticle] = useState<Partial<Article>>({
     title: "",
     content: "",
-    excerpt: "",                    // 📖 Extrait visible aux lecteurs
-    seo_description: "",           // 🔍 Description SEO (compatibilité)
-    meta_description: "",          // 🔍 NOUVEAU: Méta-description SEO
+    excerpt: "",
     image_url: "",
     published: false,
     categories: [],
     slug: "",
-    tags: [],                      // 🏷️ Tags de navigation
-    keywords: [],                  // 🎯 NOUVEAU: Mots-clés SEO
+    tags: [],
+    keywords: [],
+    seo_description: "",
   });
-  
   const [publishMode, setPublishMode] = useState<"draft" | "publish" | "schedule">("draft");
 
-  // Vérification des droits admin
   useEffect(() => {
     if (isAdmin === false) {
       toast.error("Accès non autorisé", {
@@ -53,7 +51,6 @@ export const useArticleEditor = () => {
     }
   }, [isAdmin, navigate]);
 
-  // Chargement de l'article existant
   useEffect(() => {
     const fetchArticle = async () => {
       if (!isEditing || !id) return;
@@ -72,18 +69,7 @@ export const useArticleEditor = () => {
         }
 
         console.log("Article récupéré:", data);
-        
-        // 🔄 Mapper les données pour assurer la compatibilité
-        const mappedArticle = {
-          ...data,
-          excerpt: data.excerpt || '',
-          seo_description: data.seo_description || '',
-          meta_description: data.meta_description || data.seo_description || '', // Fallback
-          keywords: data.keywords || [],
-          tags: data.tags || []
-        };
-        
-        setArticle(mappedArticle);
+        setArticle(data);
         
         if (data.scheduled_for) {
           setPublishMode("schedule");
@@ -107,43 +93,30 @@ export const useArticleEditor = () => {
     fetchArticle();
   }, [id, isEditing, navigate]);
 
-  // Gestion des changements de champs texte
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setArticle(prev => ({ ...prev, [name]: value }));
   };
 
-  // 🎯 GESTION AMÉLIORÉE DU CONTENU AVEC AUTO-GÉNÉRATION SEO
   const handleContentChange = (content: string) => {
     setArticle(prev => ({ ...prev, content }));
     
-    // Auto-génération de l'extrait (pour les lecteurs)
     if (!article.excerpt || article.excerpt === "") {
       const plainText = content.replace(/<[^>]*>/g, '');
       const excerpt = plainText.substring(0, 150) + (plainText.length > 150 ? '...' : '');
       setArticle(prev => ({ ...prev, excerpt }));
     }
     
-    // Auto-génération de la méta-description SEO (160 caractères max)
-    if (!article.meta_description || article.meta_description === "") {
-      const plainText = content.replace(/<[^>]*>/g, '');
-      const metaDescription = plainText.substring(0, 160) + (plainText.length > 160 ? '...' : '');
-      setArticle(prev => ({ ...prev, meta_description: metaDescription }));
-    }
-    
-    // Maintenir la compatibilité avec seo_description
     if (!article.seo_description || article.seo_description === "") {
       const plainText = content.replace(/<[^>]*>/g, '');
       const seoDescription = plainText.substring(0, 160) + (plainText.length > 160 ? '...' : '');
       setArticle(prev => ({ ...prev, seo_description: seoDescription }));
     }
     
-    // Auto-calcul du temps de lecture
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
     setArticle(prev => ({ ...prev, read_time: readTime }));
     
-    // Auto-génération des mots-clés SEO
     if (!article.keywords || article.keywords.length === 0) {
       const plainText = content.replace(/<[^>]*>/g, '');
       const words = plainText.toLowerCase().split(/\s+/);
@@ -167,7 +140,6 @@ export const useArticleEditor = () => {
     }
   };
 
-  // Gestion des tags de navigation
   const handleTagsChange = (tags: string[]) => {
     const tagObjects = tags.map(tag => ({
       id: tag.toLowerCase().replace(/\s+/g, '-'),
@@ -179,23 +151,11 @@ export const useArticleEditor = () => {
     setArticle(prev => ({ ...prev, tags: tagObjects }));
   };
 
-  // 🎯 NOUVELLE: Gestion des mots-clés SEO
   const handleKeywordsChange = (keywords: string[]) => {
     setArticle(prev => ({ ...prev, keywords }));
   };
 
-  // 🆕 NOUVELLE: Gestion spécifique de la méta-description
-  const handleMetaDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setArticle(prev => ({ ...prev, meta_description: value }));
-    
-    // Validation en temps réel
-    if (value.length > 160) {
-      console.warn('⚠️ Méta-description trop longue:', value.length, 'caractères');
-    }
-  };
-
-  // Gestion du mode de publication
+  // MODIFIÉ : Gestion correcte du mode de publication
   const handlePublishModeChange = (mode: "draft" | "publish" | "schedule") => {
     console.log("Changement de mode de publication:", mode);
     setPublishMode(mode);
@@ -221,26 +181,22 @@ export const useArticleEditor = () => {
     }
   };
 
-  // Gestion du changement de titre avec génération de slug
   const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setArticle(prev => ({ ...prev, title: newTitle }));
     
     if (!article.slug || article.slug === "") {
-      const { slug } = await generateUniqueSlug(newTitle, article.id);
-      if (slug) {
-        setArticle(prev => ({ ...prev, slug }));
-      }
+      const newSlug = await generateUniqueSlug(newTitle, article.id);
+      setArticle(prev => ({ ...prev, slug: newSlug }));
     }
   };
 
-  // Gestion des catégories
   const handleCategoriesChange = (categories: string[]) => {
     console.log("Nouvelles catégories sélectionnées:", categories);
     setArticle(prev => ({ ...prev, categories }));
   };
 
-  // Upload d'image vers Supabase Storage
+  // 🚀 NOUVELLE VERSION : handleImageUpload avec Supabase Storage
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -261,11 +217,12 @@ export const useArticleEditor = () => {
     try {
       console.log('🚀 Upload vers Supabase Storage...');
       
-      // Générer un nom de fichier unique
+      // 1. Générer un nom de fichier unique
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
       const timestamp = Date.now();
       const random = Math.random().toString(36).substring(2, 8);
       
+      // Nom basé sur le titre de l'article ou ID temporaire
       const baseName = article.title 
         ? article.title.toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
@@ -275,7 +232,7 @@ export const useArticleEditor = () => {
         
       const fileName = `${baseName}-${timestamp}-${random}.${fileExtension}`;
 
-      // Upload vers Supabase Storage
+      // 2. Upload vers Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('blog_images')
         .upload(fileName, file, {
@@ -288,19 +245,20 @@ export const useArticleEditor = () => {
         throw uploadError;
       }
 
-      // Récupérer l'URL publique
+      // 3. Récupérer l'URL publique
       const { data: urlData } = supabase.storage
         .from('blog_images')
         .getPublicUrl(fileName);
 
       console.log('✅ Image uploadée:', urlData.publicUrl);
 
+      // 4. Mettre à jour le state local
       setArticle(prev => ({
         ...prev,
         image_url: urlData.publicUrl
       }));
 
-      // Mise à jour immédiate de la DB si article existant
+      // 5. Si on modifie un article existant, mettre à jour la DB immédiatement
       if (isEditing && article.id) {
         try {
           const { error: updateError } = await supabase
@@ -330,7 +288,6 @@ export const useArticleEditor = () => {
     }
   };
 
-  // Gestion de la date de programmation
   const handleScheduledDateChange = (date: Date | undefined) => {
     setScheduledDate(date);
     if (date && publishMode === "schedule") {
@@ -341,7 +298,7 @@ export const useArticleEditor = () => {
     }
   };
 
-  // 🎯 SOUMISSION AVEC VALIDATION SEO COMPLÈTE
+  // MODIFIÉ : Sauvegarde avec gestion correcte des modes
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -350,46 +307,11 @@ export const useArticleEditor = () => {
       return;
     }
     
-    // 🔍 VALIDATION SEO AVANCÉE
-    const seoWarnings = [];
-    
-    if (article.meta_description) {
-      if (article.meta_description.length > 160) {
-        seoWarnings.push('⚠️ Méta-description trop longue (max 160 caractères)');
-      } else if (article.meta_description.length < 120) {
-        seoWarnings.push('💡 Méta-description un peu courte (120-160 recommandé)');
-      }
-    }
-    
-    if (article.excerpt && article.excerpt.length > 300) {
-      seoWarnings.push('💡 Extrait un peu long (150-200 caractères recommandé)');
-    }
-
-    if (!article.keywords || article.keywords.length === 0) {
-      seoWarnings.push('💡 Aucun mot-clé SEO défini');
-    }
-
-    if (!article.tags || article.tags.length === 0) {
-      seoWarnings.push('💡 Aucun tag défini');
-    }
-    
-    // Afficher les avertissements SEO
-    seoWarnings.forEach(warning => toast.warning(warning));
-    
     try {
       setIsSaving(true);
       
       // Préparer l'article selon le mode de publication
-      const articleToSave = { 
-        ...article,
-        // S'assurer que tous les champs SEO sont définis
-        excerpt: article.excerpt || '',
-        meta_description: article.meta_description || '',
-        seo_description: article.seo_description || article.meta_description || '',
-        keywords: article.keywords || [],
-        tags: article.tags || [],
-        categories: article.categories || []
-      };
+      const articleToSave = { ...article };
       
       if (publishMode === "schedule" && scheduledDate) {
         articleToSave.scheduled_for = scheduledDate.toISOString();
@@ -404,15 +326,6 @@ export const useArticleEditor = () => {
       
       console.log("Sauvegarde de l'article avec mode:", publishMode);
       console.log("Article à sauvegarder:", articleToSave);
-      
-      // 📊 Log des données SEO pour debug
-      console.log("📊 Données SEO:", {
-        excerpt_length: articleToSave.excerpt?.length || 0,
-        meta_description_length: articleToSave.meta_description?.length || 0,
-        seo_description_length: articleToSave.seo_description?.length || 0,
-        tags_count: Array.isArray(articleToSave.tags) ? articleToSave.tags.length : 0,
-        keywords_count: Array.isArray(articleToSave.keywords) ? articleToSave.keywords.length : 0
-      });
       
       const { data, error } = await saveArticle(articleToSave);
       
@@ -437,7 +350,6 @@ export const useArticleEditor = () => {
     }
   };
 
-  // Préparation des tags pour l'aperçu
   const getTagsForPreview = () => {
     if (!article.tags) return [];
     
@@ -463,6 +375,7 @@ export const useArticleEditor = () => {
     scheduledDate,
     article,
     publishMode,
+    // ✅ AJOUT : Nouvel état pour l'upload
     isUploadingImage,
     handleChange,
     handleContentChange,
@@ -471,11 +384,9 @@ export const useArticleEditor = () => {
     handlePublishModeChange,
     handleTitleChange,
     handleCategoriesChange,
-    handleImageUpload,
+    handleImageUpload, // ✅ Fonction modifiée
     handleScheduledDateChange,
     handleSubmit,
     getTagsForPreview,
-    // 🆕 NOUVELLES FONCTIONS
-    handleMetaDescriptionChange,
   };
 };

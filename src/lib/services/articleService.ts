@@ -1,780 +1,392 @@
- // src/lib/services/articleService.ts - VERSION FINALE ADAPTÉE À VOTRE BASE
+ // articleService.ts - Version finale avec toutes les fonctions
 
-import { createClient } from '@supabase/supabase-js';
-import { Article } from '@/lib/types';
+import { supabase } from './supabase';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!
-);
+// Interface pour le résultat avec redirection
+interface ArticleResult {
+  data: any;
+  error: any;
+  redirect?: {
+    from: string;
+    to: string;
+    status: number;
+  };
+}
 
-// ========================
-// 📂 GESTION DES CATÉGORIES
-// ========================
-
-/**
- * 📂 RÉCUPÈRE TOUTES LES CATÉGORIES
- */
-export const getAllCategories = async () => {
+// Fonction principale avec gestion des redirections
+export async function getArticleBySlug(slug: string): Promise<ArticleResult> {
   try {
-    console.log("📂 Récupération de toutes les catégories");
+    console.log("🔍 Recherche article avec slug:", slug);
     
+    // Utiliser la fonction RPC qui gère automatiquement les redirections
     const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name', { ascending: true });
+      .rpc('get_article_by_slug', { input_slug: slug });
 
     if (error) {
-      console.error("❌ Erreur Supabase catégories:", error);
-      throw error;
+      console.error('❌ Erreur RPC get_article_by_slug:', error);
+      return { data: null, error };
     }
 
-    console.log(`✅ ${data?.length || 0} catégories récupérées`);
-    
-    return {
-      data: data || [],
-      error: null
-    };
-
-  } catch (error: any) {
-    console.error("💥 Erreur dans getAllCategories:", error);
-    
-    return {
-      data: [],
-      error: error.message || 'Erreur lors de la récupération des catégories'
-    };
-  }
-};
-
-// ========================
-// 📰 GESTION DES ARTICLES
-// ========================
-
-/**
- * 📰 RÉCUPÈRE TOUS LES ARTICLES AVEC PAGINATION
- */
-export const getAllArticles = async (options?: {
-  search?: string;
-  category?: string;
-  page?: number;
-  limit?: number;
-  includeDrafts?: boolean;
-  publishedOnly?: boolean;
-  orderBy?: 'created_at' | 'updated_at' | 'title';
-  orderDirection?: 'asc' | 'desc';
-}) => {
-  try {
-    console.log("📰 Récupération des articles avec pagination");
-    
-    const {
-      search = '',
-      category = '',
-      page = 1,
-      limit = 10,
-      includeDrafts = false,
-      publishedOnly = false,
-      orderBy = 'created_at',
-      orderDirection = 'desc'
-    } = options || {};
-
-    // 🎯 REQUÊTE EXACTE SELON VOTRE STRUCTURE DB
-    let query = supabase
-      .from('articles')
-      .select(`
-        id,
-        title,
-        content,
-        excerpt,
-        slug,
-        author,
-        image_url,
-        storage_image_url,
-        published,
-        featured,
-        categories,
-        category,
-        tags,
-        keywords,
-        meta_description,
-        created_at,
-        updated_at,
-        scheduled_for
-      `, { count: 'exact' });
-
-    // 📝 FILTRES DE PUBLICATION
-    if (publishedOnly) {
-      query = query.eq('published', true);
-    } else if (!includeDrafts) {
-      query = query.eq('published', true);
+    if (!data || data.length === 0) {
+      console.log("❌ Article non trouvé pour le slug:", slug);
+      return { data: null, error: { message: 'Article non trouvé' } };
     }
 
-    // 🔍 FILTRE DE RECHERCHE TEXTUELLE
-    if (search.trim()) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
-    }
+    const article = data[0]; // RPC retourne un array
 
-    // 📂 FILTRE PAR CATÉGORIE (utilise le array categories)
-    if (category.trim()) {
-      query = query.contains('categories', [category]);
-    }
-
-    // 📊 TRI
-    query = query.order(orderBy, { ascending: orderDirection === 'asc' });
-
-    // 📄 PAGINATION
-    const startRange = (page - 1) * limit;
-    const endRange = startRange + limit - 1;
-    query = query.range(startRange, endRange);
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      console.error("❌ Erreur Supabase:", error);
-      throw error;
-    }
-
-    if (!data) {
-      console.log("⚠️ Aucun article trouvé");
+    // Gérer les redirections
+    if (article.is_redirect) {
+      console.log(`🔄 Redirection détectée: ${slug} → ${article.canonical_slug}`);
+      
       return {
-        data: [],
+        data: article,
         error: null,
-        totalCount: 0
+        redirect: {
+          from: slug,
+          to: article.canonical_slug,
+          status: 301 // Redirection permanente
+        }
       };
     }
 
-    // 🔄 TRANSFORMATION DES DONNÉES
-    const transformedArticles = data.map(article => {
-      // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
-      const wordCount = (article.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
-      const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
+    console.log("✅ Article trouvé directement:", article.title);
+    return { data: article, error: null };
 
-      return {
-        ...article,
-        // 🔍 SEO: Utilise meta_description comme source unique
-        meta_description: article.meta_description || '',
-        seo_description: article.meta_description || '', // Alias pour compatibilité
-        
-        // 📋 ASSURER LES VALEURS PAR DÉFAUT
-        excerpt: article.excerpt || '',
-        tags: Array.isArray(article.tags) ? article.tags : [],
-        keywords: Array.isArray(article.keywords) ? article.keywords : [],
-        categories: Array.isArray(article.categories) ? article.categories : [],
-        
-        // ⏱️ TEMPS DE LECTURE CALCULÉ
-        read_time: calculatedReadTime,
-        
-        // 🖼️ IMAGE: Priorise storage_image_url puis image_url
-        image_url: article.storage_image_url || article.image_url || null
-      };
-    });
-
-    console.log(`✅ ${transformedArticles.length} articles récupérés (page ${page})`);
-
-    return {
-      data: transformedArticles,
-      error: null,
-      totalCount: count || 0
-    };
-
-  } catch (error: any) {
-    console.error("💥 Erreur dans getAllArticles:", error);
-    
-    return {
-      data: [],
-      error: error.message || 'Erreur lors de la récupération des articles',
-      totalCount: 0
-    };
+  } catch (error) {
+    console.error('💥 Erreur inattendue dans getArticleBySlug:', error);
+    return { data: null, error };
   }
-};
+}
 
-/**
- * 🔍 RÉCUPÈRE TOUS LES ARTICLES SANS PAGINATION
- */
-export const getAllArticlesNoPagination = async (options?: {
-  search?: string;
-  category?: string;
-  publishedOnly?: boolean;
-  featured?: boolean;
-  orderBy?: 'created_at' | 'updated_at' | 'title';
-  orderDirection?: 'asc' | 'desc';
-  limit?: number;
-}) => {
-  try {
-    console.log("🔍 Récupération de tous les articles sans pagination");
-    
-    const {
-      search = '',
-      category = '',
-      publishedOnly = true,
-      featured,
-      orderBy = 'created_at',
-      orderDirection = 'desc',
-      limit
-    } = options || {};
-
-    let query = supabase
-      .from('articles')
-      .select(`
-        id,
-        title,
-        content,
-        excerpt,
-        slug,
-        author,
-        image_url,
-        storage_image_url,
-        published,
-        featured,
-        categories,
-        tags,
-        keywords,
-        meta_description,
-        created_at,
-        updated_at,
-        scheduled_for
-      `);
-
-    // 📝 FILTRES DE PUBLICATION
-    if (publishedOnly) {
-      query = query.eq('published', true);
-    }
-
-    // ⭐ FILTRE ARTICLES EN VEDETTE
-    if (typeof featured === 'boolean') {
-      query = query.eq('featured', featured);
-    }
-
-    // 🔍 FILTRE DE RECHERCHE
-    if (search.trim()) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
-    }
-
-    // 📂 FILTRE PAR CATÉGORIE
-    if (category.trim()) {
-      query = query.contains('categories', [category]);
-    }
-
-    // 📊 TRI
-    query = query.order(orderBy, { ascending: orderDirection === 'asc' });
-
-    // 🔢 LIMITE OPTIONNELLE
-    if (limit && limit > 0) {
-      query = query.limit(limit);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("❌ Erreur Supabase:", error);
-      throw error;
-    }
-
-    const transformedArticles = (data || []).map(article => {
-      // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
-      const wordCount = (article.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
-      const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
-
-      return {
-        ...article,
-        meta_description: article.meta_description || '',
-        seo_description: article.meta_description || '',
-        excerpt: article.excerpt || '',
-        tags: Array.isArray(article.tags) ? article.tags : [],
-        keywords: Array.isArray(article.keywords) ? article.keywords : [],
-        categories: Array.isArray(article.categories) ? article.categories : [],
-        read_time: calculatedReadTime,
-        image_url: article.storage_image_url || article.image_url || null
-      };
-    });
-
-    console.log(`✅ ${transformedArticles.length} articles récupérés sans pagination`);
-
-    return {
-      data: transformedArticles,
-      error: null,
-      totalCount: transformedArticles.length
-    };
-
-  } catch (error: any) {
-    console.error("💥 Erreur dans getAllArticlesNoPagination:", error);
-    
-    return {
-      data: [],
-      error: error.message || 'Erreur lors de la récupération des articles',
-      totalCount: 0
-    };
-  }
-};
-
-/**
- * 🔍 RÉCUPÈRE UN ARTICLE PAR ID
- */
-export const getArticleById = async (id: string) => {
+// Fonction pour récupérer un article par ID
+export async function getArticleById(id: string) {
   try {
     console.log("🔍 Recherche article par ID:", id);
     
     const { data, error } = await supabase
       .from('articles')
-      .select('*')
+      .select(`
+        id,
+        title,
+        content,
+        slug,
+        excerpt,
+        image_url,
+        author,
+        categories,
+        tags,
+        published,
+        featured,
+        created_at,
+        updated_at,
+        category,
+        scheduled_for,
+        storage_image_url
+      `)
       .eq('id', id)
       .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new Error('Article non trouvé');
-      }
-      throw error;
-    }
-    
-    if (!data) {
-      throw new Error('Article non trouvé');
-    }
-    
-    // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
-    const wordCount = (data.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
-    const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
-    
-    const article = {
-      ...data,
-      tags: Array.isArray(data.tags) ? data.tags : [],
-      meta_description: data.meta_description || '',
-      seo_description: data.meta_description || '',
-      keywords: Array.isArray(data.keywords) ? data.keywords : [],
-      categories: Array.isArray(data.categories) ? data.categories : [],
-      read_time: calculatedReadTime,
-      image_url: data.storage_image_url || data.image_url || null
-    };
-    
-    console.log("✅ Article récupéré:", article.title);
-    
-    return { data: article, error: null };
-    
-  } catch (error: any) {
-    console.error("Erreur récupération article:", error);
-    return {
-      data: null,
-      error: error.message || 'Erreur lors de la récupération de l\'article'
-    };
-  }
-};
 
-/**
- * 🔗 RÉCUPÈRE UN ARTICLE PAR SLUG
- */
-export const getArticleBySlug = async (slug: string) => {
-  try {
-    console.log("🔗 Recherche article par slug:", slug);
-    
-    const { data, error } = await supabase
-      .from('articles')
-      .select('*')
-      .eq('slug', slug)
-      .eq('published', true)
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new Error('Article non trouvé');
-      }
-      throw error;
-    }
-    
-    if (!data) {
-      throw new Error('Article non trouvé');
-    }
-    
-    // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
-    const wordCount = (data.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
-    const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
-    
-    const article = {
-      ...data,
-      tags: Array.isArray(data.tags) ? data.tags : [],
-      meta_description: data.meta_description || '',
-      seo_description: data.meta_description || '',
-      keywords: Array.isArray(data.keywords) ? data.keywords : [],
-      categories: Array.isArray(data.categories) ? data.categories : [],
-      excerpt: data.excerpt || '',
-      read_time: calculatedReadTime,
-      image_url: data.storage_image_url || data.image_url || null
-    };
-    
-    console.log("✅ Article récupéré par slug:", article.title);
-    
-    return { data: article, error: null };
-    
-  } catch (error: any) {
-    console.error("Erreur récupération article par slug:", error);
-    return {
-      data: null,
-      error: error.message || 'Erreur lors de la récupération de l\'article'
-    };
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération de l\'article par ID:', error);
+    return { data: null, error };
   }
-};
+}
 
-/**
- * 🔗 RÉCUPÈRE LES ARTICLES LIÉS/SIMILAIRES
- */
-export const getRelatedArticles = async (articleId: string, categories: string[] = [], limit: number = 3) => {
+// ✅ FONCTION CORRIGÉE : Récupérer tous les articles avec options complètes
+export async function getAllArticles(options: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  featured?: boolean;
+  includeDrafts?: boolean; // ✅ NOUVEAU PARAMÈTRE
+  search?: string; // ✅ NOUVEAU PARAMÈTRE
+} = {}) {
   try {
-    console.log("🔗 Recherche articles liés pour:", articleId);
-    
+    const { page = 1, limit = 10, category, featured, includeDrafts = false, search } = options;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
     let query = supabase
       .from('articles')
       .select(`
         id,
         title,
-        excerpt,
+        content,
         slug,
-        author,
+        excerpt,
         image_url,
-        storage_image_url,
+        author,
         categories,
         tags,
-        created_at,
+        published,
         featured,
-        content
+        created_at,
+        updated_at,
+        category,
+        storage_image_url
+      `, { count: 'exact' }) // ✅ Ajout pour avoir le count total
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    // ✅ Filtrage par statut published (nouveau)
+    if (!includeDrafts) {
+      query = query.eq('published', true);
+    }
+
+    // ✅ Recherche par texte (nouveau)
+    if (search && search.trim()) {
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
+    }
+
+    if (category) {
+      query = query.contains('categories', [category]);
+    }
+
+    if (featured !== undefined) {
+      query = query.eq('featured', featured);
+    }
+
+    const { data, error, count } = await query;
+
+    return {
+      data,
+      error,
+      totalCount: count, // ✅ Ajout du totalCount pour l'admin
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      }
+    };
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des articles:', error);
+    return { data: null, error, totalCount: 0, pagination: null };
+  }
+}
+
+// ✅ NOUVELLE FONCTION : Récupérer TOUS les articles publiés sans pagination
+export async function getAllArticlesNoPagination() {
+  try {
+    console.log("🔍 Récupération de TOUS les articles publiés...");
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .select(`
+        id,
+        title,
+        content,
+        slug,
+        excerpt,
+        image_url,
+        author,
+        categories,
+        tags,
+        published,
+        featured,
+        created_at,
+        updated_at,
+        category,
+        storage_image_url
+      `)
+      .eq('published', true)
+      .order('created_at', { ascending: false });
+
+    console.log(`✅ ${data?.length || 0} articles récupérés`);
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération de tous les articles:', error);
+    return { data: null, error };
+  }
+}
+
+// Fonction pour récupérer toutes les catégories
+export async function getAllCategories() {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('categories')
+      .eq('published', true);
+
+    if (error) {
+      console.error('❌ Erreur lors de la récupération des catégories:', error);
+      return { data: null, error };
+    }
+
+    // Extraire toutes les catégories uniques
+    const allCategories = data
+      .flatMap(article => article.categories || [])
+      .filter((category, index, array) => array.indexOf(category) === index)
+      .sort();
+
+    return { data: allCategories, error: null };
+  } catch (error) {
+    console.error('❌ Erreur inattendue dans getAllCategories:', error);
+    return { data: null, error };
+  }
+}
+
+// Fonction pour récupérer les articles liés
+export async function getRelatedArticles(articleId: string, limit: number = 3) {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .select(`
+        id,
+        title,
+        slug,
+        excerpt,
+        image_url,
+        created_at,
+        categories,
+        tags
       `)
       .eq('published', true)
       .neq('id', articleId)
       .order('created_at', { ascending: false })
-      .limit(limit * 2);
+      .limit(limit);
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("❌ Erreur récupération articles liés:", error);
-      throw error;
-    }
-
-    if (!data || data.length === 0) {
-      console.log("⚠️ Aucun article lié trouvé");
-      return {
-        data: [],
-        error: null
-      };
-    }
-
-    // 🎯 SCORING ET TRI PAR PERTINENCE
-    const articlesWithScore = data.map(article => {
-      let score = 0;
-      
-      // Score basé sur les catégories communes
-      if (categories.length > 0 && Array.isArray(article.categories)) {
-        const commonCategories = article.categories.filter(cat => categories.includes(cat));
-        score += commonCategories.length * 10;
-      }
-      
-      // Bonus pour les articles en vedette
-      if (article.featured) {
-        score += 5;
-      }
-      
-      // Score basé sur la récence
-      const daysSinceCreation = Math.floor(
-        (Date.now() - new Date(article.created_at).getTime()) / (1000 * 60 * 60 * 24)
-      );
-      score += Math.max(0, 30 - daysSinceCreation);
-
-      // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
-      const wordCount = (article.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
-      const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
-      
-      return {
-        ...article,
-        score,
-        categories: Array.isArray(article.categories) ? article.categories : [],
-        tags: Array.isArray(article.tags) ? article.tags : [],
-        excerpt: article.excerpt || '',
-        read_time: calculatedReadTime,
-        image_url: article.storage_image_url || article.image_url || null
-      };
-    });
-
-    // Trier par score décroissant
-    const relatedArticles = articlesWithScore
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit)
-      .map(({ score, content, ...article }) => article);
-
-    console.log(`✅ ${relatedArticles.length} articles liés trouvés`);
-
-    return {
-      data: relatedArticles,
-      error: null
-    };
-
-  } catch (error: any) {
-    console.error("💥 Erreur dans getRelatedArticles:", error);
-    
-    return {
-      data: [],
-      error: error.message || 'Erreur lors de la récupération des articles liés'
-    };
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des articles liés:', error);
+    return { data: null, error };
   }
-};
+}
 
-/**
- * 💾 SAUVEGARDE UN ARTICLE
- */
-export const saveArticle = async (article: Partial<Article>) => {
+// Fonction pour sauvegarder un article (create ou update selon si ID existe)
+export async function saveArticle(articleData: any) {
   try {
-    console.log("🔄 Début sauvegarde article:", article.title);
-    
-    // 🎯 NETTOYAGE DES DONNÉES SELON VOTRE STRUCTURE
-    const cleanArticle = {
-      title: article.title?.trim() || '',
-      content: article.content || '',
-      slug: article.slug?.trim() || '',
-      author: article.author || 'Administrateur',
-      
-      // === CHAMPS SEO ===
-      excerpt: article.excerpt?.trim() || '',
-      meta_description: article.meta_description?.trim() || '',
-      
-      // === ARRAYS PostgreSQL ===
-      categories: Array.isArray(article.categories) ? article.categories.filter(Boolean) : [],
-      tags: Array.isArray(article.tags) 
-        ? article.tags.map(tag => typeof tag === 'string' ? tag : tag.name).filter(Boolean)
-        : [],
-      keywords: Array.isArray(article.keywords) ? article.keywords.filter(Boolean) : [],
-      
-      // === IMAGES ===
-      image_url: article.image_url || null,
-      storage_image_url: article.storage_image_url || null,
-      
-      // === PUBLICATION ===
-      published: Boolean(article.published),
-      featured: Boolean(article.featured),
-      scheduled_for: article.scheduled_for || null,
-      
-      // === CATÉGORIE SIMPLE (pour compatibilité) ===
-      category: Array.isArray(article.categories) && article.categories.length > 0 
-        ? article.categories[0] 
-        : null,
-      
-      // === TIMESTAMPS ===
-      updated_at: new Date().toISOString()
-    };
-
-    // 🔍 VALIDATION OBLIGATOIRE
-    if (!cleanArticle.title) {
-      throw new Error('Le titre est obligatoire');
-    }
-    
-    if (!cleanArticle.content) {
-      throw new Error('Le contenu est obligatoire');
-    }
-    
-    if (!cleanArticle.slug) {
-      cleanArticle.slug = cleanArticle.title
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim('-');
-    }
-
-    let result;
-    
-    if (article.id) {
-      // 🔄 MISE À JOUR ARTICLE EXISTANT
-      console.log("✏️ Mise à jour article:", article.id);
-      
-      result = await supabase
-        .from('articles')
-        .update(cleanArticle)
-        .eq('id', article.id)
-        .select('*')
-        .single();
-        
+    if (articleData.id) {
+      // Update existant
+      console.log("✏️ Mise à jour article:", articleData.id);
+      return await updateArticle(articleData.id, articleData);
     } else {
-      // ➕ CRÉATION NOUVEL ARTICLE
-      console.log("➕ Création nouvel article");
-      
-      const newArticle = {
-        ...cleanArticle,
-        created_at: new Date().toISOString()
-      };
-      
-      result = await supabase
-        .from('articles')
-        .insert(newArticle)
-        .select('*')
-        .single();
+      // Création nouveau
+      console.log("📝 Création nouvel article:", articleData.title);
+      return await createArticle(articleData);
     }
-
-    if (result.error) {
-      console.error("❌ Erreur Supabase:", result.error);
-      throw new Error(`Erreur base de données: ${result.error.message}`);
-    }
-
-    if (!result.data) {
-      throw new Error('Aucune donnée retournée après la sauvegarde');
-    }
-
-    console.log("✅ Article sauvegardé avec succès:", result.data.id);
-    
-    return {
-      data: result.data,
-      error: null
-    };
-
-  } catch (error: any) {
-    console.error("💥 Erreur dans saveArticle:", error);
-    
-    return {
-      data: null,
-      error: error.message || 'Erreur inconnue lors de la sauvegarde'
-    };
+  } catch (error) {
+    console.error('❌ Erreur lors de la sauvegarde de l\'article:', error);
+    return { data: null, error };
   }
-};
+}
 
-/**
- * 🗑️ SUPPRIME UN ARTICLE
- */
-export const deleteArticle = async (id: string) => {
+// Fonction pour générer un slug unique
+export async function generateUniqueSlug(title: string, excludeId?: string) {
+  try {
+    const baseSlug = await generateSlugPreview(title);
+    if (baseSlug.error) {
+      return baseSlug;
+    }
+
+    let finalSlug = baseSlug.slug;
+    let counter = 1;
+
+    // Vérifier l'unicité
+    while (true) {
+      const { data: existing } = await supabase
+        .from('articles')
+        .select('id')
+        .eq('slug', finalSlug)
+        .neq('id', excludeId || '')
+        .single();
+
+      if (!existing) {
+        // Slug disponible
+        break;
+      }
+
+      // Slug déjà pris, essayer avec un suffixe
+      finalSlug = `${baseSlug.slug}-${counter}`;
+      counter++;
+    }
+
+    return { slug: finalSlug, error: null };
+  } catch (error) {
+    console.error('❌ Erreur génération slug unique:', error);
+    return { slug: null, error };
+  }
+}
+
+// Fonction pour créer un nouvel article (slug auto-généré par le trigger)
+export async function createArticle(articleData: any) {
+  try {
+    console.log("📝 Création nouvel article:", articleData.title);
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .insert([articleData])
+      .select()
+      .single();
+
+    if (data) {
+      console.log("✅ Article créé avec slug:", data.slug);
+    }
+
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la création de l\'article:', error);
+    return { data: null, error };
+  }
+}
+
+// Fonction pour mettre à jour un article (slug regénéré si titre change)
+export async function updateArticle(id: string, updates: any) {
+  try {
+    console.log("✏️ Mise à jour article:", id);
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (data && updates.title) {
+      console.log("✅ Article mis à jour avec nouveau slug:", data.slug);
+    }
+
+    return { data, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la mise à jour de l\'article:', error);
+    return { data: null, error };
+  }
+}
+
+// Fonction pour supprimer un article
+export async function deleteArticle(id: string) {
   try {
     console.log("🗑️ Suppression article:", id);
     
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('articles')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select()
+      .single();
 
-    if (error) {
-      throw error;
+    if (data) {
+      console.log("✅ Article supprimé:", data.title);
+      return { success: true, error: null };
     }
 
-    console.log("✅ Article supprimé avec succès");
-    
-    return { success: true, error: null };
-
-  } catch (error: any) {
-    console.error("💥 Erreur suppression article:", error);
-    
-    return {
-      success: false,
-      error: error.message || 'Erreur lors de la suppression'
-    };
+    return { success: false, error };
+  } catch (error) {
+    console.error('❌ Erreur lors de la suppression de l\'article:', error);
+    return { success: false, error };
   }
-};
+}
 
-/**
- * 🔧 GÉNÈRE UN SLUG UNIQUE
- */
-export const generateUniqueSlug = async (title: string, excludeId?: string) => {
+// Fonction utilitaire pour tester la génération de slug
+export async function generateSlugPreview(title: string) {
   try {
-    let baseSlug = title
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim('-');
-    
-    if (!baseSlug) {
-      baseSlug = 'article-' + Date.now();
-    }
-    
-    let slug = baseSlug;
-    let counter = 1;
-    
-    while (true) {
-      let query = supabase
-        .from('articles')
-        .select('id')
-        .eq('slug', slug);
-      
-      if (excludeId) {
-        query = query.neq('id', excludeId);
-      }
-      
-      const { data, error } = await query.maybeSingle();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error("Erreur vérification slug:", error);
-        break;
-      }
-      
-      if (!data) {
-        break;
-      }
-      
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-      
-      if (counter > 100) {
-        slug = `${baseSlug}-${Date.now()}`;
-        break;
-      }
-    }
-    
-    return { slug, error: null };
-    
-  } catch (error: any) {
-    console.error("Erreur génération slug:", error);
-    return {
-      slug: `article-${Date.now()}`,
-      error: error.message
-    };
+    const { data, error } = await supabase
+      .rpc('generate_clean_slug', { title });
+
+    return { slug: data, error };
+  } catch (error) {
+    console.error('❌ Erreur génération slug:', error);
+    return { slug: null, error };
   }
-};
-
-// ========================
-// 🏠 FONCTIONS UTILITAIRES
-// ========================
-
-/**
- * 🏠 ARTICLES POUR LA PAGE D'ACCUEIL
- */
-export const getHomePageArticles = async (limit: number = 6) => {
-  return getAllArticlesNoPagination({
-    publishedOnly: true,
-    orderBy: 'created_at',
-    orderDirection: 'desc',
-    limit
-  });
-};
-
-/**
- * ⭐ ARTICLES EN VEDETTE
- */
-export const getFeaturedArticles = async (limit: number = 3) => {
-  return getAllArticlesNoPagination({
-    publishedOnly: true,
-    featured: true,
-    orderBy: 'created_at',
-    orderDirection: 'desc',
-    limit
-  });
-};
-
-/**
- * 📂 ARTICLES PAR CATÉGORIE
- */
-export const getArticlesByCategory = async (category: string, limit?: number) => {
-  return getAllArticlesNoPagination({
-    category,
-    publishedOnly: true,
-    orderBy: 'created_at',
-    orderDirection: 'desc',
-    limit
-  });
-};
-
-/**
- * 🔍 RECHERCHE D'ARTICLES
- */
-export const searchArticles = async (searchTerm: string, limit?: number) => {
-  return getAllArticlesNoPagination({
-    search: searchTerm,
-    publishedOnly: true,
-    orderBy: 'created_at',
-    orderDirection: 'desc',
-    limit
-  });
-};
+}

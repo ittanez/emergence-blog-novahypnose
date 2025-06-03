@@ -1,6 +1,6 @@
  // articleService.ts - Version finale avec gestion SEO complète
 
-import { supabase } from './supabase';
+import { supabase } from '@/integrations/supabase/client';  // ✅ Correct
 
 // Interface pour le résultat avec redirection
 interface ArticleResult {

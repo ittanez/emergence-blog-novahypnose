@@ -1,4 +1,4 @@
- // src/lib/services/articleService.ts - VERSION COMPLÈTE
+// src/lib/services/articleService.ts - VERSION COMPLÈTE
 
 import { createClient } from '@supabase/supabase-js';
 import { Article } from '@/lib/types';
@@ -663,4 +663,161 @@ export const searchArticles = async (searchTerm: string, limit?: number) => {
     orderDirection: 'desc',
     limit
   });
+};
+
+/**
+ * 🔗 RÉCUPÈRE UN ARTICLE PAR SLUG
+ */
+export const getArticleBySlug = async (slug: string) => {
+  try {
+    console.log("🔗 Recherche article par slug:", slug);
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .select(`
+        *,
+        article_tags (
+          tag:tags (
+            id,
+            name,
+            slug
+          )
+        )
+      `)
+      .eq('slug', slug)
+      .eq('published', true)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Article non trouvé');
+      }
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error('Article non trouvé');
+    }
+    
+    // 🔄 TRANSFORMATION DES TAGS
+    const tags = data.article_tags?.map((at: any) => at.tag) || [];
+    
+    const article = {
+      ...data,
+      tags: tags,
+      meta_description: data.meta_description || data.seo_description || '',
+      seo_description: data.seo_description || data.meta_description || '',
+      keywords: data.keywords || [],
+      categories: data.categories || [],
+      excerpt: data.excerpt || '',
+      read_time: data.read_time || 1
+    };
+    
+    console.log("✅ Article récupéré par slug:", article.title);
+    
+    return { data: article, error: null };
+    
+  } catch (error: any) {
+    console.error("Erreur récupération article par slug:", error);
+    return {
+      data: null,
+      error: error.message || 'Erreur lors de la récupération de l\'article'
+    };
+  }
+};
+
+/**
+ * 🔗 RÉCUPÈRE LES ARTICLES LIÉS/SIMILAIRES
+ */
+export const getRelatedArticles = async (articleId: string, categories: string[] = [], limit: number = 3) => {
+  try {
+    console.log("🔗 Recherche articles liés pour:", articleId);
+    
+    let query = supabase
+      .from('articles')
+      .select(`
+        id,
+        title,
+        excerpt,
+        slug,
+        author,
+        image_url,
+        categories,
+        tags,
+        read_time,
+        created_at,
+        featured
+      `)
+      .eq('published', true)
+      .neq('id', articleId) // Exclure l'article actuel
+      .order('created_at', { ascending: false })
+      .limit(limit * 2); // Récupérer plus pour avoir du choix
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("❌ Erreur récupération articles liés:", error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.log("⚠️ Aucun article lié trouvé");
+      return {
+        data: [],
+        error: null
+      };
+    }
+
+    // 🎯 SCORING ET TRI PAR PERTINENCE
+    const articlesWithScore = data.map(article => {
+      let score = 0;
+      
+      // Score basé sur les catégories communes
+      if (categories.length > 0 && Array.isArray(article.categories)) {
+        const commonCategories = article.categories.filter(cat => categories.includes(cat));
+        score += commonCategories.length * 10;
+      }
+      
+      // Bonus pour les articles en vedette
+      if (article.featured) {
+        score += 5;
+      }
+      
+      // Score basé sur la récence (plus récent = meilleur score)
+      const daysSinceCreation = Math.floor(
+        (Date.now() - new Date(article.created_at).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      score += Math.max(0, 30 - daysSinceCreation); // Bonus dégressif sur 30 jours
+      
+      return {
+        ...article,
+        score,
+        categories: article.categories || [],
+        tags: article.tags || [],
+        excerpt: article.excerpt || '',
+        read_time: article.read_time || 1
+      };
+    });
+
+    // Trier par score décroissant et prendre les meilleurs
+    const relatedArticles = articlesWithScore
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(({ score, ...article }) => article); // Retirer le score du résultat final
+
+    console.log(`✅ ${relatedArticles.length} articles liés trouvés`);
+
+    return {
+      data: relatedArticles,
+      error: null
+    };
+
+  } catch (error: any) {
+    console.error("💥 Erreur dans getRelatedArticles:", error);
+    
+    return {
+      data: [],
+      error: error.message || 'Erreur lors de la récupération des articles liés'
+    };
+  }
 };

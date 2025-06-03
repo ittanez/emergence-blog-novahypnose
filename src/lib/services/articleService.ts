@@ -1,4 +1,4 @@
-// src/lib/services/articleService.ts - VERSION COMPLÈTE
+ // src/lib/services/articleService.ts - VERSION CORRIGÉE SANS read_time
 
 import { createClient } from '@supabase/supabase-js';
 import { Article } from '@/lib/types';
@@ -46,46 +46,6 @@ export const getAllCategories = async () => {
   }
 };
 
-/**
- * 📂 CRÉE UNE NOUVELLE CATÉGORIE
- */
-export const createCategory = async (categoryData: {
-  name: string;
-  description?: string;
-  slug?: string;
-}) => {
-  try {
-    const slug = categoryData.slug || categoryData.name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim('-');
-
-    const { data, error } = await supabase
-      .from('categories')
-      .insert({
-        name: categoryData.name,
-        description: categoryData.description || '',
-        slug,
-        created_at: new Date().toISOString()
-      })
-      .select('*')
-      .single();
-
-    if (error) throw error;
-
-    return { data, error: null };
-  } catch (error: any) {
-    return {
-      data: null,
-      error: error.message || 'Erreur lors de la création de la catégorie'
-    };
-  }
-};
-
 // ========================
 // 📰 GESTION DES ARTICLES
 // ========================
@@ -117,7 +77,7 @@ export const getAllArticles = async (options?: {
       orderDirection = 'desc'
     } = options || {};
 
-    // Construction de la requête de base
+    // 🎯 REQUÊTE SIMPLIFIÉE SANS read_time
     let query = supabase
       .from('articles')
       .select(`
@@ -133,7 +93,6 @@ export const getAllArticles = async (options?: {
         categories,
         tags,
         keywords,
-        read_time,
         created_at,
         updated_at,
         scheduled_for,
@@ -182,17 +141,23 @@ export const getAllArticles = async (options?: {
       };
     }
 
-    // 🔄 TRANSFORMATION DES DONNÉES
-    const transformedArticles = data.map(article => ({
-      ...article,
-      meta_description: article.meta_description || article.seo_description || '',
-      seo_description: article.seo_description || article.meta_description || '',
-      excerpt: article.excerpt || '',
-      tags: article.tags || [],
-      keywords: article.keywords || [],
-      categories: article.categories || [],
-      read_time: article.read_time || 1
-    }));
+    // 🔄 TRANSFORMATION DES DONNÉES AVEC CALCUL AUTO read_time
+    const transformedArticles = data.map(article => {
+      // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
+      const wordCount = (article.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
+      const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
+
+      return {
+        ...article,
+        meta_description: article.meta_description || article.seo_description || '',
+        seo_description: article.seo_description || article.meta_description || '',
+        excerpt: article.excerpt || '',
+        tags: article.tags || [],
+        keywords: article.keywords || [],
+        categories: article.categories || [],
+        read_time: calculatedReadTime // Calculé automatiquement
+      };
+    });
 
     console.log(`✅ ${transformedArticles.length} articles récupérés (page ${page})`);
 
@@ -253,7 +218,6 @@ export const getAllArticlesNoPagination = async (options?: {
         categories,
         tags,
         keywords,
-        read_time,
         created_at,
         updated_at,
         scheduled_for,
@@ -296,16 +260,22 @@ export const getAllArticlesNoPagination = async (options?: {
       throw error;
     }
 
-    const transformedArticles = (data || []).map(article => ({
-      ...article,
-      meta_description: article.meta_description || article.seo_description || '',
-      seo_description: article.seo_description || article.meta_description || '',
-      excerpt: article.excerpt || '',
-      tags: article.tags || [],
-      keywords: article.keywords || [],
-      categories: article.categories || [],
-      read_time: article.read_time || 1
-    }));
+    const transformedArticles = (data || []).map(article => {
+      // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
+      const wordCount = (article.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
+      const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
+
+      return {
+        ...article,
+        meta_description: article.meta_description || article.seo_description || '',
+        seo_description: article.seo_description || article.meta_description || '',
+        excerpt: article.excerpt || '',
+        tags: article.tags || [],
+        keywords: article.keywords || [],
+        categories: article.categories || [],
+        read_time: calculatedReadTime
+      };
+    });
 
     console.log(`✅ ${transformedArticles.length} articles récupérés sans pagination`);
 
@@ -336,14 +306,7 @@ export const getArticleById = async (id: string) => {
     const { data, error } = await supabase
       .from('articles')
       .select(`
-        *,
-        article_tags (
-          tag:tags (
-            id,
-            name,
-            slug
-          )
-        )
+        *
       `)
       .eq('id', id)
       .single();
@@ -359,16 +322,18 @@ export const getArticleById = async (id: string) => {
       throw new Error('Article non trouvé');
     }
     
-    // 🔄 TRANSFORMATION DES TAGS
-    const tags = data.article_tags?.map((at: any) => at.tag) || [];
+    // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
+    const wordCount = (data.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
     
     const article = {
       ...data,
-      tags: tags,
+      tags: data.tags || [],
       meta_description: data.meta_description || data.seo_description || '',
       seo_description: data.seo_description || data.meta_description || '',
       keywords: data.keywords || [],
-      categories: data.categories || []
+      categories: data.categories || [],
+      read_time: calculatedReadTime
     };
     
     console.log("✅ Article récupéré:", article.title);
@@ -385,13 +350,166 @@ export const getArticleById = async (id: string) => {
 };
 
 /**
+ * 🔗 RÉCUPÈRE UN ARTICLE PAR SLUG
+ */
+export const getArticleBySlug = async (slug: string) => {
+  try {
+    console.log("🔗 Recherche article par slug:", slug);
+    
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('slug', slug)
+      .eq('published', true)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Article non trouvé');
+      }
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error('Article non trouvé');
+    }
+    
+    // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
+    const wordCount = (data.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
+    
+    const article = {
+      ...data,
+      tags: data.tags || [],
+      meta_description: data.meta_description || data.seo_description || '',
+      seo_description: data.seo_description || data.meta_description || '',
+      keywords: data.keywords || [],
+      categories: data.categories || [],
+      excerpt: data.excerpt || '',
+      read_time: calculatedReadTime
+    };
+    
+    console.log("✅ Article récupéré par slug:", article.title);
+    
+    return { data: article, error: null };
+    
+  } catch (error: any) {
+    console.error("Erreur récupération article par slug:", error);
+    return {
+      data: null,
+      error: error.message || 'Erreur lors de la récupération de l\'article'
+    };
+  }
+};
+
+/**
+ * 🔗 RÉCUPÈRE LES ARTICLES LIÉS/SIMILAIRES
+ */
+export const getRelatedArticles = async (articleId: string, categories: string[] = [], limit: number = 3) => {
+  try {
+    console.log("🔗 Recherche articles liés pour:", articleId);
+    
+    let query = supabase
+      .from('articles')
+      .select(`
+        id,
+        title,
+        excerpt,
+        slug,
+        author,
+        image_url,
+        categories,
+        tags,
+        created_at,
+        featured,
+        content
+      `)
+      .eq('published', true)
+      .neq('id', articleId)
+      .order('created_at', { ascending: false })
+      .limit(limit * 2);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("❌ Erreur récupération articles liés:", error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.log("⚠️ Aucun article lié trouvé");
+      return {
+        data: [],
+        error: null
+      };
+    }
+
+    // 🎯 SCORING ET TRI PAR PERTINENCE
+    const articlesWithScore = data.map(article => {
+      let score = 0;
+      
+      // Score basé sur les catégories communes
+      if (categories.length > 0 && Array.isArray(article.categories)) {
+        const commonCategories = article.categories.filter(cat => categories.includes(cat));
+        score += commonCategories.length * 10;
+      }
+      
+      // Bonus pour les articles en vedette
+      if (article.featured) {
+        score += 5;
+      }
+      
+      // Score basé sur la récence
+      const daysSinceCreation = Math.floor(
+        (Date.now() - new Date(article.created_at).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      score += Math.max(0, 30 - daysSinceCreation);
+
+      // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
+      const wordCount = (article.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
+      const calculatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
+      
+      return {
+        ...article,
+        score,
+        categories: article.categories || [],
+        tags: article.tags || [],
+        excerpt: article.excerpt || '',
+        read_time: calculatedReadTime
+      };
+    });
+
+    // Trier par score décroissant
+    const relatedArticles = articlesWithScore
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(({ score, content, ...article }) => article); // Retirer score et content
+
+    console.log(`✅ ${relatedArticles.length} articles liés trouvés`);
+
+    return {
+      data: relatedArticles,
+      error: null
+    };
+
+  } catch (error: any) {
+    console.error("💥 Erreur dans getRelatedArticles:", error);
+    
+    return {
+      data: [],
+      error: error.message || 'Erreur lors de la récupération des articles liés'
+    };
+  }
+};
+
+/**
  * 💾 SAUVEGARDE UN ARTICLE
  */
 export const saveArticle = async (article: Partial<Article>) => {
   try {
     console.log("🔄 Début sauvegarde article:", article.title);
     
-    // 🎯 NETTOYAGE ET VALIDATION DES DONNÉES
+    // 🎯 NETTOYAGE DES DONNÉES SANS read_time
     const cleanArticle = {
       title: article.title?.trim() || '',
       content: article.content || '',
@@ -416,7 +534,6 @@ export const saveArticle = async (article: Partial<Article>) => {
       
       // === MÉTADONNÉES ===
       image_url: article.image_url || null,
-      read_time: article.read_time || 1,
       
       // === PUBLICATION ===
       published: Boolean(article.published),
@@ -437,7 +554,6 @@ export const saveArticle = async (article: Partial<Article>) => {
     }
     
     if (!cleanArticle.slug) {
-      // Auto-génération du slug si manquant
       cleanArticle.slug = cleanArticle.title
         .toLowerCase()
         .normalize('NFD')
@@ -480,19 +596,6 @@ export const saveArticle = async (article: Partial<Article>) => {
 
     if (result.error) {
       console.error("❌ Erreur Supabase:", result.error);
-      
-      if (result.error.code === '23505') {
-        throw new Error(`Un article avec ce slug existe déjà: ${cleanArticle.slug}`);
-      }
-      
-      if (result.error.code === '23502') {
-        throw new Error(`Champ obligatoire manquant: ${result.error.message}`);
-      }
-      
-      if (result.error.code === '22001') {
-        throw new Error('Un des champs dépasse la longueur maximale autorisée');
-      }
-      
       throw new Error(`Erreur base de données: ${result.error.message}`);
     }
 
@@ -565,7 +668,6 @@ export const generateUniqueSlug = async (title: string, excludeId?: string) => {
       baseSlug = 'article-' + Date.now();
     }
     
-    // Vérifier l'unicité
     let slug = baseSlug;
     let counter = 1;
     
@@ -663,161 +765,4 @@ export const searchArticles = async (searchTerm: string, limit?: number) => {
     orderDirection: 'desc',
     limit
   });
-};
-
-/**
- * 🔗 RÉCUPÈRE UN ARTICLE PAR SLUG
- */
-export const getArticleBySlug = async (slug: string) => {
-  try {
-    console.log("🔗 Recherche article par slug:", slug);
-    
-    const { data, error } = await supabase
-      .from('articles')
-      .select(`
-        *,
-        article_tags (
-          tag:tags (
-            id,
-            name,
-            slug
-          )
-        )
-      `)
-      .eq('slug', slug)
-      .eq('published', true)
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new Error('Article non trouvé');
-      }
-      throw error;
-    }
-    
-    if (!data) {
-      throw new Error('Article non trouvé');
-    }
-    
-    // 🔄 TRANSFORMATION DES TAGS
-    const tags = data.article_tags?.map((at: any) => at.tag) || [];
-    
-    const article = {
-      ...data,
-      tags: tags,
-      meta_description: data.meta_description || data.seo_description || '',
-      seo_description: data.seo_description || data.meta_description || '',
-      keywords: data.keywords || [],
-      categories: data.categories || [],
-      excerpt: data.excerpt || '',
-      read_time: data.read_time || 1
-    };
-    
-    console.log("✅ Article récupéré par slug:", article.title);
-    
-    return { data: article, error: null };
-    
-  } catch (error: any) {
-    console.error("Erreur récupération article par slug:", error);
-    return {
-      data: null,
-      error: error.message || 'Erreur lors de la récupération de l\'article'
-    };
-  }
-};
-
-/**
- * 🔗 RÉCUPÈRE LES ARTICLES LIÉS/SIMILAIRES
- */
-export const getRelatedArticles = async (articleId: string, categories: string[] = [], limit: number = 3) => {
-  try {
-    console.log("🔗 Recherche articles liés pour:", articleId);
-    
-    let query = supabase
-      .from('articles')
-      .select(`
-        id,
-        title,
-        excerpt,
-        slug,
-        author,
-        image_url,
-        categories,
-        tags,
-        read_time,
-        created_at,
-        featured
-      `)
-      .eq('published', true)
-      .neq('id', articleId) // Exclure l'article actuel
-      .order('created_at', { ascending: false })
-      .limit(limit * 2); // Récupérer plus pour avoir du choix
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("❌ Erreur récupération articles liés:", error);
-      throw error;
-    }
-
-    if (!data || data.length === 0) {
-      console.log("⚠️ Aucun article lié trouvé");
-      return {
-        data: [],
-        error: null
-      };
-    }
-
-    // 🎯 SCORING ET TRI PAR PERTINENCE
-    const articlesWithScore = data.map(article => {
-      let score = 0;
-      
-      // Score basé sur les catégories communes
-      if (categories.length > 0 && Array.isArray(article.categories)) {
-        const commonCategories = article.categories.filter(cat => categories.includes(cat));
-        score += commonCategories.length * 10;
-      }
-      
-      // Bonus pour les articles en vedette
-      if (article.featured) {
-        score += 5;
-      }
-      
-      // Score basé sur la récence (plus récent = meilleur score)
-      const daysSinceCreation = Math.floor(
-        (Date.now() - new Date(article.created_at).getTime()) / (1000 * 60 * 60 * 24)
-      );
-      score += Math.max(0, 30 - daysSinceCreation); // Bonus dégressif sur 30 jours
-      
-      return {
-        ...article,
-        score,
-        categories: article.categories || [],
-        tags: article.tags || [],
-        excerpt: article.excerpt || '',
-        read_time: article.read_time || 1
-      };
-    });
-
-    // Trier par score décroissant et prendre les meilleurs
-    const relatedArticles = articlesWithScore
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit)
-      .map(({ score, ...article }) => article); // Retirer le score du résultat final
-
-    console.log(`✅ ${relatedArticles.length} articles liés trouvés`);
-
-    return {
-      data: relatedArticles,
-      error: null
-    };
-
-  } catch (error: any) {
-    console.error("💥 Erreur dans getRelatedArticles:", error);
-    
-    return {
-      data: [],
-      error: error.message || 'Erreur lors de la récupération des articles liés'
-    };
-  }
 };

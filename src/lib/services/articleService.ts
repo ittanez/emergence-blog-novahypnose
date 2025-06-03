@@ -1,4 +1,4 @@
- // src/lib/services/articleService.ts - VERSION CORRIGÉE SANS read_time
+ // src/lib/services/articleService.ts - VERSION FINALE ADAPTÉE À VOTRE BASE
 
 import { createClient } from '@supabase/supabase-js';
 import { Article } from '@/lib/types';
@@ -77,7 +77,7 @@ export const getAllArticles = async (options?: {
       orderDirection = 'desc'
     } = options || {};
 
-    // 🎯 REQUÊTE SIMPLIFIÉE SANS read_time
+    // 🎯 REQUÊTE EXACTE SELON VOTRE STRUCTURE DB
     let query = supabase
       .from('articles')
       .select(`
@@ -88,16 +88,17 @@ export const getAllArticles = async (options?: {
         slug,
         author,
         image_url,
+        storage_image_url,
         published,
         featured,
         categories,
+        category,
         tags,
         keywords,
+        meta_description,
         created_at,
         updated_at,
-        scheduled_for,
-        meta_description,
-        seo_description
+        scheduled_for
       `, { count: 'exact' });
 
     // 📝 FILTRES DE PUBLICATION
@@ -112,7 +113,7 @@ export const getAllArticles = async (options?: {
       query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
     }
 
-    // 📂 FILTRE PAR CATÉGORIE
+    // 📂 FILTRE PAR CATÉGORIE (utilise le array categories)
     if (category.trim()) {
       query = query.contains('categories', [category]);
     }
@@ -141,7 +142,7 @@ export const getAllArticles = async (options?: {
       };
     }
 
-    // 🔄 TRANSFORMATION DES DONNÉES AVEC CALCUL AUTO read_time
+    // 🔄 TRANSFORMATION DES DONNÉES
     const transformedArticles = data.map(article => {
       // ⏱️ CALCUL AUTOMATIQUE DU TEMPS DE LECTURE
       const wordCount = (article.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length;
@@ -149,13 +150,21 @@ export const getAllArticles = async (options?: {
 
       return {
         ...article,
-        meta_description: article.meta_description || article.seo_description || '',
-        seo_description: article.seo_description || article.meta_description || '',
+        // 🔍 SEO: Utilise meta_description comme source unique
+        meta_description: article.meta_description || '',
+        seo_description: article.meta_description || '', // Alias pour compatibilité
+        
+        // 📋 ASSURER LES VALEURS PAR DÉFAUT
         excerpt: article.excerpt || '',
-        tags: article.tags || [],
-        keywords: article.keywords || [],
-        categories: article.categories || [],
-        read_time: calculatedReadTime // Calculé automatiquement
+        tags: Array.isArray(article.tags) ? article.tags : [],
+        keywords: Array.isArray(article.keywords) ? article.keywords : [],
+        categories: Array.isArray(article.categories) ? article.categories : [],
+        
+        // ⏱️ TEMPS DE LECTURE CALCULÉ
+        read_time: calculatedReadTime,
+        
+        // 🖼️ IMAGE: Priorise storage_image_url puis image_url
+        image_url: article.storage_image_url || article.image_url || null
       };
     });
 
@@ -213,16 +222,16 @@ export const getAllArticlesNoPagination = async (options?: {
         slug,
         author,
         image_url,
+        storage_image_url,
         published,
         featured,
         categories,
         tags,
         keywords,
+        meta_description,
         created_at,
         updated_at,
-        scheduled_for,
-        meta_description,
-        seo_description
+        scheduled_for
       `);
 
     // 📝 FILTRES DE PUBLICATION
@@ -267,13 +276,14 @@ export const getAllArticlesNoPagination = async (options?: {
 
       return {
         ...article,
-        meta_description: article.meta_description || article.seo_description || '',
-        seo_description: article.seo_description || article.meta_description || '',
+        meta_description: article.meta_description || '',
+        seo_description: article.meta_description || '',
         excerpt: article.excerpt || '',
-        tags: article.tags || [],
-        keywords: article.keywords || [],
-        categories: article.categories || [],
-        read_time: calculatedReadTime
+        tags: Array.isArray(article.tags) ? article.tags : [],
+        keywords: Array.isArray(article.keywords) ? article.keywords : [],
+        categories: Array.isArray(article.categories) ? article.categories : [],
+        read_time: calculatedReadTime,
+        image_url: article.storage_image_url || article.image_url || null
       };
     });
 
@@ -305,9 +315,7 @@ export const getArticleById = async (id: string) => {
     
     const { data, error } = await supabase
       .from('articles')
-      .select(`
-        *
-      `)
+      .select('*')
       .eq('id', id)
       .single();
     
@@ -328,12 +336,13 @@ export const getArticleById = async (id: string) => {
     
     const article = {
       ...data,
-      tags: data.tags || [],
-      meta_description: data.meta_description || data.seo_description || '',
-      seo_description: data.seo_description || data.meta_description || '',
-      keywords: data.keywords || [],
-      categories: data.categories || [],
-      read_time: calculatedReadTime
+      tags: Array.isArray(data.tags) ? data.tags : [],
+      meta_description: data.meta_description || '',
+      seo_description: data.meta_description || '',
+      keywords: Array.isArray(data.keywords) ? data.keywords : [],
+      categories: Array.isArray(data.categories) ? data.categories : [],
+      read_time: calculatedReadTime,
+      image_url: data.storage_image_url || data.image_url || null
     };
     
     console.log("✅ Article récupéré:", article.title);
@@ -380,13 +389,14 @@ export const getArticleBySlug = async (slug: string) => {
     
     const article = {
       ...data,
-      tags: data.tags || [],
-      meta_description: data.meta_description || data.seo_description || '',
-      seo_description: data.seo_description || data.meta_description || '',
-      keywords: data.keywords || [],
-      categories: data.categories || [],
+      tags: Array.isArray(data.tags) ? data.tags : [],
+      meta_description: data.meta_description || '',
+      seo_description: data.meta_description || '',
+      keywords: Array.isArray(data.keywords) ? data.keywords : [],
+      categories: Array.isArray(data.categories) ? data.categories : [],
       excerpt: data.excerpt || '',
-      read_time: calculatedReadTime
+      read_time: calculatedReadTime,
+      image_url: data.storage_image_url || data.image_url || null
     };
     
     console.log("✅ Article récupéré par slug:", article.title);
@@ -418,6 +428,7 @@ export const getRelatedArticles = async (articleId: string, categories: string[]
         slug,
         author,
         image_url,
+        storage_image_url,
         categories,
         tags,
         created_at,
@@ -472,10 +483,11 @@ export const getRelatedArticles = async (articleId: string, categories: string[]
       return {
         ...article,
         score,
-        categories: article.categories || [],
-        tags: article.tags || [],
+        categories: Array.isArray(article.categories) ? article.categories : [],
+        tags: Array.isArray(article.tags) ? article.tags : [],
         excerpt: article.excerpt || '',
-        read_time: calculatedReadTime
+        read_time: calculatedReadTime,
+        image_url: article.storage_image_url || article.image_url || null
       };
     });
 
@@ -483,7 +495,7 @@ export const getRelatedArticles = async (articleId: string, categories: string[]
     const relatedArticles = articlesWithScore
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-      .map(({ score, content, ...article }) => article); // Retirer score et content
+      .map(({ score, content, ...article }) => article);
 
     console.log(`✅ ${relatedArticles.length} articles liés trouvés`);
 
@@ -509,36 +521,37 @@ export const saveArticle = async (article: Partial<Article>) => {
   try {
     console.log("🔄 Début sauvegarde article:", article.title);
     
-    // 🎯 NETTOYAGE DES DONNÉES SANS read_time
+    // 🎯 NETTOYAGE DES DONNÉES SELON VOTRE STRUCTURE
     const cleanArticle = {
       title: article.title?.trim() || '',
       content: article.content || '',
       slug: article.slug?.trim() || '',
       author: article.author || 'Administrateur',
       
-      // === CHAMPS SEO NETTOYÉS ===
+      // === CHAMPS SEO ===
       excerpt: article.excerpt?.trim() || '',
-      seo_description: article.seo_description?.trim() || article.meta_description?.trim() || '',
       meta_description: article.meta_description?.trim() || '',
       
-      // === TABLEAUX NETTOYÉS ===
+      // === ARRAYS PostgreSQL ===
       categories: Array.isArray(article.categories) ? article.categories.filter(Boolean) : [],
-      
-      // 🏷️ CONVERSION TAGS EN STRINGS
       tags: Array.isArray(article.tags) 
         ? article.tags.map(tag => typeof tag === 'string' ? tag : tag.name).filter(Boolean)
         : [],
-      
-      // 🎯 KEYWORDS EN ARRAY DE STRINGS
       keywords: Array.isArray(article.keywords) ? article.keywords.filter(Boolean) : [],
       
-      // === MÉTADONNÉES ===
+      // === IMAGES ===
       image_url: article.image_url || null,
+      storage_image_url: article.storage_image_url || null,
       
       // === PUBLICATION ===
       published: Boolean(article.published),
       featured: Boolean(article.featured),
       scheduled_for: article.scheduled_for || null,
+      
+      // === CATÉGORIE SIMPLE (pour compatibilité) ===
+      category: Array.isArray(article.categories) && article.categories.length > 0 
+        ? article.categories[0] 
+        : null,
       
       // === TIMESTAMPS ===
       updated_at: new Date().toISOString()
@@ -583,8 +596,7 @@ export const saveArticle = async (article: Partial<Article>) => {
       
       const newArticle = {
         ...cleanArticle,
-        created_at: new Date().toISOString(),
-        author_id: null
+        created_at: new Date().toISOString()
       };
       
       result = await supabase

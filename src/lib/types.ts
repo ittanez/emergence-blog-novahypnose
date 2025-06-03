@@ -1,5 +1,4 @@
-
-export interface Author {
+ export interface Author {
   id: string;
   name: string;
   bio: string;
@@ -27,24 +26,41 @@ export interface Tag {
   created_at: string;
 }
 
+// 🎯 INTERFACE ARTICLE MISE À JOUR AVEC TOUS LES CHAMPS SEO
 export interface Article {
   id: string;
   title: string;
   content: string;
-  excerpt: string;
-  image_url: string;
-  seo_description: string;
-  keywords: string[];
-  categories: string[];
-  author_id: string;
   slug: string;
-  read_time: number;
+  author: string;
+  author_id?: string;
+  
+  // === IMAGES ===
+  image_url?: string;
+  storage_image_url?: string;
+  
+  // === CHAMPS SEO DISTINCTS ===
+  excerpt: string;                    // 📖 Extrait visible aux lecteurs
+  seo_description?: string;           // 🔍 Description SEO (existant - compatibilité)
+  meta_description?: string;          // 🔍 NOUVEAU: Méta-description SEO distincte
+  
+  // === ORGANISATION ET NAVIGATION ===
+  categories: string[];               // 📂 Catégories
+  category?: string;                  // 📂 Catégorie principale
+  tags?: Tag[] | string[];           // 🏷️ Tags de navigation visibles
+  keywords?: string[];               // 🎯 NOUVEAU: Mots-clés SEO invisibles
+  
+  // === MÉTADONNÉES ===
+  read_time?: number;
+  
+  // === ÉTATS DE PUBLICATION ===
   published: boolean;
+  featured?: boolean;
+  scheduled_for?: string;
+  
+  // === TIMESTAMPS ===
   created_at: string;
   updated_at: string;
-  scheduled_for?: string;
-  tags?: Tag[] | string[];
-  author?: Author;
 }
 
 export interface ArticleTag {

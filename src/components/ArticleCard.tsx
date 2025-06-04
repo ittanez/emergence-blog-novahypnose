@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Article } from "@/lib/types";
@@ -16,6 +16,34 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
     addSuffix: true,
     locale: fr
   });
+
+  // ✅ FONCTION CORRIGÉE : Calculer le temps de lecture correct
+  const getReadTime = () => {
+    // Si read_time existe et semble correct (plus de 1 minute pour un long contenu)
+    if (article.read_time && article.read_time > 1) {
+      return article.read_time;
+    }
+    
+    // Sinon, calculer à partir du contenu
+    if (article.content) {
+      // Supprimer le HTML et compter les mots
+      const plainText = article.content.replace(/<[^>]*>/g, '');
+      const wordCount = plainText.trim().split(/\s+/).length;
+      
+      // Calcul : 200 mots par minute (vitesse de lecture moyenne)
+      const calculatedTime = Math.max(1, Math.ceil(wordCount / 200));
+      
+      // Debug pour voir le calcul
+      console.log(`Article "${article.title}": ${wordCount} mots → ${calculatedTime} min`);
+      
+      return calculatedTime;
+    }
+    
+    // Fallback si pas de contenu
+    return article.read_time || 1;
+  };
+
+  const readTime = getReadTime();
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden">
@@ -53,7 +81,8 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
           
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>{formattedDate}</span>
-            <span>{article.read_time} min de lecture</span>
+            {/* ✅ CORRIGÉ : Utiliser le temps calculé */}
+            <span>{readTime} min de lecture</span>
           </div>
         </CardContent>
       </Link>

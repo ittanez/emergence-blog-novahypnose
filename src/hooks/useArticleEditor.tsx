@@ -1,4 +1,4 @@
-// src/hooks/useArticleEditor.tsx - VERSION COMPLÈTE CORRIGÉE
+ // src/hooks/useArticleEditor.tsx - VERSION COMPLÈTE CORRIGÉE
 
 import { useState, useEffect, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ export const useArticleEditor = () => {
   const { id } = useParams();
   const isEditing = id !== "new";
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   
   const [isLoading, setIsLoading] = useState(isEditing);
   const [isSaving, setIsSaving] = useState(false);
@@ -28,6 +28,7 @@ export const useArticleEditor = () => {
   // ✅ AJOUT : État pour l'upload d'image
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   
+  // ✅ MODIFIÉ : État initial avec toutes les colonnes
   const [article, setArticle] = useState<Partial<Article>>({
     title: "",
     content: "",
@@ -39,6 +40,11 @@ export const useArticleEditor = () => {
     tags: [],
     keywords: [],
     seo_description: "",
+    meta_description: "", // ✅ AJOUTÉ
+    read_time: 1, // ✅ AJOUTÉ
+    author: "", // ✅ AJOUTÉ
+    featured: false, // ✅ AJOUTÉ
+    storage_image_url: "", // ✅ AJOUTÉ
   });
   const [publishMode, setPublishMode] = useState<"draft" | "publish" | "schedule">("draft");
 
@@ -115,6 +121,7 @@ export const useArticleEditor = () => {
     
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
+    // ✅ MODIFIÉ : S'assurer que c'est read_time
     setArticle(prev => ({ ...prev, read_time: readTime }));
     
     if (!article.keywords || article.keywords.length === 0) {
@@ -255,7 +262,8 @@ export const useArticleEditor = () => {
       // 4. Mettre à jour le state local
       setArticle(prev => ({
         ...prev,
-        image_url: urlData.publicUrl
+        image_url: urlData.publicUrl,
+        storage_image_url: urlData.publicUrl // ✅ AJOUTÉ
       }));
 
       // 5. Si on modifie un article existant, mettre à jour la DB immédiatement
@@ -263,7 +271,10 @@ export const useArticleEditor = () => {
         try {
           const { error: updateError } = await supabase
             .from('articles')
-            .update({ image_url: urlData.publicUrl })
+            .update({ 
+              image_url: urlData.publicUrl,
+              storage_image_url: urlData.publicUrl 
+            })
             .eq('id', article.id);
 
           if (updateError) {
@@ -298,7 +309,7 @@ export const useArticleEditor = () => {
     }
   };
 
-  // MODIFIÉ : Sauvegarde avec gestion correcte des modes
+  // ✅ MODIFIÉ : Sauvegarde avec toutes les colonnes
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -310,8 +321,18 @@ export const useArticleEditor = () => {
     try {
       setIsSaving(true);
       
-      // Préparer l'article selon le mode de publication
-      const articleToSave = { ...article };
+      // ✅ MODIFIÉ : Préparer l'article avec TOUTES les colonnes nécessaires
+      const articleToSave = { 
+        ...article,
+        // ✅ AJOUTÉ : Synchroniser meta_description avec seo_description
+        meta_description: article.seo_description || article.meta_description || "",
+        // ✅ AJOUTÉ : S'assurer qu'author est défini
+        author: article.author || user?.email || 'Admin',
+        // ✅ AJOUTÉ : Valeurs par défaut pour les champs obligatoires
+        featured: article.featured || false,
+        read_time: article.read_time || 1,
+        storage_image_url: article.storage_image_url || article.image_url || "",
+      };
       
       if (publishMode === "schedule" && scheduledDate) {
         articleToSave.scheduled_for = scheduledDate.toISOString();

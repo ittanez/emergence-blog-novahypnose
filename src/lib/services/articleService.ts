@@ -65,11 +65,10 @@ export async function getArticleById(id: string) {
     
     const { data, error } = await supabase
       .from('articles')
-      .select(`
+     .select(`
         id,
         title,
         content,
-        slug,
         excerpt,
         image_url,
         author,
@@ -79,9 +78,13 @@ export async function getArticleById(id: string) {
         featured,
         created_at,
         updated_at,
-        category,
+        slug,
         scheduled_for,
-        storage_image_url
+        storage_image_url,
+        keywords,
+        meta_description,
+        seo_description,
+        read_time
       `)
       .eq('id', id)
       .single();

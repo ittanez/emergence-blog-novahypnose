@@ -113,10 +113,9 @@ export async function getAllArticles(options: {
     let query = supabase
       .from('articles')
       .select(`
-        id,
+       id,
         title,
         content,
-        slug,
         excerpt,
         image_url,
         author,
@@ -126,8 +125,13 @@ export async function getAllArticles(options: {
         featured,
         created_at,
         updated_at,
-        category,
-        storage_image_url
+        slug,
+        scheduled_for,
+        storage_image_url,
+        keywords,
+        meta_description,
+        seo_description,
+        read_time
       `, { count: 'exact' }) // ✅ Ajout pour avoir le count total
       .order('created_at', { ascending: false })
       .range(from, to);
@@ -180,7 +184,6 @@ export async function getAllArticlesNoPagination() {
         id,
         title,
         content,
-        slug,
         excerpt,
         image_url,
         author,
@@ -190,8 +193,13 @@ export async function getAllArticlesNoPagination() {
         featured,
         created_at,
         updated_at,
-        category,
-        storage_image_url
+        slug,
+        scheduled_for,
+        storage_image_url,
+        keywords,
+        meta_description,
+        seo_description,
+        read_time
       `)
       .eq('published', true)
       .order('created_at', { ascending: false });

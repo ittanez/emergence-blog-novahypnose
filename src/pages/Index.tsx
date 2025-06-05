@@ -24,6 +24,16 @@ const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { generateWebsiteStructuredData, generateBlogStructuredData } = useStructuredData();
+
+// ✅ AJOUT - Gestion du paramètre de catégorie depuis l'URL
+useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const categoryParam = urlParams.get('category');
+  if (categoryParam) {
+    setSelectedCategory(categoryParam);
+  }
+}, []);
+
   
   // Charger les articles et les catégories
   useEffect(() => {

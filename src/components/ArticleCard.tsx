@@ -62,15 +62,35 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
           {/* ✅ TAGS RESTAURÉS - Affichage des tags en premier */}
           {article.tags && article.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
-              {article.tags.slice(0, 3).map((tag, index) => (
-                <Badge 
-                  key={typeof tag === 'string' ? tag : tag.id || index} 
-                  variant="secondary" 
-                  className="text-xs hover:bg-nova-50 transition-colors"
-                >
-                  {typeof tag === 'string' ? tag : tag.name}
-                </Badge>
-              ))}
+              {article.tags.slice(0, 3).map((tag, index) => {
+                // Gestion robuste des différents formats de tags
+                let tagName = '';
+                let tagKey = '';
+                
+                if (typeof tag === 'string') {
+                  // Tag simple en string
+                  tagName = tag;
+                  tagKey = tag;
+                } else if (tag && typeof tag === 'object' && 'name' in tag) {
+                  // Tag objet avec propriété name
+                  tagName = tag.name;
+                  tagKey = tag.id || tag.slug || tag.name || index.toString();
+                } else {
+                  // Fallback pour les cas inattendus
+                  console.warn('Format de tag inattendu:', tag);
+                  return null; // Ignorer les tags avec un format incorrect
+                }
+                
+                return (
+                  <Badge 
+                    key={tagKey} 
+                    variant="secondary" 
+                    className="text-xs hover:bg-nova-50 transition-colors"
+                  >
+                    {tagName}
+                  </Badge>
+                );
+              }).filter(Boolean)} {/* Filtrer les null */}
             </div>
           )}
           

@@ -59,17 +59,20 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
         </div>
         
         <CardContent className="p-6">
-          <div className="mb-3">
-            {article.tags && article.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {article.tags.slice(0, 2).map(tag => (
-                  <Badge key={tag.id} variant="secondary" className="text-xs">
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* ✅ TAGS RESTAURÉS - Affichage des tags en premier */}
+          {article.tags && article.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {article.tags.slice(0, 3).map((tag, index) => (
+                <Badge 
+                  key={typeof tag === 'string' ? tag : tag.id || index} 
+                  variant="secondary" 
+                  className="text-xs hover:bg-nova-50 transition-colors"
+                >
+                  {typeof tag === 'string' ? tag : tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
           
           <h3 className="text-xl font-serif font-medium mb-3 group-hover:text-nova-700 transition-colors line-clamp-2">
             {article.title}

@@ -147,8 +147,18 @@ useEffect(() => {
   };
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-  };
+  setSelectedCategory(category);
+  // ✅ AJOUT - Mettre à jour l'URL
+  if (category) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('category', category);
+    window.history.pushState({}, '', url.toString());
+  } else {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('category');
+    window.history.pushState({}, '', url.toString());
+  }
+};
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

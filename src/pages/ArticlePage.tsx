@@ -10,7 +10,7 @@ import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/OptimizedImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Facebook, Linkedin, Link2, Share2, ChevronLeft, ChevronRight } from "lucide-react"; // ✅ AJOUTÉ
+import { Facebook, Linkedin, Link2, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import "../styles/article-hypnose.css";
 import { 
   DropdownMenu, 
@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { getArticleBySlug, getRelatedArticles, getAllArticlesNoPagination } from "@/lib/services/articleService"; // ✅ AJOUTÉ
+import { getArticleBySlug, getRelatedArticles, getAllArticlesNoPagination } from "@/lib/services/articleService";
 import { articles } from "@/lib/mock-data";
 import { Article } from "@/lib/types";
 import { useStructuredData } from "@/hooks/useStructuredData";
@@ -38,11 +38,45 @@ const getAdjacentArticles = (currentArticle: Article, allArticles: Article[]) =>
   };
 };
 
+// ✅ FONCTION DE PARSING DES TAGS ROBUSTE
+const parseTagsForDisplay = (tags: any): string[] => {
+  if (!tags) return [];
+  
+  if (Array.isArray(tags) && tags.every(tag => typeof tag === 'string')) {
+    return tags;
+  }
+  
+  if (Array.isArray(tags)) {
+    return tags.map(tag => {
+      if (typeof tag === 'string') return tag;
+      if (tag && typeof tag === 'object' && tag.name) return tag.name;
+      return null;
+    }).filter(Boolean);
+  }
+  
+  if (typeof tags === 'string') {
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) {
+        return parsed.map(tag => {
+          if (typeof tag === 'string') return tag;
+          if (tag && typeof tag === 'object' && tag.name) return tag.name;
+          return null;
+        }).filter(Boolean);
+      }
+    } catch (e) {
+      return [tags];
+    }
+  }
+  
+  return [];
+};
+
 const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { generateArticleStructuredData } = useStructuredData();
-  const [allArticles, setAllArticles] = useState<Article[]>([]); // ✅ AJOUTÉ
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   
   // Logs détaillés pour le debugging
   console.log("=== ArticlePage Component Loading ===");
@@ -58,7 +92,6 @@ const ArticlePage = () => {
         if (result.data) {
           setAllArticles(result.data.filter(a => a.published));
         } else {
-          // Fallback sur les données mock
           setAllArticles(articles.filter(a => a.published));
         }
       } catch (error) {
@@ -81,14 +114,11 @@ const ArticlePage = () => {
       console.log("🔍 Chargement article:", slug);
       const result = await getArticleBySlug(slug!);
       
-      // Gérer la redirection côté client
       if (result.redirect && typeof window !== 'undefined') {
         console.log(`🔄 Redirection: ${result.redirect.from} → ${result.redirect.to}`);
         
-        // Mettre à jour l'URL sans créer d'entrée dans l'historique
         navigate(`/article/${result.redirect.to}`, { replace: true });
         
-        // Optionnel: Toast informatif
         toast.info("Lien mis à jour", {
           description: `Redirection vers l'URL actualisée`,
           duration: 3000
@@ -180,12 +210,18 @@ const ArticlePage = () => {
   console.log("Rendering article successfully:", article.title);
   
   const formattedDate = format(new Date(article.created_at), "d MMMM yyyy", { locale: fr });
+  const formattedUpdateDate = article.updated_at !== article.created_at 
+    ? format(new Date(article.updated_at), "d MMMM yyyy", { locale: fr })
+    : null;
   
   // Utiliser l'auteur de l'article ou un nom par défaut
   const authorName = article.author?.name || article.author || "Alain Zenatti";
   
   // Générer les données structurées pour l'article
   const structuredData = generateArticleStructuredData(article, article.author);
+  
+  // ✅ PARSER LES TAGS POUR L'AFFICHAGE
+  const displayTags = parseTagsForDisplay(article.tags);
   
   // ✅ FONCTION DE PARTAGE AMÉLIORÉE AVEC RÉSUMÉ ET IMAGE
   const handleShare = (platform: string) => {
@@ -199,11 +235,9 @@ const ArticlePage = () => {
     
     switch (platform) {
       case "facebook":
-        // Facebook utilise automatiquement les meta tags Open Graph
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
         break;
       case "linkedin":
-        // LinkedIn utilise aussi les meta tags automatiquement
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
         break;
       case "whatsapp":
@@ -211,7 +245,6 @@ const ArticlePage = () => {
         shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
         break;
       case "copy":
-        // Copier le lien avec le titre et la description
         const copyText = `${title}\n${description}\n${url}`;
         navigator.clipboard.writeText(copyText);
         toast.success("Lien copié dans le presse-papier", {
@@ -272,13 +305,20 @@ const ArticlePage = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:w-2/3">
-              <div className="mb-4 flex flex-wrap gap-2">
-                {article.tags?.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="hover:bg-nova-50">
-                    {typeof tag === 'string' ? tag : tag.name}
-                  </Badge>
-                ))}
-              </div>
+              {/* ✅ TAGS CORRIGÉS */}
+              {displayTags.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {displayTags.map((tagName, index) => (
+                    <Badge 
+                      key={`${tagName}-${index}`} 
+                      variant="outline" 
+                      className="hover:bg-nova-50"
+                    >
+                      {tagName}
+                    </Badge>
+                  ))}
+                </div>
+              )}
               
               <div 
                 className="article-hypnose"
@@ -336,24 +376,37 @@ const ArticlePage = () => {
                 </div>
               )}
               
-              <div className="mt-8 pt-8 border-t flex items-center justify-between">
+              {/* ✅ DATES ET CATÉGORIES CORRIGÉES */}
+              <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="text-sm text-gray-600">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {article.categories && article.categories.length > 0 ? (
-                      <>
-                        <span>Catégories: </span>
-                        {article.categories.map((category, index) => (
-                          <span key={category}>
-                            <Link to={`/category/${category}`} className="text-nova-700 hover:underline">
-                              {category}
-                            </Link>
-                            {index < article.categories.length - 1 && ", "}
-                          </span>
-                        ))}
-                      </>
-                    ) : null}
+                  {/* ✅ DATES DE CRÉATION ET MODIFICATION */}
+                  <div className="mb-2">
+                    <div>Publié le {formattedDate}</div>
+                    {formattedUpdateDate && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Mis à jour le {formattedUpdateDate}
+                      </div>
+                    )}
                   </div>
-                  <div>Publié le {formattedDate}</div>
+                  
+                  {/* ✅ CATÉGORIES AVEC LIENS VERS PAGE D'ACCUEIL FILTRÉE */}
+                  {article.categories && article.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      <span>Catégories: </span>
+                      {article.categories.map((category, index) => (
+                        <span key={category}>
+                          <Link 
+                            to={`/?category=${encodeURIComponent(category)}`} 
+                            className="text-nova-700 hover:underline"
+                            title={`Voir tous les articles de la catégorie ${category}`}
+                          >
+                            {category}
+                          </Link>
+                          {index < article.categories.length - 1 && ", "}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex items-center gap-2">

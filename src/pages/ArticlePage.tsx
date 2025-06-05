@@ -10,7 +10,7 @@ import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/OptimizedImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Facebook, Linkedin, Link2, Share2 } from "lucide-react";
+import { Facebook, Linkedin, Link2, Share2, ChevronLeft, ChevronRight } from "lucide-react"; // ✅ AJOUTÉ
 import "../styles/article-hypnose.css";
 import { 
   DropdownMenu, 
@@ -19,21 +19,56 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { getArticleBySlug, getRelatedArticles } from "@/lib/services/articleService";
+import { getArticleBySlug, getRelatedArticles, getAllArticlesNoPagination } from "@/lib/services/articleService"; // ✅ AJOUTÉ
 import { articles } from "@/lib/mock-data";
 import { Article } from "@/lib/types";
 import { useStructuredData } from "@/hooks/useStructuredData";
+
+// ✅ FONCTION POUR OBTENIR LES ARTICLES ADJACENTS
+const getAdjacentArticles = (currentArticle: Article, allArticles: Article[]) => {
+  const publishedArticles = allArticles
+    .filter(a => a.published)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  
+  const currentIndex = publishedArticles.findIndex(a => a.id === currentArticle.id);
+  
+  return {
+    previousArticle: currentIndex > 0 ? publishedArticles[currentIndex - 1] : null,
+    nextArticle: currentIndex < publishedArticles.length - 1 ? publishedArticles[currentIndex + 1] : null
+  };
+};
 
 const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { generateArticleStructuredData } = useStructuredData();
+  const [allArticles, setAllArticles] = useState<Article[]>([]); // ✅ AJOUTÉ
   
   // Logs détaillés pour le debugging
   console.log("=== ArticlePage Component Loading ===");
   console.log("URL slug from params:", slug);
   console.log("Current URL:", window.location.href);
   console.log("Current pathname:", window.location.pathname);
+  
+  // ✅ CHARGEMENT DE TOUS LES ARTICLES POUR LA NAVIGATION
+  useEffect(() => {
+    const fetchAllArticles = async () => {
+      try {
+        const result = await getAllArticlesNoPagination();
+        if (result.data) {
+          setAllArticles(result.data.filter(a => a.published));
+        } else {
+          // Fallback sur les données mock
+          setAllArticles(articles.filter(a => a.published));
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des articles:", error);
+        setAllArticles(articles.filter(a => a.published));
+      }
+    };
+    
+    fetchAllArticles();
+  }, []);
   
   // Use React Query to fetch the article data
   const { 
@@ -73,6 +108,9 @@ const ArticlePage = () => {
   
   console.log("Final article found:", article ? article.title : "NO ARTICLE FOUND");
   console.log("Article error:", articleError);
+  
+  // ✅ OBTENIR LES ARTICLES PRÉCÉDENT ET SUIVANT
+  const { previousArticle, nextArticle } = article ? getAdjacentArticles(article, allArticles) : { previousArticle: null, nextArticle: null };
   
   // Use React Query to fetch related articles
   const { 
@@ -149,26 +187,36 @@ const ArticlePage = () => {
   // Générer les données structurées pour l'article
   const structuredData = generateArticleStructuredData(article, article.author);
   
-  // Handle social sharing
+  // ✅ FONCTION DE PARTAGE AMÉLIORÉE AVEC RÉSUMÉ ET IMAGE
   const handleShare = (platform: string) => {
     const url = window.location.href;
     const title = article.title;
+    const description = article.seo_description || article.excerpt || "";
+    const imageUrl = article.image_url || "";
     
     let shareUrl = "";
+    let shareText = "";
     
     switch (platform) {
       case "facebook":
+        // Facebook utilise automatiquement les meta tags Open Graph
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
         break;
       case "linkedin":
+        // LinkedIn utilise aussi les meta tags automatiquement
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
         break;
       case "whatsapp":
-        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title + " " + url)}`;
+        shareText = `${title}\n\n${description}\n\n${url}`;
+        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
         break;
       case "copy":
-        navigator.clipboard.writeText(url);
-        toast.success("Lien copié dans le presse-papier");
+        // Copier le lien avec le titre et la description
+        const copyText = `${title}\n${description}\n${url}`;
+        navigator.clipboard.writeText(copyText);
+        toast.success("Lien copié dans le presse-papier", {
+          description: "Le titre, la description et le lien ont été copiés"
+        });
         return;
     }
     
@@ -236,6 +284,57 @@ const ArticlePage = () => {
                 className="article-hypnose"
                 dangerouslySetInnerHTML={{ __html: article.content }}
               />
+              
+              {/* ✅ NAVIGATION PRÉCÉDENT/SUIVANT */}
+              {(previousArticle || nextArticle) && (
+                <div className="mt-12 border-t pt-8">
+                  <h3 className="text-lg font-serif font-medium mb-6">Navigation entre les articles</h3>
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1">
+                      {previousArticle && (
+                        <Link 
+                          to={`/article/${previousArticle.slug}`}
+                          className="group flex items-center space-x-3 p-4 rounded-lg border hover:bg-gray-50 transition-colors"
+                        >
+                          <ChevronLeft className="h-5 w-5 text-nova-600" />
+                          <div>
+                            <div className="text-sm text-gray-500 mb-1">Article précédent</div>
+                            <div className="font-medium group-hover:text-nova-700 transition-colors line-clamp-2">
+                              {previousArticle.title}
+                            </div>
+                          </div>
+                        </Link>
+                      )}
+                    </div>
+                    
+                    <div className="mx-4">
+                      <Link 
+                        to="/" 
+                        className="text-sm text-gray-500 hover:text-nova-700 transition-colors"
+                      >
+                        Tous les articles
+                      </Link>
+                    </div>
+                    
+                    <div className="flex-1 flex justify-end">
+                      {nextArticle && (
+                        <Link 
+                          to={`/article/${nextArticle.slug}`}
+                          className="group flex items-center space-x-3 p-4 rounded-lg border hover:bg-gray-50 transition-colors text-right"
+                        >
+                          <div>
+                            <div className="text-sm text-gray-500 mb-1">Article suivant</div>
+                            <div className="font-medium group-hover:text-nova-700 transition-colors line-clamp-2">
+                              {nextArticle.title}
+                            </div>
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-nova-600" />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
               
               <div className="mt-8 pt-8 border-t flex items-center justify-between">
                 <div className="text-sm text-gray-600">

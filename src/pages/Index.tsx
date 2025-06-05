@@ -163,9 +163,9 @@ const Index = () => {
       <main className="flex-grow container mx-auto px-4 pt-8 pb-12">
         <div className="mb-12 text-center">
           <h1 className="font-serif mb-4">Émergences</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Regards sur l'hypnose, la transformation intérieure et le bien-être
-          </p>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+  Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti.
+</p>
         </div>
         
         {/* Search and filter */}

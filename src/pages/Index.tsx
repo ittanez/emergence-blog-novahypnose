@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+ import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Category, Article } from "@/lib/types";
 import Header from "@/components/Header";
@@ -8,7 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import SearchAndFilter from "@/components/SearchAndFilter";
 import Pagination from "@/components/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getAllArticlesNoPagination, getAllCategories } from "@/lib/services/articleService"; // ✅ CHANGÉ
+import { getAllArticlesNoPagination, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
 import { useStructuredData } from "@/hooks/useStructuredData";
 
@@ -24,16 +24,15 @@ const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { generateWebsiteStructuredData, generateBlogStructuredData } = useStructuredData();
-
-// ✅ AJOUT - Gestion du paramètre de catégorie depuis l'URL
-useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const categoryParam = urlParams.get('category');
-  if (categoryParam) {
-    setSelectedCategory(categoryParam);
-  }
-}, []);
-
+  
+  // ✅ GESTION DU PARAMÈTRE CATÉGORIE DEPUIS L'URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryParam = urlParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, []);
   
   // Charger les articles et les catégories
   useEffect(() => {
@@ -41,7 +40,7 @@ useEffect(() => {
       try {
         setIsLoading(true);
         const [articlesResult, categoriesResult] = await Promise.all([
-          getAllArticlesNoPagination(), // ✅ CHANGÉ - Récupère TOUS les articles
+          getAllArticlesNoPagination(),
           getAllCategories()
         ]);
         
@@ -146,19 +145,20 @@ useEffect(() => {
     setSearchQuery(search);
   };
 
+  // ✅ FONCTION CATÉGORIE CORRIGÉE AVEC GESTION URL
   const handleCategoryChange = (category: string) => {
-  setSelectedCategory(category);
-  // ✅ AJOUT - Mettre à jour l'URL
-  if (category) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('category', category);
-    window.history.pushState({}, '', url.toString());
-  } else {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('category');
-    window.history.pushState({}, '', url.toString());
-  }
-};
+    setSelectedCategory(category);
+    // Mettre à jour l'URL sans recharger la page
+    if (category) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('category', category);
+      window.history.pushState({}, '', url.toString());
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('category');
+      window.history.pushState({}, '', url.toString());
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -173,7 +173,7 @@ useEffect(() => {
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title="Émergences - le blog de NovaHypnose"
-        description="Regards sur l'hypnose, la transformation intérieure et le bien-être. Découvrez nos articles sur l'hypnothérapie, la gestion du stress et le développement personnel."
+        description="Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti."
         keywords={["hypnose", "hypnothérapie", "bien-être", "transformation", "développement personnel", "gestion du stress"]}
         structuredData={[websiteStructuredData, blogStructuredData]}
       />
@@ -183,9 +183,9 @@ useEffect(() => {
       <main className="flex-grow container mx-auto px-4 pt-8 pb-12">
         <div className="mb-12 text-center">
           <h1 className="font-serif mb-4">Émergences</h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-  Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti.
-</p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti.
+          </p>
         </div>
         
         {/* Search and filter */}

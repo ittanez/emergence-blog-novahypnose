@@ -8,7 +8,7 @@ import OptimizedImage from "@/components/OptimizedImage";
 
 interface ArticleCardProps {
   article: Article;
-  isFirst?: boolean;  // ✅ Nouveau prop pour optimiser le premier article
+  isFirst?: boolean;
 }
 
 const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
@@ -17,33 +17,61 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
     locale: fr
   });
 
-  // ✅ FONCTION CORRIGÉE : Calculer le temps de lecture correct
+  // ✅ FONCTION DE PARSING DES TAGS TRÈS ROBUSTE
+  const parseTagsForDisplay = (tags: any): string[] => {
+    if (!tags) return [];
+    
+    // Si c'est déjà un array de strings, le retourner
+    if (Array.isArray(tags) && tags.every(tag => typeof tag === 'string')) {
+      return tags;
+    }
+    
+    // Si c'est un array d'objets avec .name
+    if (Array.isArray(tags)) {
+      return tags.map(tag => {
+        if (typeof tag === 'string') return tag;
+        if (tag && typeof tag === 'object' && tag.name) return tag.name;
+        return null;
+      }).filter(Boolean);
+    }
+    
+    // Si c'est une string qui ressemble à du JSON
+    if (typeof tags === 'string') {
+      try {
+        const parsed = JSON.parse(tags);
+        if (Array.isArray(parsed)) {
+          return parsed.map(tag => {
+            if (typeof tag === 'string') return tag;
+            if (tag && typeof tag === 'object' && tag.name) return tag.name;
+            return null;
+          }).filter(Boolean);
+        }
+      } catch (e) {
+        // Si ce n'est pas du JSON valide, traiter comme une string simple
+        return [tags];
+      }
+    }
+    
+    return [];
+  };
+
   const getReadTime = () => {
-    // Si read_time existe et semble correct (plus de 1 minute pour un long contenu)
     if (article.read_time && article.read_time > 1) {
       return article.read_time;
     }
     
-    // Sinon, calculer à partir du contenu
     if (article.content) {
-      // Supprimer le HTML et compter les mots
       const plainText = article.content.replace(/<[^>]*>/g, '');
       const wordCount = plainText.trim().split(/\s+/).length;
-      
-      // Calcul : 200 mots par minute (vitesse de lecture moyenne)
       const calculatedTime = Math.max(1, Math.ceil(wordCount / 200));
-      
-      // Debug pour voir le calcul
-      console.log(`Article "${article.title}": ${wordCount} mots → ${calculatedTime} min`);
-      
       return calculatedTime;
     }
     
-    // Fallback si pas de contenu
     return article.read_time || 1;
   };
 
   const readTime = getReadTime();
+  const displayTags = parseTagsForDisplay(article.tags);
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden">
@@ -53,44 +81,24 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
             src={article.image_url || "/placeholder.svg"}
             alt={article.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading={isFirst ? "eager" : "lazy"}        // ✅ Premier article = eager
-            fetchPriority={isFirst ? "high" : "auto"}   // ✅ Premier article = high priority
+            loading={isFirst ? "eager" : "lazy"}
+            fetchPriority={isFirst ? "high" : "auto"}
           />
         </div>
         
         <CardContent className="p-6">
-          {/* ✅ TAGS RESTAURÉS - Affichage des tags en premier */}
-          {article.tags && article.tags.length > 0 && (
+          {/* ✅ TAGS CORRIGÉS - Affichage des tags parsés */}
+          {displayTags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
-              {article.tags.slice(0, 3).map((tag, index) => {
-                // Gestion robuste des différents formats de tags
-                let tagName = '';
-                let tagKey = '';
-                
-                if (typeof tag === 'string') {
-                  // Tag simple en string
-                  tagName = tag;
-                  tagKey = tag;
-                } else if (tag && typeof tag === 'object' && 'name' in tag) {
-                  // Tag objet avec propriété name
-                  tagName = tag.name;
-                  tagKey = tag.id || tag.slug || tag.name || index.toString();
-                } else {
-                  // Fallback pour les cas inattendus
-                  console.warn('Format de tag inattendu:', tag);
-                  return null; // Ignorer les tags avec un format incorrect
-                }
-                
-                return (
-                  <Badge 
-                    key={tagKey} 
-                    variant="secondary" 
-                    className="text-xs hover:bg-nova-50 transition-colors"
-                  >
-                    {tagName}
-                  </Badge>
-                );
-              }).filter(Boolean)} {/* Filtrer les null */}
+              {displayTags.slice(0, 3).map((tagName, index) => (
+                <Badge 
+                  key={`${tagName}-${index}`}
+                  variant="secondary" 
+                  className="text-xs hover:bg-nova-50 transition-colors"
+                >
+                  {tagName}
+                </Badge>
+              ))}
             </div>
           )}
           
@@ -104,7 +112,6 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
           
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>{formattedDate}</span>
-            {/* ✅ CORRIGÉ : Utiliser le temps calculé */}
             <span>{readTime} min de lecture</span>
           </div>
         </CardContent>

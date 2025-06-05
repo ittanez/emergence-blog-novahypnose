@@ -7,16 +7,27 @@ export interface Tag {
   created_at: string;
 }
 
+export interface Author {
+  id: string;
+  name: string;
+  bio?: string;
+  avatar_url?: string;
+  email?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Article {
   id: string;
   title: string;
   content: string;
   image_url?: string;
   excerpt?: string;
-  author?: string; // ✅ AJOUTÉ
+  author?: string | Author; // ✅ Peut être string ou objet Author
+  author_id?: string; // ✅ AJOUTÉ pour compatibilité mock
   categories: string[];
   category?: string; // ✅ AJOUTÉ pour compatibilité DB
-  tags: Tag[];
+  tags: (Tag | string)[]; // ✅ CORRIGÉ - Peut être Tag ou string
   published: boolean;
   featured?: boolean; // ✅ AJOUTÉ
   created_at: string;
@@ -45,7 +56,7 @@ export interface Category {
   slug: string;
   description?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface Comment {

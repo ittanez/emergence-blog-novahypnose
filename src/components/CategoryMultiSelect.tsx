@@ -1,5 +1,4 @@
-
-import React from 'react';
+ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllCategories } from '@/lib/services/articleService';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +20,7 @@ const CategoryMultiSelect: React.FC<CategoryMultiSelectProps> = ({
   selectedCategories,
   onChange,
 }) => {
-  const { data: categoriesData } = useQuery({
+  const { data: categoriesData, isLoading, error } = useQuery({
     queryKey: ['categories'],
     queryFn: getAllCategories,
   });
@@ -38,9 +37,18 @@ const CategoryMultiSelect: React.FC<CategoryMultiSelectProps> = ({
     onChange(selectedCategories.filter(cat => cat !== categoryName));
   };
 
+  // ✅ CORRECTION : categories est un tableau de strings, pas d'objets
   const availableCategories = categories.filter(
-    cat => !selectedCategories.includes(cat.name)
+    categoryName => !selectedCategories.includes(categoryName)
   );
+
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">Chargement des catégories...</div>;
+  }
+
+  if (error) {
+    return <div className="text-sm text-red-500">Erreur lors du chargement des catégories</div>;
+  }
 
   return (
     <div className="space-y-2">
@@ -73,12 +81,12 @@ const CategoryMultiSelect: React.FC<CategoryMultiSelectProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {availableCategories.map(category => (
+            {availableCategories.map(categoryName => (
               <DropdownMenuItem
-                key={category.id}
-                onClick={() => handleAddCategory(category.name)}
+                key={categoryName}
+                onClick={() => handleAddCategory(categoryName)}
               >
-                {category.name}
+                {categoryName}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

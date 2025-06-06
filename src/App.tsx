@@ -46,6 +46,8 @@ const App = () => {
                 <Route path="/category/:categoryId" element={<CategoryPage />} />
                 <Route path="/admin" element={<AdminLogin />} />
                 <Route path="/admin/setup" element={<AdminSetup />} />
+// Dans vos routes
+<Route path="/api/latest-articles" element={<ApiLatestArticles />} />
                 <Route path="/admin/reset-password" element={<AdminResetPassword />} />
                 <Route 
                   path="/admin/dashboard" 

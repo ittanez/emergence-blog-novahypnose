@@ -308,9 +308,15 @@ const AdminArticles = () => {
                 </TableCell>
                 
                 <TableCell>
-                  <Badge variant={article.published ? "default" : "secondary"}>
-                    {article.published ? "Publié" : "Brouillon"}
-                  </Badge>
+                  {article.published ? (
+                    <Badge variant="default">Publié</Badge>
+                  ) : article.scheduled_for ? (
+                    <Badge variant="outline" className="border-orange-500 text-orange-700">
+                      Programmé
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">Brouillon</Badge>
+                  )}
                 </TableCell>
                 
                 <TableCell>

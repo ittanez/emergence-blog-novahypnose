@@ -1,10 +1,11 @@
-// Exemple d'amélioration pour AdminArticles.tsx
-import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getAllArticles } from '@/lib/services/articleService';
+ import React, { useState, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { getAllArticles, deleteArticle } from '@/lib/services/articleService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Table, 
   TableBody, 
@@ -27,7 +28,8 @@ import {
   Edit,
   Trash2,
   Send,
-  Plus
+  Plus,
+  ExternalLink
 } from 'lucide-react';
 
 type SortField = 'title' | 'created_at' | 'published_at' | 'status';
@@ -37,6 +39,11 @@ const AdminArticles = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('published_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Récupérer tous les articles (y compris brouillons)
   const { data: articlesData, isLoading } = useQuery({
@@ -49,6 +56,98 @@ const AdminArticles = () => {
   });
 
   const articles = articlesData?.data || [];
+
+  // ✅ FONCTION : Créer un nouvel article
+  const handleNewArticle = () => {
+    navigate('/admin/article/new');
+  };
+
+  // ✅ FONCTION : Voir l'article sur le site
+  const handleViewArticle = (article: any) => {
+    if (article.published) {
+      window.open(`/article/${article.slug}`, '_blank');
+    } else {
+      toast({
+        title: "Article non publié",
+        description: "Cet article n'est pas encore publié publiquement.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // ✅ FONCTION : Modifier l'article
+  const handleEditArticle = (articleId: string) => {
+    navigate(`/admin/article/${articleId}`);
+  };
+
+  // ✅ FONCTION : Supprimer l'article
+  const handleDeleteArticle = async (article: any) => {
+    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer l'article "${article.title}" ?`)) {
+      return;
+    }
+
+    setIsDeleting(article.id);
+    
+    try {
+      const result = await deleteArticle(article.id);
+      
+      if (result.success) {
+        toast({
+          title: "Article supprimé",
+          description: `L'article "${article.title}" a été supprimé avec succès.`,
+        });
+        
+        // Rafraîchir la liste
+        queryClient.invalidateQueries({ queryKey: ['admin-articles'] });
+      } else {
+        throw new Error(result.error?.message || 'Erreur lors de la suppression');
+      }
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'article. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  // ✅ FONCTION : Partager l'article (copier le lien)
+  const handleShareArticle = async (article: any) => {
+    if (!article.published) {
+      toast({
+        title: "Article non publié",
+        description: "Impossible de partager un article non publié.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const url = `${window.location.origin}/article/${article.slug}`;
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "Lien copié",
+        description: "Le lien de l'article a été copié dans le presse-papiers.",
+      });
+    } catch (error) {
+      // Fallback pour les navigateurs qui ne supportent pas clipboard
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      toast({
+        title: "Lien copié",
+        description: "Le lien de l'article a été copié.",
+      });
+    }
+  };
 
   // Fonction de tri
   const handleSort = (field: SortField) => {
@@ -69,7 +168,7 @@ const AdminArticles = () => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(article => 
         article.title.toLowerCase().includes(query) ||
-        article.categories?.some(cat => cat.toLowerCase().includes(query))
+        article.categories?.some((cat: string) => cat.toLowerCase().includes(query))
       );
     }
 
@@ -144,7 +243,7 @@ const AdminArticles = () => {
           <h1 className="text-2xl font-bold">Gestion des articles</h1>
           <p className="text-gray-600">{articles.length} articles au total</p>
         </div>
-        <Button>
+        <Button onClick={handleNewArticle}>
           <Plus className="h-4 w-4 mr-2" />
           Nouvel article
         </Button>
@@ -178,7 +277,7 @@ const AdminArticles = () => {
           <TableBody>
             {filteredAndSortedArticles.map((article) => (
               <TableRow key={article.id}>
-                {/* ✅ NOUVELLE COLONNE : Image */}
+                {/* ✅ COLONNE : Image */}
                 <TableCell>
                   {article.image_url ? (
                     <img 
@@ -203,7 +302,7 @@ const AdminArticles = () => {
                   {formatDate(article.created_at)}
                 </TableCell>
                 
-                {/* ✅ NOUVELLE COLONNE : Date de publication */}
+                {/* ✅ COLONNE : Date de publication */}
                 <TableCell className="text-sm text-gray-600">
                   {article.published ? formatDate(article.published_at) : '-'}
                 </TableCell>
@@ -216,7 +315,7 @@ const AdminArticles = () => {
                 
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {article.categories?.slice(0, 2).map((category) => (
+                    {article.categories?.slice(0, 2).map((category: string) => (
                       <Badge key={category} variant="outline" className="text-xs">
                         {category}
                       </Badge>
@@ -233,6 +332,7 @@ const AdminArticles = () => {
                   {article.read_time || '-'} min
                 </TableCell>
                 
+                {/* ✅ COLONNE : Actions FONCTIONNELLES */}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -241,23 +341,28 @@ const AdminArticles = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleViewArticle(article)}>
                         <Eye className="h-4 w-4 mr-2" />
                         Voir
+                        {article.published && <ExternalLink className="h-3 w-3 ml-1" />}
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditArticle(article.id)}>
                         <Edit className="h-4 w-4 mr-2" />
                         Modifier
                       </DropdownMenuItem>
                       {article.published && (
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleShareArticle(article)}>
                           <Send className="h-4 w-4 mr-2" />
                           Partager
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem 
+                        className="text-red-600"
+                        onClick={() => handleDeleteArticle(article)}
+                        disabled={isDeleting === article.id}
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Supprimer
+                        {isDeleting === article.id ? 'Suppression...' : 'Supprimer'}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

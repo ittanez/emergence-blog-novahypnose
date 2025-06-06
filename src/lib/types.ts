@@ -21,24 +21,23 @@ export interface Article {
   id: string;
   title: string;
   content: string;
+  excerpt: string;
   image_url?: string;
-  excerpt?: string;
-  author?: string | Author; // ✅ Peut être string ou objet Author
-  author_id?: string; // ✅ AJOUTÉ pour compatibilité mock
+  author: string;
   categories: string[];
-  category?: string; // ✅ AJOUTÉ pour compatibilité DB
-  tags: (Tag | string)[]; // ✅ CORRIGÉ - Peut être Tag ou string
+  tags: string[];
   published: boolean;
-  featured?: boolean; // ✅ AJOUTÉ
+  featured: boolean;
   created_at: string;
   updated_at: string;
+  published_at?: string; // ✅ NOUVEAU CHAMP
   slug: string;
   scheduled_for?: string;
-  storage_image_url?: string; // ✅ AJOUTÉ
+  storage_image_url?: string;
   keywords?: string[];
-  meta_description?: string; // ✅ AJOUTÉ pour DB
-  seo_description?: string; // ✅ Garder pour le code
-  read_time?: number; // ✅ AJOUTÉ
+  meta_description?: string;
+  seo_description?: string;
+  read_time?: number;
 }
 
 export interface User {

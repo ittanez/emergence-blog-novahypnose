@@ -1,94 +1,87 @@
-
-import React from "react";
+ import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
-import Index from "./pages/Index";
-import ArticlePage from "./pages/ArticlePage";
-import CategoryPage from "./pages/CategoryPage";
-import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminArticles from "./pages/AdminArticles";
-import AdminArticleEditor from "./pages/AdminArticleEditor";
-import AdminUsers from "./pages/AdminUsers";
-import AdminSetup from "./pages/AdminSetup";
-import AdminResetPassword from "./pages/AdminResetPassword";
-import NotFound from "./pages/NotFound";
-import { AuthProvider } from "./lib/contexts/AuthContext";
-import AdminRoute from "./components/AdminRoute";
+import { AuthProvider } from "@/hooks/useAuth";
 
-// Configuration du client de requête avec retry activé pour une meilleure stabilité
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1, // Permettre une tentative de retry pour les requêtes qui échouent
-      staleTime: 5 * 60 * 1000, // 5 minutes
+import Index from "@/pages/Index";
+import ArticlePage from "@/pages/ArticlePage"; // ✅ AJOUTÉ
+import CategoryPage from "@/pages/CategoryPage"; // ✅ AJOUTÉ
+import MentionsLegales from "@/pages/MentionsLegales";
+import Custom404 from "@/pages/Custom404";
+import ContentLayout from "./components/layout/ContentLayout";
+import PrivateRoute from "./components/auth/PrivateRoute";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDirect from "./pages/admin/AdminDirect";
+import AdminLogin from "./pages/admin/AdminLogin";
+
+// Composant pour forcer HTTPS en production et faire les redirections
+function AppRedirects() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // En production seulement, rediriger HTTP vers HTTPS
+    if (
+      window.location.protocol === "http:" &&
+      !window.location.href.includes("localhost") &&
+      !window.location.href.includes("127.0.0.1")
+    ) {
+      window.location.replace(
+        `https://${window.location.hostname}${window.location.pathname}${window.location.search}`
+      );
     }
-  }
-});
+  }, [location]);
+  
+  return null;
+}
 
-const App = () => {
+function App() {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/article/:slug" element={<ArticlePage />} />
-                <Route path="/category/:categoryId" element={<CategoryPage />} />
-                <Route path="/admin" element={<AdminLogin />} />
-                <Route path="/admin/setup" element={<AdminSetup />} />
-// Dans vos routes
-<Route path="/api/latest-articles" element={<ApiLatestArticles />} />
-                <Route path="/admin/reset-password" element={<AdminResetPassword />} />
-                <Route 
-                  path="/admin/dashboard" 
-                  element={
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  } 
-                />
-                <Route 
-                  path="/admin/articles" 
-                  element={
-                    <AdminRoute>
-                      <AdminArticles />
-                    </AdminRoute>
-                  } 
-                />
-                <Route 
-                  path="/admin/article/:id" 
-                  element={
-                    <AdminRoute>
-                      <AdminArticleEditor />
-                    </AdminRoute>
-                  } 
-                />
-                <Route 
-                  path="/admin/users" 
-                  element={
-                    <AdminRoute>
-                      <AdminUsers />
-                    </AdminRoute>
-                  } 
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRedirects />
+        
+        <Routes>
+          {/* Route principale */}
+          <Route path="/" element={<Index />} />
+          
+          {/* ✅ ROUTES ESSENTIELLES AJOUTÉES */}
+          <Route path="/article/:slug" element={<ArticlePage />} />
+          <Route path="/category/:categoryId" element={<CategoryPage />} />
+          
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          
+          {/* Page d'erreur 404 personnalisée */}
+          <Route path="/404" element={<Custom404 />} />
+          
+          {/* Route de connexion admin */}
+          <Route path="/admin-blog" element={<AdminLogin />} />
+          
+          {/* Routes admin */}
+          <Route
+            path="/admin-blog/dashboard"
+            element={
+              <PrivateRoute>
+                <AdminDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin-blog/direct"
+            element={
+              <PrivateRoute>
+                <AdminDirect />
+              </PrivateRoute>
+            }
+          />
+          
+          {/* Au lieu d'une route * vague, rediriger spécifiquement vers la page 404 */}
+          <Route path="*" element={<Custom404 />} />
+        </Routes>
+        
+        <Toaster />
+      </BrowserRouter>
+    </AuthProvider>
   );
-};
+}
 
 export default App;

@@ -43,6 +43,23 @@ const Index = () => {
         setIsLoading(true);
         setIsLoadingCategories(true);
         
+        // ✅ NOUVEAU : Vérifier les articles programmés à chaque visite
+        try {
+          const response = await fetch('/functions/v1/publish-scheduled', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          const result = await response.json();
+          if (result.count > 0) {
+            console.log(`✅ ${result.count} articles publiés automatiquement`);
+          }
+        } catch (error) {
+          console.log('🔄 Vérification programmation ignorée:', error);
+        }
+        
         console.log("🔄 Chargement des articles et catégories...");
         
         const [articlesResult, categoriesResult] = await Promise.all([
@@ -118,13 +135,18 @@ const Index = () => {
       );
     }
 
-    // Tri
+    // ✅ CORRECTION : Tri par date de PUBLICATION, pas de création
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          // Utiliser published_at si disponible, sinon created_at (pour compatibilité anciens articles)
+          const dateA = a.published_at ? new Date(a.published_at) : new Date(a.created_at);
+          const dateB = b.published_at ? new Date(b.published_at) : new Date(a.created_at);
+          return dateB.getTime() - dateA.getTime();
         case "oldest":
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          const dateAOld = a.published_at ? new Date(a.published_at) : new Date(a.created_at);
+          const dateBOld = b.published_at ? new Date(b.published_at) : new Date(b.created_at);
+          return dateAOld.getTime() - dateBOld.getTime();
         case "a-z":
           return a.title.localeCompare(b.title);
         case "z-a":

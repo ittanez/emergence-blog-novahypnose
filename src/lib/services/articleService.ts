@@ -1,4 +1,4 @@
- // articleService.ts - Version finale avec toutes les fonctions
+ // articleService.ts - Version finale avec published_at
 
 import { supabase } from './supabase';
 
@@ -78,6 +78,7 @@ export async function getArticleById(id: string) {
         featured,
         created_at,
         updated_at,
+        published_at,
         slug,
         scheduled_for,
         storage_image_url,
@@ -102,8 +103,8 @@ export async function getAllArticles(options: {
   limit?: number;
   category?: string;
   featured?: boolean;
-  includeDrafts?: boolean; // ✅ NOUVEAU PARAMÈTRE
-  search?: string; // ✅ NOUVEAU PARAMÈTRE
+  includeDrafts?: boolean;
+  search?: string;
 } = {}) {
   try {
     const { page = 1, limit = 10, category, featured, includeDrafts = false, search } = options;
@@ -113,7 +114,7 @@ export async function getAllArticles(options: {
     let query = supabase
       .from('articles')
       .select(`
-       id,
+        id,
         title,
         content,
         excerpt,
@@ -125,6 +126,7 @@ export async function getAllArticles(options: {
         featured,
         created_at,
         updated_at,
+        published_at,
         slug,
         scheduled_for,
         storage_image_url,
@@ -132,16 +134,18 @@ export async function getAllArticles(options: {
         meta_description,
         seo_description,
         read_time
-      `, { count: 'exact' }) // ✅ Ajout pour avoir le count total
+      `, { count: 'exact' })
+      // ✅ CORRECTION : Tri par published_at puis created_at
+      .order('published_at', { ascending: false, nullsLast: true })
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    // ✅ Filtrage par statut published (nouveau)
+    // ✅ Filtrage par statut published
     if (!includeDrafts) {
       query = query.eq('published', true);
     }
 
-    // ✅ Recherche par texte (nouveau)
+    // ✅ Recherche par texte
     if (search && search.trim()) {
       query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
     }
@@ -159,7 +163,7 @@ export async function getAllArticles(options: {
     return {
       data,
       error,
-      totalCount: count, // ✅ Ajout du totalCount pour l'admin
+      totalCount: count,
       pagination: {
         page,
         limit,
@@ -173,7 +177,7 @@ export async function getAllArticles(options: {
   }
 }
 
-// ✅ NOUVELLE FONCTION : Récupérer TOUS les articles publiés sans pagination
+// ✅ FONCTION CORRIGÉE : Récupérer TOUS les articles publiés sans pagination
 export async function getAllArticlesNoPagination() {
   try {
     console.log("🔍 Récupération de TOUS les articles publiés...");
@@ -193,6 +197,7 @@ export async function getAllArticlesNoPagination() {
         featured,
         created_at,
         updated_at,
+        published_at,
         slug,
         scheduled_for,
         storage_image_url,
@@ -202,6 +207,8 @@ export async function getAllArticlesNoPagination() {
         read_time
       `)
       .eq('published', true)
+      // ✅ CORRECTION : Tri par published_at en priorité, puis created_at
+      .order('published_at', { ascending: false, nullsLast: true })
       .order('created_at', { ascending: false });
 
     console.log(`✅ ${data?.length || 0} articles récupérés`);
@@ -250,11 +257,14 @@ export async function getRelatedArticles(articleId: string, limit: number = 3) {
         excerpt,
         image_url,
         created_at,
+        published_at,
         categories,
         tags
       `)
       .eq('published', true)
       .neq('id', articleId)
+      // ✅ CORRECTION : Tri par published_at puis created_at
+      .order('published_at', { ascending: false, nullsLast: true })
       .order('created_at', { ascending: false })
       .limit(limit);
 

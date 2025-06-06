@@ -1,6 +1,6 @@
  import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Category, Article } from "@/lib/types";
+import { Article } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NewsletterForm from "@/components/NewsletterForm";
@@ -21,8 +21,10 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [articles, setArticles] = useState<Article[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  // ✅ CORRECTION : categories est un tableau de strings, pas d'objets Category
+  const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const { generateWebsiteStructuredData, generateBlogStructuredData } = useStructuredData();
   
   // ✅ GESTION DU PARAMÈTRE CATÉGORIE DEPUIS L'URL
@@ -39,6 +41,10 @@ const Index = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        setIsLoadingCategories(true);
+        
+        console.log("🔄 Chargement des articles et catégories...");
+        
         const [articlesResult, categoriesResult] = await Promise.all([
           getAllArticlesNoPagination(),
           getAllCategories()
@@ -47,22 +53,49 @@ const Index = () => {
         if (articlesResult.data) {
           const publishedArticles = articlesResult.data.filter(article => article.published);
           setArticles(publishedArticles);
-          console.log("Articles publiés chargés:", publishedArticles.length);
+          console.log("✅ Articles publiés chargés:", publishedArticles.length);
+        } else {
+          console.error("❌ Erreur chargement articles:", articlesResult.error);
         }
         
         if (categoriesResult.data) {
-          setCategories(categoriesResult.data);
-          console.log("Catégories chargées:", categoriesResult.data.length);
+          // ✅ CORRECTION : categoriesResult.data est déjà un tableau de strings
+          const availableCategories = categoriesResult.data;
+          setCategories(availableCategories);
+          console.log("✅ Catégories chargées:", availableCategories.length, availableCategories);
+        } else {
+          console.error("❌ Erreur chargement catégories:", categoriesResult.error);
         }
       } catch (error) {
-        console.error("Erreur lors du chargement des données:", error);
+        console.error("❌ Erreur lors du chargement des données:", error);
       } finally {
         setIsLoading(false);
+        setIsLoadingCategories(false);
       }
     };
     
     fetchData();
   }, []);
+
+  // ✅ NOUVELLE FONCTION : Calculer les catégories avec nombre d'articles
+  const categoriesWithCount = useMemo(() => {
+    if (!articles.length) return [];
+    
+    const categoryCount: Record<string, number> = {};
+    
+    articles.forEach(article => {
+      if (article.categories && Array.isArray(article.categories)) {
+        article.categories.forEach(category => {
+          categoryCount[category] = (categoryCount[category] || 0) + 1;
+        });
+      }
+    });
+    
+    // Retourner seulement les catégories qui ont des articles
+    return Object.entries(categoryCount)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [articles]);
 
   // Filtrer et trier les articles
   const filteredAndSortedArticles = useMemo(() => {
@@ -74,7 +107,7 @@ const Index = () => {
       filtered = filtered.filter(article => 
         article.title.toLowerCase().includes(query) ||
         article.content.toLowerCase().includes(query) ||
-        article.excerpt.toLowerCase().includes(query)
+        (article.excerpt && article.excerpt.toLowerCase().includes(query))
       );
     }
 
@@ -147,6 +180,7 @@ const Index = () => {
 
   // ✅ FONCTION CATÉGORIE CORRIGÉE AVEC GESTION URL
   const handleCategoryChange = (category: string) => {
+    console.log("🔄 Changement de catégorie:", category);
     setSelectedCategory(category);
     // Mettre à jour l'URL sans recharger la page
     if (category) {
@@ -192,10 +226,28 @@ const Index = () => {
         <SearchAndFilter
           onSearchChange={handleSearchChange}
           onCategoryChange={handleCategoryChange}
-          categories={categories}
+          // ✅ CORRECTION : Passer les catégories avec compte uniquement si pas en cours de chargement
+          categories={isLoadingCategories ? [] : categoriesWithCount.map(cat => cat.name)}
           searchValue={searchQuery}
           categoryValue={selectedCategory}
+          isLoading={isLoadingCategories}
         />
+        
+        {/* ✅ NOUVEAU : Affichage debug des catégories (à supprimer en production) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-4 bg-gray-100 rounded">
+            <h3 className="font-bold">Debug - Catégories disponibles:</h3>
+            <p>Total catégories: {categories.length}</p>
+            <p>Catégories avec articles: {categoriesWithCount.length}</p>
+            <ul className="mt-2">
+              {categoriesWithCount.map(cat => (
+                <li key={cat.name}>
+                  {cat.name} ({cat.count} article{cat.count > 1 ? 's' : ''})
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         
         {/* Sorting and results count */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
@@ -204,6 +256,11 @@ const Index = () => {
               {searchQuery || selectedCategory ? 'Résultats' : 'Tous les articles'} 
               <span className="text-gray-500 font-normal"> ({filteredAndSortedArticles.length} article{filteredAndSortedArticles.length !== 1 ? 's' : ''})</span>
             </h2>
+            {selectedCategory && (
+              <p className="text-sm text-blue-600 mt-1">
+                Catégorie: {selectedCategory}
+              </p>
+            )}
             {filteredAndSortedArticles.length > ARTICLES_PER_PAGE && (
               <p className="text-sm text-gray-500 mt-1">
                 Page {currentPage} sur {totalPages} • 
@@ -245,11 +302,13 @@ const Index = () => {
               ))}
             </div>
             
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
           </>
         ) : (
           <div className="text-center py-12">
@@ -260,6 +319,14 @@ const Index = () => {
                 'Aucun article n\'a encore été publié.'
               }
             </p>
+            {selectedCategory && (
+              <button 
+                onClick={() => handleCategoryChange("")}
+                className="mt-2 text-blue-600 hover:text-blue-800 underline"
+              >
+                Voir tous les articles
+              </button>
+            )}
           </div>
         )}
         

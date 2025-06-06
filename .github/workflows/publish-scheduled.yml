@@ -1,0 +1,38 @@
+# Créer ce fichier : .github/workflows/publish-scheduled.yml
+
+name: 📝 Publier articles programmés
+
+on:
+  schedule:
+    # Toutes les 30 minutes
+    - cron: '*/30 * * * *'
+  
+  # Possibilité de lancer manuellement
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🚀 Publier articles programmés
+        run: |
+          echo "📡 Appel de la fonction de publication..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/publish-scheduled")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n -1)
+          
+          echo "📊 Code de réponse: $http_code"
+          echo "📄 Réponse: $body"
+          
+          if [ $http_code -eq 200 ]; then
+            echo "✅ Publication réussie!"
+          else
+            echo "❌ Erreur lors de la publication"
+            exit 1
+          fi

@@ -1,16 +1,17 @@
-
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Category } from "@/lib/types";
 
 interface SearchAndFilterProps {
   onSearchChange: (search: string) => void;
   onCategoryChange: (category: string) => void;
-  categories: Category[];
+  // ✅ CORRECTION : categories est un tableau de strings, pas d'objets Category
+  categories: string[];
   searchValue: string;
   categoryValue: string;
+  // ✅ NOUVEAU : état de chargement optionnel
+  isLoading?: boolean;
 }
 
 const SearchAndFilter = ({ 
@@ -18,7 +19,8 @@ const SearchAndFilter = ({
   onCategoryChange, 
   categories, 
   searchValue, 
-  categoryValue 
+  categoryValue,
+  isLoading = false
 }: SearchAndFilterProps) => {
   return (
     <div className="mb-8 space-y-4 md:space-y-0 md:flex md:gap-4 md:items-center">
@@ -34,15 +36,20 @@ const SearchAndFilter = ({
       </div>
       
       <div className="w-full md:w-64">
-        <Select value={categoryValue || "all"} onValueChange={(value) => onCategoryChange(value === "all" ? "" : value)}>
+        <Select 
+          value={categoryValue || "all"} 
+          onValueChange={(value) => onCategoryChange(value === "all" ? "" : value)}
+          disabled={isLoading}
+        >
           <SelectTrigger>
-            <SelectValue placeholder="Toutes les catégories" />
+            <SelectValue placeholder={isLoading ? "Chargement..." : "Toutes les catégories"} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Toutes les catégories</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.name}>
-                {category.name}
+            {/* ✅ CORRECTION : categoryName est une string directement */}
+            {categories.map((categoryName) => (
+              <SelectItem key={categoryName} value={categoryName}>
+                {categoryName}
               </SelectItem>
             ))}
           </SelectContent>

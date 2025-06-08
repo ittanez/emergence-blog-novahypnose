@@ -17,19 +17,8 @@
     <!-- Préconnexion pour images Supabase (LCP) -->
     <link rel="preconnect" href="https://akrlyzmfszumibwgocae.supabase.co" crossorigin>
     
-    <!-- Script pour précharger la première image dès que possible -->
-    <script>
-      // Préchargement ultra-agressif de la première image
-      (function() {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        // URL optimisée de la première image (mise à jour selon votre premier article)
-        link.href = 'https://akrlyzmfszumibwgocae.supabase.co/storage/v1/object/public/blog_images/comment-l-hypnoth-rapie-transf-174-l63ho7.webp?width=320&quality=85&format=webp';
-        link.fetchPriority = 'high';
-        document.head.appendChild(link);
-      })();
-    </script>
+    <!-- Préchargement de la première image (LCP) -->
+    <link rel="preload" as="image" href="https://akrlyzmfszumibwgocae.supabase.co/storage/v1/object/public/blog_images/comment-l-hypnoth-rapie-transf-174-l63ho7.webp" fetchpriority="high">
     
     <!-- Critical CSS inliné pour éliminer le render blocking -->
     <style>

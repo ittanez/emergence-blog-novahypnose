@@ -30,19 +30,10 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' https:; img-src 'self' https: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tiny.cloud https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https:; font-src 'self' https:; connect-src 'self' https:; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self' https:; img-src 'self' https: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tiny.cloud https://www.googletagmanager.com https://tools.luckyorange.com https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https:; font-src 'self' https:; connect-src 'self' https:; upgrade-insecure-requests"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
     
-# Compression
-[[headers]]
-  for = "*.js"
-  [headers.values]
-    Content-Encoding = "gzip"
-    
-[[headers]]
-  for = "*.css"
-  [headers.values]
-    Content-Encoding = "gzip"
+# Compression automatique par Netlify - pas besoin de forcer
 
 # Redirection SPA
 [[redirects]]

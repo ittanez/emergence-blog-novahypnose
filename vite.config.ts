@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
     modulePreload: {
       polyfill: false // Réduire le polyfill pour économiser des bytes
     },
-    assetsInlineLimit: 8192, // Augmenter pour inline plus de petits assets
+    assetsInlineLimit: 16384, // Inliner CSS jusqu'à 16KB pour éliminer render blocking
     terserOptions: {
       compress: {
         drop_console: true,

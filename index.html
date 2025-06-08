@@ -13,12 +13,19 @@
     <!-- Optimisation des polices -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLGDvjsQ.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/playfair-display/v37/nuFiD-vYSI_FQFk.woff2" as="font" type="font/woff2" crossorigin>
     
-    <!-- Chargement différé du CSS des polices  --->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap"></noscript>
+    <!-- Chargement des polices avec fallback système -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      }
+      
+      .font-serif, h1, h2, h3, h4, h5, h6 {
+        font-family: 'Playfair Display', 'Times New Roman', serif;
+      }
+    </style>
     
     <!-- Meta tags Open Graph -->
     <meta property="og:title" content="Émergences - le blog de NovaHypnose" />

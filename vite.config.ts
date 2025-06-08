@@ -22,46 +22,17 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 4096,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // TinyMCE - complètement séparé (admin only)
-          if (id.includes('@tinymce') || id.includes('tinymce')) {
-            return 'admin-editor';
-          }
-          
-          // Admin pages - lazy loaded
-          if (id.includes('/admin/') || id.includes('Admin')) {
-            return 'admin';
-          }
-          
-          // Core React - groupé ensemble
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'react';
-          }
-          
-          // React Router - séparé pour code splitting
-          if (id.includes('react-router')) {
-            return 'router';
-          }
-          
-          // Supabase - séparé car utilisé conditionnellement
-          if (id.includes('@supabase')) {
-            return 'supabase';
-          }
-          
-          // Date utilities - utilisées seulement sur certaines pages
-          if (id.includes('date-fns')) {
-            return 'date-utils';
-          }
-          
-          // Radix UI - groupé par usage
-          if (id.includes('@radix-ui')) {
-            return 'ui';
-          }
-          
-          // Autres vendor libs
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
+        manualChunks: {
+          // React core - STABLE grouping
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // TinyMCE séparé pour admin
+          'admin-editor': ['@tinymce/tinymce-react'],
+          // Supabase backend
+          'supabase': ['@supabase/supabase-js'],
+          // Date utilities
+          'date-utils': ['date-fns'],
+          // UI utilities
+          'ui-utils': ['clsx', 'tailwind-merge']
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',

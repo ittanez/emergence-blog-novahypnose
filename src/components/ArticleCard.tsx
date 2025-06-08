@@ -4,7 +4,7 @@ import { fr } from "date-fns/locale";
 import { Article } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import ResponsiveImage from "@/components/ResponsiveImage";
+import OptimizedImage from "@/components/OptimizedImage";
 import LazyLoadWrapper from "@/components/LazyLoadWrapper";
 
 interface ArticleCardProps {
@@ -78,17 +78,35 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
     <Card className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden">
       <Link to={`/article/${article.slug}`} className="block">
         <div className="aspect-video overflow-hidden relative">
-          <ResponsiveImage
-            src={article.image_url || "/placeholder.svg"}
-            alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            width={320}
-            height={180}
-            loading={isFirst ? "eager" : "lazy"}
-            fetchPriority={isFirst ? "high" : "auto"}
-            isLCP={isFirst}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
+          {isFirst ? (
+            <OptimizedImage
+              src={article.image_url || "/placeholder.svg"}
+              alt={article.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              width={320}
+              height={180}
+              loading="eager"
+              fetchPriority="high"
+            />
+          ) : (
+            <LazyLoadWrapper
+              fallback={
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center absolute inset-0">
+                  <div className="text-gray-400">Chargement...</div>
+                </div>
+              }
+            >
+              <OptimizedImage
+                src={article.image_url || "/placeholder.svg"}
+                alt={article.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                width={320}
+                height={180}
+                loading="lazy"
+                fetchPriority="auto"
+              />
+            </LazyLoadWrapper>
+          )}
         </div>
         
         <CardContent className="p-6">

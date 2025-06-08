@@ -1,7 +1,8 @@
 
-import { useRef, useState } from 'react';
-import { Editor } from '@tinymce/tinymce-react';
+import { useRef, useState, lazy, Suspense } from 'react';
 import { Label } from "@/components/ui/label";
+
+const Editor = lazy(() => import('@tinymce/tinymce-react').then(module => ({ default: module.Editor })));
 
 interface RichTextEditorProps {
   value: string;
@@ -17,12 +18,17 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
   return (
     <div className="space-y-2">
       {label && <Label htmlFor="content">{label}</Label>}
-      {!isReady && (
+      <Suspense fallback={
         <div className="flex items-center justify-center bg-gray-100 rounded-md" style={{ height: `${height}px` }}>
           <div className="text-gray-500">Chargement de l'éditeur...</div>
         </div>
-      )}
-      <Editor
+      }>
+        {!isReady && (
+          <div className="flex items-center justify-center bg-gray-100 rounded-md" style={{ height: `${height}px` }}>
+            <div className="text-gray-500">Chargement de l'éditeur...</div>
+          </div>
+        )}
+        <Editor
         id="content"
         apiKey="6q2l0qo2d981lsmsnugf2o15m593samljjw043nc4ol1ao8t"
         onInit={(evt, editor) => {
@@ -64,7 +70,8 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
           skin: "oxide",
           branding: false,
         }}
-      />
+        />
+      </Suspense>
     </div>
   );
 };

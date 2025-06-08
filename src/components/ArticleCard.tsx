@@ -1,10 +1,11 @@
- import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Article } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OptimizedImage from "@/components/OptimizedImage";
+import LazyLoadWrapper from "@/components/LazyLoadWrapper";
 
 interface ArticleCardProps {
   article: Article;
@@ -77,13 +78,31 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
     <Card className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden">
       <Link to={`/article/${article.slug}`} className="block">
         <div className="aspect-video overflow-hidden">
-          <OptimizedImage
-            src={article.image_url || "/placeholder.svg"}
-            alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading={isFirst ? "eager" : "lazy"}
-            fetchPriority={isFirst ? "high" : "auto"}
-          />
+          {isFirst ? (
+            <OptimizedImage
+              src={article.image_url || "/placeholder.svg"}
+              alt={article.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="eager"
+              fetchPriority="high"
+            />
+          ) : (
+            <LazyLoadWrapper
+              fallback={
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <div className="text-gray-400">Chargement...</div>
+                </div>
+              }
+            >
+              <OptimizedImage
+                src={article.image_url || "/placeholder.svg"}
+                alt={article.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+                fetchPriority="auto"
+              />
+            </LazyLoadWrapper>
+          )}
         </div>
         
         <CardContent className="p-6">

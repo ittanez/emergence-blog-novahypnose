@@ -1,4 +1,4 @@
- import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Article } from "@/lib/types";
 import Header from "@/components/Header";
@@ -170,25 +170,33 @@ const Index = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, sortBy]);
   
-  // Précharger l'image du premier article de la page actuelle
+  // Précharger les images des premiers articles de la page actuelle
   useEffect(() => {
     if (currentPageArticles.length > 0) {
-      const firstArticle = currentPageArticles[0];
-      if (firstArticle.image_url) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = firstArticle.image_url;
-        link.fetchPriority = 'high';
-        
-        document.head.appendChild(link);
-        
-        return () => {
+      // Précharger les 3 premières images
+      const imagesToPreload = currentPageArticles.slice(0, 3);
+      const preloadLinks: HTMLLinkElement[] = [];
+      
+      imagesToPreload.forEach((article, index) => {
+        if (article.image_url) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = article.image_url;
+          link.fetchPriority = index === 0 ? 'high' : 'low';
+          
+          document.head.appendChild(link);
+          preloadLinks.push(link);
+        }
+      });
+      
+      return () => {
+        preloadLinks.forEach(link => {
           if (document.head.contains(link)) {
             document.head.removeChild(link);
           }
-        };
-      }
+        });
+      };
     }
   }, [currentPageArticles]);
 

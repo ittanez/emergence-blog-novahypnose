@@ -17,9 +17,24 @@ export default defineConfig(({ mode }) => ({
     cssMinify: true,
     target: 'es2020',
     modulePreload: {
-      polyfill: true
+      polyfill: false // Réduire le polyfill pour économiser des bytes
     },
-    assetsInlineLimit: 4096,
+    assetsInlineLimit: 8192, // Augmenter pour inline plus de petits assets
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        passes: 2,
+        pure_funcs: ['console.log', 'console.warn'],
+        dead_code: true,
+      },
+      mangle: {
+        safari10: true,
+      },
+      format: {
+        comments: false,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: {

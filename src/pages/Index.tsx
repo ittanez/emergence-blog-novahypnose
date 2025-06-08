@@ -170,35 +170,56 @@ const Index = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, sortBy]);
   
-  // Précharger les images des premiers articles de la page actuelle
+  // Précharger l'image LCP (première image) dès que possible
   useEffect(() => {
     if (currentPageArticles.length > 0) {
-      // Précharger les 3 premières images
-      const imagesToPreload = currentPageArticles.slice(0, 3);
-      const preloadLinks: HTMLLinkElement[] = [];
-      
-      imagesToPreload.forEach((article, index) => {
-        if (article.image_url) {
-          const link = document.createElement('link');
-          link.rel = 'preload';
-          link.as = 'image';
-          link.href = article.image_url;
-          link.fetchPriority = index === 0 ? 'high' : 'low';
-          
-          document.head.appendChild(link);
-          preloadLinks.push(link);
-        }
-      });
-      
-      return () => {
-        preloadLinks.forEach(link => {
-          if (document.head.contains(link)) {
-            document.head.removeChild(link);
+      const firstArticle = currentPageArticles[0];
+      if (firstArticle?.image_url && currentPage === 1) {
+        // Optimiser l'URL de la première image (LCP)
+        const getOptimizedImageUrl = (url: string) => {
+          if (!url || !url.includes('supabase.co')) return url;
+          const separator = url.includes('?') ? '&' : '?';
+          return `${url}${separator}width=320&quality=85&format=webp`;
+        };
+        
+        const optimizedUrl = getOptimizedImageUrl(firstArticle.image_url);
+        
+        // Précharger immédiatement l'image LCP
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = optimizedUrl;
+        link.fetchPriority = 'high';
+        
+        document.head.appendChild(link);
+        
+        // Précharger aussi les images suivantes avec priorité plus basse
+        const otherImages = currentPageArticles.slice(1, 3);
+        const preloadLinks: HTMLLinkElement[] = [link];
+        
+        otherImages.forEach((article) => {
+          if (article.image_url) {
+            const otherLink = document.createElement('link');
+            otherLink.rel = 'preload';
+            otherLink.as = 'image';
+            otherLink.href = getOptimizedImageUrl(article.image_url);
+            otherLink.fetchPriority = 'low';
+            
+            document.head.appendChild(otherLink);
+            preloadLinks.push(otherLink);
           }
         });
-      };
+        
+        return () => {
+          preloadLinks.forEach(preloadLink => {
+            if (document.head.contains(preloadLink)) {
+              document.head.removeChild(preloadLink);
+            }
+          });
+        };
+      }
     }
-  }, [currentPageArticles]);
+  }, [currentPageArticles, currentPage]);
 
   const handleSortChange = (value: string) => {
     setSortBy(value);

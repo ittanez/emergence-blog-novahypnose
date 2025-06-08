@@ -14,17 +14,76 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Chargement des polices avec fallback système -->
+    <!-- Critical CSS inliné pour éliminer le render blocking -->
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
+      /* Reset et base styles critiques */
+      *, *::before, *::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb; }
       
       body {
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+        -webkit-text-size-adjust: 100%;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        background-color: white;
+        color: #1f2937;
       }
       
+      /* Typography critique */
       .font-serif, h1, h2, h3, h4, h5, h6 {
         font-family: 'Playfair Display', 'Times New Roman', serif;
       }
+      
+      h1 { font-size: 2.25rem; font-weight: 500; margin: 0; }
+      @media (min-width: 768px) { h1 { font-size: 3rem; } }
+      @media (min-width: 1024px) { h1 { font-size: 3.75rem; } }
+      
+      /* Layout critique - header et hero */
+      .min-h-screen { min-height: 100vh; }
+      .flex { display: flex; }
+      .flex-col { flex-direction: column; }
+      .flex-grow { flex-grow: 1; }
+      .container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+      @media (min-width: 640px) { .container { max-width: 640px; } }
+      @media (min-width: 768px) { .container { max-width: 768px; } }
+      @media (min-width: 1024px) { .container { max-width: 1024px; } }
+      @media (min-width: 1280px) { .container { max-width: 1280px; } }
+      
+      /* Hero section critique */
+      .text-center { text-align: center; }
+      .mb-12 { margin-bottom: 3rem; }
+      .mb-4 { margin-bottom: 1rem; }
+      .pt-8 { padding-top: 2rem; }
+      .pb-12 { padding-bottom: 3rem; }
+      .px-4 { padding-left: 1rem; padding-right: 1rem; }
+      .text-lg { font-size: 1.125rem; }
+      .text-gray-600 { color: #4b5563; }
+      .max-w-2xl { max-width: 42rem; }
+      .mx-auto { margin-left: auto; margin-right: auto; }
+      .leading-relaxed { line-height: 1.625; }
+      .min-h-\[120px\] { min-height: 120px; }
+      .justify-center { justify-content: center; }
+      
+      /* Grid critique pour articles */
+      .grid { display: grid; }
+      .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+      @media (min-width: 768px) { .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (min-width: 1024px) { .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+      .gap-8 { gap: 2rem; }
+      
+      /* Card styles critiques */
+      .aspect-video { aspect-ratio: 16 / 9; }
+      .overflow-hidden { overflow: hidden; }
+      .relative { position: relative; }
+      .w-full { width: 100%; }
+      .h-full { height: 100%; }
+      .object-cover { object-fit: cover; }
+      .transition-opacity { transition-property: opacity; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+      .duration-300 { transition-duration: 300ms; }
+      .opacity-100 { opacity: 1; }
+      
+      /* Chargement différé des polices */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
     </style>
     
     <!-- Meta tags Open Graph -->

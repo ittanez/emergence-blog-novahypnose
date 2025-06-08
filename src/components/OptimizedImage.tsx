@@ -7,7 +7,7 @@ interface OptimizedImageProps {
   width?: number;
   height?: number;
   loading?: "lazy" | "eager";
-  fetchPriority?: "high" | "low" | "auto";  // ✅ AJOUTEZ cette ligne
+  fetchPriority?: "high" | "low" | "auto";
   placeholder?: string;
 }
 
@@ -18,45 +18,58 @@ const OptimizedImage = ({
   width,
   height,
   loading = "lazy",
-  fetchPriority = "auto",  // ✅ AJOUTEZ cette ligne
+  fetchPriority = "auto",
   placeholder = "/placeholder.svg"
 }: OptimizedImageProps) => {
-  const [imageSrc, setImageSrc] = useState(placeholder);
+  const [imageSrc, setImageSrc] = useState(loading === "eager" ? src : placeholder);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  // Optimiser les URLs d'images Supabase avec paramètres de taille
+  const getOptimizedImageUrl = (url: string, targetWidth: number = 400) => {
+    if (!url || !url.includes('supabase.co')) return url;
+    
+    // Ajouter les paramètres de transformation pour Supabase
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}width=${targetWidth}&quality=85&format=webp`;
+  };
+
+  const optimizedSrc = getOptimizedImageUrl(src, width || 400);
 
   useEffect(() => {
     const img = imgRef.current;
     if (!img) return;
 
+    // Pour les images eagerly loaded, ne pas utiliser l'intersection observer
+    if (loading === "eager") {
+      setImageSrc(optimizedSrc);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setImageSrc(src);
+            setImageSrc(optimizedSrc);
             observer.unobserve(img);
           }
         });
       },
       {
         threshold: 0.1,
-        rootMargin: "50px"
+        rootMargin: "100px" // Augmenter la marge pour un chargement plus précoce
       }
     );
 
-    if (loading === "lazy") {
-      observer.observe(img);
-    } else {
-      setImageSrc(src);
-    }
+    observer.observe(img);
 
     return () => {
       if (img) {
         observer.unobserve(img);
       }
     };
-  }, [src, loading]);
+  }, [optimizedSrc, loading]);
 
   const handleLoad = () => {
     setIsLoaded(true);
@@ -80,7 +93,9 @@ const OptimizedImage = ({
       onLoad={handleLoad}
       onError={handleError}
       loading={loading}
-      fetchPriority={fetchPriority}  // ✅ AJOUTEZ cette ligne
+      fetchPriority={fetchPriority}
+      // Ajouter décoding async pour de meilleures performances
+      decoding="async"
     />
   );
 };

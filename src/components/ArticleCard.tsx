@@ -83,8 +83,8 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
               src={article.image_url || "/placeholder.svg"}
               alt={article.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              width={400}
-              height={225}
+              width={320}
+              height={180}
               loading="eager"
               fetchPriority="high"
             />
@@ -100,8 +100,8 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
                 src={article.image_url || "/placeholder.svg"}
                 alt={article.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                width={400}
-                height={225}
+                width={320}
+                height={180}
                 loading="lazy"
                 fetchPriority="auto"
               />

@@ -13,25 +13,50 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    minify: true,
+    minify: 'terser',
     cssMinify: true,
+    target: 'es2020',
     modulePreload: {
       polyfill: true
     },
     assetsInlineLimit: 4096,
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log'],
+      },
+    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          // React et librairies core
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          // TinyMCE séparé (très lourd - admin seulement)
-          'tinymce': ['@tinymce/tinymce-react'],
+        manualChunks: (id) => {
+          // Admin chunks - lazy load
+          if (id.includes('tinymce') || id.includes('RichTextEditor')) {
+            return 'admin-editor';
+          }
+          if (id.includes('/admin/') || id.includes('Admin')) {
+            return 'admin';
+          }
+          // Core React
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            return 'react-vendor';
+          }
+          // Supabase
+          if (id.includes('@supabase') || id.includes('supabase')) {
+            return 'supabase';
+          }
           // UI components
-          'ui-vendor': ['@radix-ui/react-slot', '@radix-ui/react-dialog', '@radix-ui/react-toast'],
-          // Supabase backend
-          'supabase': ['@supabase/supabase-js'],
-          // Utilitaires
-          'utils': ['date-fns', 'clsx', 'tailwind-merge'],
+          if (id.includes('@radix-ui') || id.includes('/ui/')) {
+            return 'ui-vendor';
+          }
+          // Utils
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+            return 'utils';
+          }
+          // Other vendor
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',

@@ -77,19 +77,21 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden">
       <Link to={`/article/${article.slug}`} className="block">
-        <div className="aspect-video overflow-hidden">
+        <div className="aspect-video overflow-hidden relative">
           {isFirst ? (
             <OptimizedImage
               src={article.image_url || "/placeholder.svg"}
               alt={article.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              width={400}
+              height={225}
               loading="eager"
               fetchPriority="high"
             />
           ) : (
             <LazyLoadWrapper
               fallback={
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center absolute inset-0">
                   <div className="text-gray-400">Chargement...</div>
                 </div>
               }
@@ -98,6 +100,8 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
                 src={article.image_url || "/placeholder.svg"}
                 alt={article.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                width={400}
+                height={225}
                 loading="lazy"
                 fetchPriority="auto"
               />

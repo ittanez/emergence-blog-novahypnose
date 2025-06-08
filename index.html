@@ -57,15 +57,31 @@
     <!-- Robots meta -->
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
-     <!-- ✅ Lucky Orange Analytics -->
-    <script async defer src="https://tools.luckyorange.com/core/lo.js?site-id=856f311d"></script>
+     <!-- ✅ Lucky Orange Analytics - Load after page load -->
+    <script>
+      window.addEventListener('load', function() {
+        const script = document.createElement('script');
+        script.src = 'https://tools.luckyorange.com/core/lo.js?site-id=856f311d';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      });
+    </script>
   
   </head>
 
   <body>
     <div id="root"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module" defer></script>
-    <script type="module" src="/src/main.tsx" defer></script>
+    <script>
+      window.addEventListener('load', function() {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.gpteng.co/gptengineer.js';
+        script.type = 'module';
+        script.defer = true;
+        document.head.appendChild(script);
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

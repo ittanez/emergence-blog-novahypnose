@@ -13,7 +13,7 @@ Allow: /*.css$
 Allow: /*.js$
 
 # Sitemap dynamique
-Sitemap: https://emergences.novahypnose.fr/.netlify/functions/sitemap
+Sitemap: https://emergence-blog-scribe.lovable.app/sitemap.xml
 
 # Directives spécifiques par bot
 User-agent: Googlebot

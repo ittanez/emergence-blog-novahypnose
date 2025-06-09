@@ -26,11 +26,26 @@ const OptimizedImage = ({
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Simple optimization pour Supabase
+  // Enhanced image optimization for Supabase with responsive images
   const getOptimizedImageUrl = (url: string, targetWidth: number = 400) => {
     if (!url || !url.includes('supabase.co')) return url;
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}width=${targetWidth}&quality=85&format=webp`;
+  };
+
+  // Generate srcset for responsive images
+  const generateSrcSet = (url: string, baseWidth: number = 400) => {
+    if (!url || !url.includes('supabase.co')) return undefined;
+    const widths = [320, 640, 768, 1024, 1280];
+    return widths
+      .filter(w => w >= baseWidth / 2) // Only include relevant sizes
+      .map(w => `${getOptimizedImageUrl(url, w)} ${w}w`)
+      .join(', ');
+  };
+
+  // Generate sizes attribute for responsive images
+  const generateSizes = (baseWidth: number = 400) => {
+    return `(max-width: 640px) 100vw, (max-width: 768px) 50vw, ${baseWidth}px`;
   };
 
   const optimizedSrc = getOptimizedImageUrl(src, width || 400);
@@ -78,10 +93,15 @@ const OptimizedImage = ({
     setImageSrc(placeholder);
   };
 
+  const srcSet = generateSrcSet(src, width || 400);
+  const sizes = generateSizes(width || 400);
+
   return (
     <img
       ref={imgRef}
       src={imageSrc}
+      srcSet={srcSet}
+      sizes={sizes}
       alt={alt}
       className={`transition-opacity duration-300 ${
         isLoaded && !hasError ? "opacity-100" : "opacity-75"
@@ -92,7 +112,6 @@ const OptimizedImage = ({
       onError={handleError}
       loading={loading}
       fetchPriority={fetchPriority}
-      // Ajouter décoding async pour de meilleures performances
       decoding="async"
     />
   );

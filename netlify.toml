@@ -46,13 +46,21 @@
     
 # Compression automatique par Netlify - pas besoin de forcer
 
-# Redirection sitemap vers fonction dynamique
+# Test sitemap sans scripts (temporaire)
 [[redirects]]
   from = "/sitemap.xml"
-  to = "/.netlify/functions/sitemap"
+  to = "/.netlify/functions/sitemap-test"
   status = 200
+  headers = {Content-Type = "application/xml"}
 
-# Redirection SPA
+# Autres redirections SEO
+[[redirects]]
+  from = "/sitemap"
+  to = "/.netlify/functions/sitemap-test"
+  status = 200
+  headers = {Content-Type = "application/xml"}
+
+# Redirection SPA (doit être en dernier)
 [[redirects]]
   from = "/*"
   to = "/index.html"

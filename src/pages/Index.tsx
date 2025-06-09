@@ -170,51 +170,52 @@ const Index = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, sortBy]);
   
-  // Précharger l'image LCP (première image) dès que possible
+  // Précharger l'image LCP de façon sûre et dynamique
   useEffect(() => {
-    if (currentPageArticles.length > 0) {
+    if (currentPageArticles.length > 0 && currentPage === 1) {
       const firstArticle = currentPageArticles[0];
-      if (firstArticle?.image_url && currentPage === 1) {
-        // Optimiser l'URL de la première image (LCP)
-        const getOptimizedImageUrl = (url: string) => {
+      if (firstArticle?.image_url) {
+        // Créer une nouvelle image en arrière-plan pour forcer le téléchargement
+        const img = new Image();
+        img.decoding = 'async';
+        img.fetchPriority = 'high';
+        
+        // URL optimisée pour LCP
+        const getOptimizedLCPUrl = (url: string) => {
           if (!url || !url.includes('supabase.co')) return url;
+          const params = new URLSearchParams();
+          params.set('width', '400'); // Taille réelle affichée
+          params.set('quality', '90'); // Qualité plus haute pour LCP
+          params.set('format', 'webp');
           const separator = url.includes('?') ? '&' : '?';
-          return `${url}${separator}width=320&quality=85&format=webp`;
+          return `${url}${separator}${params.toString()}`;
         };
         
-        const optimizedUrl = getOptimizedImageUrl(firstArticle.image_url);
+        const optimizedUrl = getOptimizedLCPUrl(firstArticle.image_url);
         
-        // Précharger immédiatement l'image LCP
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = optimizedUrl;
-        link.fetchPriority = 'high';
+        // Précharger l'image
+        img.src = optimizedUrl;
         
-        document.head.appendChild(link);
+        console.log('🚀 Préchargement LCP image:', optimizedUrl);
         
-        // Précharger aussi les images suivantes avec priorité plus basse
+        // Précharger aussi les 2 images suivantes (priorité plus basse)
         const otherImages = currentPageArticles.slice(1, 3);
-        const preloadLinks: HTMLLinkElement[] = [link];
+        const preloadImages: HTMLImageElement[] = [img];
         
-        otherImages.forEach((article) => {
+        otherImages.forEach((article, index) => {
           if (article.image_url) {
-            const otherLink = document.createElement('link');
-            otherLink.rel = 'preload';
-            otherLink.as = 'image';
-            otherLink.href = getOptimizedImageUrl(article.image_url);
-            otherLink.fetchPriority = 'low';
-            
-            document.head.appendChild(otherLink);
-            preloadLinks.push(otherLink);
+            const otherImg = new Image();
+            otherImg.decoding = 'async';
+            otherImg.fetchPriority = 'low';
+            otherImg.src = getOptimizedLCPUrl(article.image_url);
+            preloadImages.push(otherImg);
           }
         });
         
+        // Cleanup function
         return () => {
-          preloadLinks.forEach(preloadLink => {
-            if (document.head.contains(preloadLink)) {
-              document.head.removeChild(preloadLink);
-            }
+          preloadImages.forEach(preloadImg => {
+            preloadImg.src = ''; // Arrêter le chargement si nécessaire
           });
         };
       }

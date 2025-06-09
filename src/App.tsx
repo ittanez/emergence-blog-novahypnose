@@ -28,24 +28,13 @@ const LoadingFallback = () => (
   </div>
 );
 
-// Enhanced React Query configuration for better performance
+// Configuration du client de requête avec retry activé pour une meilleure stabilité
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: (failureCount, error: unknown) => {
-        // Don't retry for 4xx errors
-        const errorWithStatus = error as { status?: number };
-        if (errorWithStatus?.status && errorWithStatus.status >= 400 && errorWithStatus.status < 500) return false;
-        return failureCount < 2;
-      },
+      retry: 1, // Permettre une tentative de retry pour les requêtes qui échouent
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
-      refetchOnMount: false, // Don't refetch if data is fresh
-      refetchOnReconnect: 'always', // Refetch when reconnecting
-    },
-    mutations: {
-      retry: 1,
     }
   }
 });

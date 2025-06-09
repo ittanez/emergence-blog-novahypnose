@@ -1,14 +1,38 @@
+# Robots.txt pour Émergences Blog - NovaHypnose
+User-agent: *
+Allow: /
+
+# Restrictions pour les pages d'administration
+Disallow: /admin/
+Disallow: /api/
+
+# Permettre l'accès aux ressources publiques
+Allow: /assets/
+Allow: /images/
+Allow: /*.css$
+Allow: /*.js$
+
+# Sitemap
+Sitemap: https://emergences.novahypnose.fr/sitemap.xml
+
+# Directives spécifiques par bot
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
-
-User-agent: Twitterbot
-Allow: /
+Crawl-delay: 2
 
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Bloquer les bots indésirables
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

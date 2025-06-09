@@ -46,6 +46,12 @@
     
 # Compression automatique par Netlify - pas besoin de forcer
 
+# Redirection sitemap vers fonction dynamique
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/sitemap"
+  status = 200
+
 # Redirection SPA
 [[redirects]]
   from = "/*"

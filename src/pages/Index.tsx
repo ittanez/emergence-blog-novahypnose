@@ -170,57 +170,6 @@ const Index = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, sortBy]);
   
-  // Précharger l'image LCP de façon sûre et dynamique
-  useEffect(() => {
-    if (currentPageArticles.length > 0 && currentPage === 1) {
-      const firstArticle = currentPageArticles[0];
-      if (firstArticle?.image_url) {
-        // Créer une nouvelle image en arrière-plan pour forcer le téléchargement
-        const img = new Image();
-        img.decoding = 'async';
-        img.fetchPriority = 'high';
-        
-        // URL optimisée pour LCP
-        const getOptimizedLCPUrl = (url: string) => {
-          if (!url || !url.includes('supabase.co')) return url;
-          const params = new URLSearchParams();
-          params.set('width', '400'); // Taille réelle affichée
-          params.set('quality', '90'); // Qualité plus haute pour LCP
-          params.set('format', 'webp');
-          const separator = url.includes('?') ? '&' : '?';
-          return `${url}${separator}${params.toString()}`;
-        };
-        
-        const optimizedUrl = getOptimizedLCPUrl(firstArticle.image_url);
-        
-        // Précharger l'image
-        img.src = optimizedUrl;
-        
-        console.log('🚀 Préchargement LCP image:', optimizedUrl);
-        
-        // Précharger aussi les 2 images suivantes (priorité plus basse)
-        const otherImages = currentPageArticles.slice(1, 3);
-        const preloadImages: HTMLImageElement[] = [img];
-        
-        otherImages.forEach((article, index) => {
-          if (article.image_url) {
-            const otherImg = new Image();
-            otherImg.decoding = 'async';
-            otherImg.fetchPriority = 'low';
-            otherImg.src = getOptimizedLCPUrl(article.image_url);
-            preloadImages.push(otherImg);
-          }
-        });
-        
-        // Cleanup function
-        return () => {
-          preloadImages.forEach(preloadImg => {
-            preloadImg.src = ''; // Arrêter le chargement si nécessaire
-          });
-        };
-      }
-    }
-  }, [currentPageArticles, currentPage]);
 
   const handleSortChange = (value: string) => {
     setSortBy(value);

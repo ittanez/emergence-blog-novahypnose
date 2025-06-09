@@ -57,7 +57,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
+    // Désactiver lovable-tagger en production pour éviter injection script dans XML
+    false && mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
   resolve: {

@@ -46,9 +46,9 @@
     
 # Compression automatique par Netlify - pas besoin de forcer
 
-# Sitemap alternatif via fonction (si besoin)
+# Sitemap via fonction pour éviter injection script
 [[redirects]]
-  from = "/sitemap-dynamic"
+  from = "/sitemap.xml"
   to = "/.netlify/functions/sitemap"
   status = 200
   headers = {Content-Type = "application/xml"}

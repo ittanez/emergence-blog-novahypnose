@@ -46,10 +46,10 @@
     
 # Compression automatique par Netlify - pas besoin de forcer
 
-# Sitemap via fonction pour éviter injection script
+# Sitemap via fonction propre pour éviter injection script
 [[redirects]]
   from = "/sitemap.xml"
-  to = "/.netlify/functions/sitemap"
+  to = "/.netlify/functions/sitemap-clean"
   status = 200
   headers = {Content-Type = "application/xml"}
 

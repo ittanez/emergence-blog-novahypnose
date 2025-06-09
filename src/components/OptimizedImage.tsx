@@ -26,13 +26,22 @@ const OptimizedImage = ({
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Optimiser les URLs d'images Supabase avec paramètres de taille
+  // Optimiser les URLs avec cache intelligent pour blog
   const getOptimizedImageUrl = (url: string, targetWidth: number = 400) => {
     if (!url || !url.includes('supabase.co')) return url;
     
-    // Ajouter les paramètres de transformation pour Supabase
+    const params = new URLSearchParams();
+    params.set('width', targetWidth.toString());
+    params.set('quality', fetchPriority === 'high' ? '90' : '85');
+    params.set('format', 'webp');
+    
+    // Cache plus long pour les images non-critiques
+    if (fetchPriority !== 'high') {
+      params.set('cache', '2592000'); // 30 jours
+    }
+    
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}width=${targetWidth}&quality=85&format=webp`;
+    return `${url}${separator}${params.toString()}`;
   };
 
   const optimizedSrc = getOptimizedImageUrl(src, width || 400);

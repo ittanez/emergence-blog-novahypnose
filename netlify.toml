@@ -46,17 +46,17 @@
     
 # Compression automatique par Netlify - pas besoin de forcer
 
-# Test sitemap sans scripts (temporaire)
+# Sitemap dynamique JavaScript (functional)
 [[redirects]]
   from = "/sitemap.xml"
-  to = "/.netlify/functions/sitemap-test"
+  to = "/.netlify/functions/sitemap"
   status = 200
   headers = {Content-Type = "application/xml"}
 
 # Autres redirections SEO
 [[redirects]]
   from = "/sitemap"
-  to = "/.netlify/functions/sitemap-test"
+  to = "/.netlify/functions/sitemap"
   status = 200
   headers = {Content-Type = "application/xml"}
 

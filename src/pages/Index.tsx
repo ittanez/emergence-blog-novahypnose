@@ -73,11 +73,10 @@ const Index = () => {
           console.log("✅ Articles publiés chargés:", publishedArticles.length);
         } else {
           console.error("❌ Erreur chargement articles:", articlesResult.error);
-          console.log("🔄 Fallback vers données mock...");
-          // Fallback vers données mock
-          const { articles: mockArticles } = await import("@/lib/mock-data");
-          setArticles(mockArticles);
-          console.log("✅ Articles mock chargés:", mockArticles.length);
+          console.error("❌ Détails de l'erreur:", JSON.stringify(articlesResult.error, null, 2));
+          // Temporairement désactivé pour debug
+          // const { articles: mockArticles } = await import("@/lib/mock-data");
+          // setArticles(mockArticles);
         }
         
         if (categoriesResult.data) {

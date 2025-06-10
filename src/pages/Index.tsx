@@ -25,7 +25,7 @@ const Index = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const { generateWebsiteStructuredData, generateBlogStructuredData } = useStructuredData();
+  const { generateWebsiteStructuredData, generateBlogStructuredData, generateOrganizationStructuredData } = useStructuredData();
   
   // ✅ GESTION DU PARAMÈTRE CATÉGORIE DEPUIS L'URL
   useEffect(() => {
@@ -203,6 +203,7 @@ const Index = () => {
   // Générer les données structurées pour la page d'accueil
   const websiteStructuredData = generateWebsiteStructuredData();
   const blogStructuredData = generateBlogStructuredData();
+  const organizationStructuredData = generateOrganizationStructuredData();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -210,7 +211,7 @@ const Index = () => {
         title="Émergences - le blog de NovaHypnose"
         description="Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti."
         keywords={["hypnose", "hypnothérapie", "bien-être", "transformation", "développement personnel", "gestion du stress"]}
-        structuredData={[websiteStructuredData, blogStructuredData]}
+        structuredData={[websiteStructuredData, blogStructuredData, organizationStructuredData]}
       />
       
       <Header />

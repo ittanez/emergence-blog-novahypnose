@@ -18,7 +18,7 @@ interface SEOHeadProps {
 const SEOHead = ({
   title,
   description,
-  image = "/placeholder.svg",
+  image = "https://akrlyzmfszumibwgocae.supabase.co/storage/v1/object/public/images/emergences-hypnose.webp",
   url,
   type = "website",
   publishedTime,

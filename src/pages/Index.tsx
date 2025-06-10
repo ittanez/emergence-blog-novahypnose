@@ -67,12 +67,17 @@ const Index = () => {
           getAllCategories()
         ]);
         
-        if (articlesResult.data) {
+        if (articlesResult.data && articlesResult.data.length > 0) {
           const publishedArticles = articlesResult.data.filter(article => article.published);
           setArticles(publishedArticles);
           console.log("✅ Articles publiés chargés:", publishedArticles.length);
         } else {
           console.error("❌ Erreur chargement articles:", articlesResult.error);
+          console.log("🔄 Fallback vers données mock...");
+          // Fallback vers données mock
+          const { articles: mockArticles } = await import("@/lib/mock-data");
+          setArticles(mockArticles);
+          console.log("✅ Articles mock chargés:", mockArticles.length);
         }
         
         if (categoriesResult.data) {

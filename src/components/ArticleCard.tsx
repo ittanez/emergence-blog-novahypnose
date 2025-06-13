@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Article } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,8 +13,7 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
-  const formattedDate = formatDistanceToNow(new Date(article.published_at || article.created_at), {
-    addSuffix: true,
+  const formattedDate = format(new Date(article.published_at || article.created_at), "d MMMM yyyy", {
     locale: fr
   });
 

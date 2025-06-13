@@ -193,6 +193,10 @@ const AdminArticles = () => {
           aValue = a.published ? 1 : 0;
           bValue = b.published ? 1 : 0;
           break;
+        case 'scheduled_for':
+          aValue = a.scheduled_for ? new Date(a.scheduled_for).getTime() : 0;
+          bValue = b.scheduled_for ? new Date(b.scheduled_for).getTime() : 0;
+          break;
         default:
           return 0;
       }
@@ -268,6 +272,7 @@ const AdminArticles = () => {
               <SortableHeader field="title">Titre</SortableHeader>
               <TableHead>Date de création</TableHead>
               <SortableHeader field="published_at">Date de publication</SortableHeader>
+              <SortableHeader field="scheduled_for">Programmée</SortableHeader>
               <SortableHeader field="status">Statut</SortableHeader>
               <TableHead>Catégories</TableHead>
               <TableHead className="w-16">Temps de lecture</TableHead>
@@ -305,6 +310,15 @@ const AdminArticles = () => {
                 {/* ✅ COLONNE : Date de publication */}
                 <TableCell className="text-sm text-gray-600">
                   {article.published ? formatDate(article.published_at) : '-'}
+                </TableCell>
+                
+                {/* ✅ COLONNE : Date programmée */}
+                <TableCell className="text-sm text-gray-600">
+                  {article.scheduled_for ? (
+                    <span className="text-orange-600 font-medium">
+                      {formatDate(article.scheduled_for)}
+                    </span>
+                  ) : '-'}
                 </TableCell>
                 
                 <TableCell>

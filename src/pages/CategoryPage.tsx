@@ -25,9 +25,9 @@ const CategoryPage = () => {
   const sortedArticles = [...filteredArticles].sort((a, b) => {
     switch (sortBy) {
       case "newest":
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime();
       case "oldest":
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        return new Date(a.published_at || a.created_at).getTime() - new Date(b.published_at || b.created_at).getTime();
       case "az":
         return a.title.localeCompare(b.title);
       case "za":

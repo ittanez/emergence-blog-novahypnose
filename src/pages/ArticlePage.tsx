@@ -28,7 +28,7 @@ import { useStructuredData } from "@/hooks/useStructuredData";
 const getAdjacentArticles = (currentArticle: Article, allArticles: Article[]) => {
   const publishedArticles = allArticles
     .filter(a => a.published)
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .sort((a, b) => new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime());
   
   const currentIndex = publishedArticles.findIndex(a => a.id === currentArticle.id);
   
@@ -209,7 +209,7 @@ const ArticlePage = () => {
   
   console.log("Rendering article successfully:", article.title);
   
-  const formattedDate = format(new Date(article.created_at), "d MMMM yyyy", { locale: fr });
+  const formattedDate = format(new Date(article.published_at || article.created_at), "d MMMM yyyy", { locale: fr });
   const formattedUpdateDate = article.updated_at !== article.created_at 
     ? format(new Date(article.updated_at), "d MMMM yyyy", { locale: fr })
     : null;

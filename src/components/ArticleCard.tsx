@@ -13,7 +13,7 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
-  const formattedDate = formatDistanceToNow(new Date(article.created_at), {
+  const formattedDate = formatDistanceToNow(new Date(article.published_at || article.created_at), {
     addSuffix: true,
     locale: fr
   });

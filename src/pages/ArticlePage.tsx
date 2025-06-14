@@ -1,4 +1,4 @@
- import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -283,7 +283,6 @@ const ArticlePage = () => {
             className="w-full h-full object-cover"
             loading="eager"
             fetchPriority="high"
-            isHero={true}
           />
           <div className="absolute inset-0 bg-black bg-opacity-30 flex items-end">
             <div className="container mx-auto px-4 pb-8 text-white">

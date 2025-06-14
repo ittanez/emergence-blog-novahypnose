@@ -1,414 +1,344 @@
+import { createClient } from '@supabase/supabase-js';
+import { Article, Category } from '@/lib/types';
 
-// articleService.ts - Version finale avec published_at
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
 
-import { supabase } from './supabase';
+// Fonction pour récupérer tous les articles avec pagination
+export const getAllArticles = async (page: number = 1, pageSize: number = 10) => {
+  const startIndex = (page - 1) * pageSize;
 
-// Interface pour le résultat avec redirection
-interface ArticleResult {
-  data: any;
-  error: any;
-  redirect?: {
-    from: string;
-    to: string;
-    status: number;
-  };
-}
-
-// Fonction principale avec gestion des redirections
-export async function getArticleBySlug(slug: string): Promise<ArticleResult> {
   try {
-    console.log("🔍 Recherche article avec slug:", slug);
-    
-    // Utiliser la fonction RPC qui gère automatiquement les redirections
-    const { data, error } = await supabase
-      .rpc('get_article_by_slug', { input_slug: slug });
+    const { data, error, count } = await supabase
+      .from('articles')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(startIndex, startIndex + pageSize - 1);
 
     if (error) {
-      console.error('❌ Erreur RPC get_article_by_slug:', error);
-      return { data: null, error };
+      throw error;
     }
 
-    if (!data || data.length === 0) {
-      console.log("❌ Article non trouvé pour le slug:", slug);
-      return { data: null, error: { message: 'Article non trouvé' } };
-    }
-
-    const article = data[0]; // RPC retourne un array
-
-    // Gérer les redirections
-    if (article.is_redirect) {
-      console.log(`🔄 Redirection détectée: ${slug} → ${article.canonical_slug}`);
-      
-      return {
-        data: article,
-        error: null,
-        redirect: {
-          from: slug,
-          to: article.canonical_slug,
-          status: 301 // Redirection permanente
-        }
-      };
-    }
-
-    console.log("✅ Article trouvé directement:", article.title);
-    return { data: article, error: null };
-
-  } catch (error) {
-    console.error('💥 Erreur inattendue dans getArticleBySlug:', error);
-    return { data: null, error };
+    return { data, error: null, count };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération des articles:", error);
+    return { data: null, error, count: 0 };
   }
-}
+};
 
-// Fonction pour récupérer un article par ID
-export async function getArticleById(id: string) {
+// Fonction pour récupérer tous les articles sans pagination
+export const getAllArticlesNoPagination = async () => {
   try {
-    console.log("🔍 Recherche article par ID:", id);
-    
     const { data, error } = await supabase
       .from('articles')
-     .select(`
-        id,
-        title,
-        content,
-        excerpt,
-        image_url,
-        author,
-        categories,
-        tags,
-        published,
-        featured,
-        created_at,
-        updated_at,
-        published_at,
-        slug,
-        scheduled_for,
-        storage_image_url,
-        keywords,
-        meta_description,
-        seo_description,
-        read_time
-      `)
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération des articles:", error);
+    return { data: null, error };
+  }
+};
+
+// Fonction pour récupérer un article par son ID
+export const getArticleById = async (id: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
       .eq('id', id)
       .single();
 
-    return { data, error };
-  } catch (error) {
-    console.error('❌ Erreur lors de la récupération de l\'article par ID:', error);
-    return { data: null, error };
-  }
-}
-
-// ✅ FONCTION CORRIGÉE : Récupérer tous les articles avec options complètes
-export async function getAllArticles(options: {
-  page?: number;
-  limit?: number;
-  category?: string;
-  featured?: boolean;
-  includeDrafts?: boolean;
-  search?: string;
-} = {}) {
-  try {
-    const { page = 1, limit = 10, category, featured, includeDrafts = false, search } = options;
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-
-    let query = supabase
-      .from('articles')
-      .select(`
-        id,
-        title,
-        content,
-        excerpt,
-        image_url,
-        author,
-        categories,
-        tags,
-        published,
-        featured,
-        created_at,
-        updated_at,
-        published_at,
-        slug,
-        scheduled_for,
-        storage_image_url,
-        keywords,
-        meta_description,
-        seo_description,
-        read_time
-      `, { count: 'exact' })
-      // ✅ CORRECTION : Tri par published_at puis created_at sans nullsLast
-      .order('published_at', { ascending: false })
-      .order('created_at', { ascending: false })
-      .range(from, to);
-
-    // ✅ Filtrage par statut published
-    if (!includeDrafts) {
-      query = query.eq('published', true);
-    }
-
-    // ✅ Recherche par texte
-    if (search && search.trim()) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`);
-    }
-
-    if (category) {
-      query = query.contains('categories', [category]);
-    }
-
-    if (featured !== undefined) {
-      query = query.eq('featured', featured);
-    }
-
-    const { data, error, count } = await query;
-
-    return {
-      data,
-      error,
-      totalCount: count,
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit)
-      }
-    };
-  } catch (error) {
-    console.error('❌ Erreur lors de la récupération des articles:', error);
-    return { data: null, error, totalCount: 0, pagination: null };
-  }
-}
-
-// ✅ FONCTION CORRIGÉE : Récupérer TOUS les articles publiés sans pagination
-export async function getAllArticlesNoPagination() {
-  try {
-    console.log("🔍 Récupération de TOUS les articles publiés...");
-    
-    const { data, error } = await supabase
-      .from('articles')
-      .select(`
-        id,
-        title,
-        content,
-        excerpt,
-        image_url,
-        author,
-        categories,
-        tags,
-        published,
-        featured,
-        created_at,
-        updated_at,
-        published_at,
-        slug,
-        scheduled_for,
-        storage_image_url,
-        keywords,
-        meta_description,
-        seo_description,
-        read_time
-      `)
-      .eq('published', true)
-      // ✅ CORRECTION : Tri par published_at en priorité, puis created_at sans nullsLast
-      .order('published_at', { ascending: false })
-      .order('created_at', { ascending: false });
-
-    console.log(`✅ ${data?.length || 0} articles récupérés`);
-    return { data, error };
-  } catch (error) {
-    console.error('❌ Erreur lors de la récupération de tous les articles:', error);
-    return { data: null, error };
-  }
-}
-
-// Fonction pour récupérer toutes les catégories
-export async function getAllCategories() {
-  try {
-    const { data, error } = await supabase
-      .from('articles')
-      .select('categories')
-      .eq('published', true);
-
     if (error) {
-      console.error('❌ Erreur lors de la récupération des catégories:', error);
-      return { data: null, error };
+      throw error;
     }
 
-    // Extraire toutes les catégories uniques
-    const allCategories = data
-      .flatMap(article => article.categories || [])
-      .filter((category, index, array) => array.indexOf(category) === index)
-      .sort();
-
-    return { data: allCategories, error: null };
-  } catch (error) {
-    console.error('❌ Erreur inattendue dans getAllCategories:', error);
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération de l'article:", error);
     return { data: null, error };
   }
-}
+};
 
-// Fonction pour récupérer les articles liés
-export async function getRelatedArticles(articleId: string, limit: number = 3) {
+// Fonction pour récupérer un article par son slug
+export const getArticleBySlug = async (slug: string) => {
   try {
     const { data, error } = await supabase
       .from('articles')
-      .select(`
-        id,
-        title,
-        slug,
-        excerpt,
-        image_url,
-        created_at,
-        published_at,
-        categories,
-        tags
-      `)
-      .eq('published', true)
-      .neq('id', articleId)
-      // ✅ CORRECTION : Tri par published_at puis created_at sans nullsLast
-      .order('published_at', { ascending: false })
+      .select('*')
+      .eq('slug', slug)
+      .single();
+    
+    if (error) {
+      // Vérifier si l'erreur est due à une redirection
+      if (error.message.includes('redirect')) {
+        const redirectSlug = error.message.split('redirect:')[1].trim();
+        return { data: null, error: null, redirect: { from: slug, to: redirectSlug } };
+      }
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération de l'article:", error);
+    return { data: null, error };
+  }
+};
+
+// Fonction pour récupérer les articles populaires (par exemple, les plus récents)
+export const getPopularArticles = async (limit: number = 3) => {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    return { data, error };
-  } catch (error) {
-    console.error('❌ Erreur lors de la récupération des articles liés:', error);
-    return { data: null, error };
-  }
-}
-
-// Fonction pour sauvegarder un article (create ou update selon si ID existe)
-export async function saveArticle(articleData: any) {
-  try {
-    if (articleData.id) {
-      // Update existant
-      console.log("✏️ Mise à jour article:", articleData.id);
-      return await updateArticle(articleData.id, articleData);
-    } else {
-      // Création nouveau
-      console.log("📝 Création nouvel article:", articleData.title);
-      return await createArticle(articleData);
-    }
-  } catch (error) {
-    console.error('❌ Erreur lors de la sauvegarde de l\'article:', error);
-    return { data: null, error };
-  }
-}
-
-// Fonction pour générer un slug unique
-export async function generateUniqueSlug(title: string, excludeId?: string) {
-  try {
-    const baseSlug = await generateSlugPreview(title);
-    if (baseSlug.error) {
-      return baseSlug;
+    if (error) {
+      throw error;
     }
 
-    let finalSlug = baseSlug.slug;
-    let counter = 1;
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération des articles populaires:", error);
+    return { data: null, error };
+  }
+};
 
-    // Vérifier l'unicité
-    while (true) {
-      const { data: existing } = await supabase
+// Fonction pour récupérer les articles similaires (basé sur les tags ou catégories)
+export const getRelatedArticles = async (articleId: string, limit: number = 3) => {
+  try {
+    // Récupérer l'article actuel pour obtenir ses tags ou catégories
+    const { data: article, error: articleError } = await supabase
+      .from('articles')
+      .select('tags, categories')
+      .eq('id', articleId)
+      .single();
+
+    if (articleError) {
+      throw articleError;
+    }
+
+    if (!article) {
+      return { data: [], error: null }; // Retourner un tableau vide si l'article n'est pas trouvé
+    }
+
+    // Utiliser les tags ou catégories de l'article actuel pour trouver des articles similaires
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .neq('id', articleId) // Exclure l'article actuel
+      .overlaps('tags', article.tags) // Filtrer par tags similaires
+      .limit(limit);
+
+    if (error) {
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération des articles similaires:", error);
+    return { data: null, error };
+  }
+};
+
+// Fonction pour sauvegarder un article (création ou mise à jour)
+export const saveArticle = async (article: Partial<Article>) => {
+  try {
+    if (article.id) {
+      // Mise à jour d'un article existant
+      const { data, error } = await supabase
         .from('articles')
-        .select('id')
-        .eq('slug', finalSlug)
-        .neq('id', excludeId || '')
+        .update({
+          title: article.title,
+          slug: article.slug,
+          content: article.content,
+          excerpt: article.excerpt,
+          image_url: article.image_url,
+          published: article.published,
+          category: article.category,
+          tags: article.tags,
+          keywords: article.keywords,
+          seo_description: article.seo_description,
+          meta_description: article.meta_description,
+          read_time: article.read_time,
+          author: article.author,
+          featured: article.featured,
+          storage_image_url: article.storage_image_url,
+          categories: article.categories,
+          scheduled_for: article.scheduled_for,
+        })
+        .eq('id', article.id)
+        .select()
         .single();
 
-      if (!existing) {
-        // Slug disponible
-        break;
-      }
+      if (error) throw error;
+      return { data, error: null };
+    } else {
+      // Création d'un nouvel article
+      const { data, error } = await supabase
+        .from('articles')
+        .insert({
+          title: article.title,
+          slug: article.slug,
+          content: article.content,
+          excerpt: article.excerpt,
+          image_url: article.image_url,
+          published: article.published,
+          category: article.category,
+          tags: article.tags,
+          keywords: article.keywords,
+          seo_description: article.seo_description,
+          meta_description: article.meta_description,
+          read_time: article.read_time,
+          author: article.author,
+          featured: article.featured,
+          storage_image_url: article.storage_image_url,
+          categories: article.categories,
+          scheduled_for: article.scheduled_for,
+        })
+        .select()
+        .single();
 
-      // Slug déjà pris, essayer avec un suffixe
-      finalSlug = `${baseSlug.slug}-${counter}`;
-      counter++;
+      if (error) throw error;
+      return { data, error: null };
     }
-
-    return { slug: finalSlug, error: null };
-  } catch (error) {
-    console.error('❌ Erreur génération slug unique:', error);
-    return { slug: null, error };
-  }
-}
-
-// Fonction pour créer un nouvel article (slug auto-généré par le trigger)
-export async function createArticle(articleData: any) {
-  try {
-    console.log("📝 Création nouvel article:", articleData.title);
-    
-    const { data, error } = await supabase
-      .from('articles')
-      .insert([articleData])
-      .select()
-      .single();
-
-    if (data) {
-      console.log("✅ Article créé avec slug:", data.slug);
-    }
-
-    return { data, error };
-  } catch (error) {
-    console.error('❌ Erreur lors de la création de l\'article:', error);
+  } catch (error: any) {
+    console.error('Erreur lors de la sauvegarde de l\'article:', error);
     return { data: null, error };
   }
-}
-
-// Fonction pour mettre à jour un article (slug regénéré si titre change)
-export async function updateArticle(id: string, updates: any) {
-  try {
-    console.log("✏️ Mise à jour article:", id);
-    
-    const { data, error } = await supabase
-      .from('articles')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (data && updates.title) {
-      console.log("✅ Article mis à jour avec nouveau slug:", data.slug);
-    }
-
-    return { data, error };
-  } catch (error) {
-    console.error('❌ Erreur lors de la mise à jour de l\'article:', error);
-    return { data: null, error };
-  }
-}
+};
 
 // Fonction pour supprimer un article
-export async function deleteArticle(id: string) {
+export const deleteArticle = async (articleId: string) => {
   try {
-    console.log("🗑️ Suppression article:", id);
-    
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('articles')
       .delete()
-      .eq('id', id)
-      .select()
-      .single();
+      .eq('id', articleId);
 
-    if (data) {
-      console.log("✅ Article supprimé:", data.title);
-      return { success: true, error: null };
-    }
-
-    return { success: false, error };
-  } catch (error) {
-    console.error('❌ Erreur lors de la suppression de l\'article:', error);
+    if (error) throw error;
+    return { success: true, error: null };
+  } catch (error: any) {
+    console.error('Erreur lors de la suppression de l\'article:', error);
     return { success: false, error };
   }
-}
+};
 
-// Fonction utilitaire pour tester la génération de slug
-export async function generateSlugPreview(title: string) {
+// Fonction pour générer un slug unique
+export const generateUniqueSlug = async (title: string, existingId?: string): Promise<{ slug: string | null, error: any | null }> => {
+  let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  let count = 0;
+  let originalSlug = slug;
+
   try {
-    const { data, error } = await supabase
-      .rpc('generate_clean_slug', { title });
+    while (true) {
+      const { data, error, count: resultCount } = await supabase
+        .from('articles')
+        .select('id', { count: 'exact' })
+        .eq('slug', slug);
 
-    return { slug: data, error };
-  } catch (error) {
-    console.error('❌ Erreur génération slug:', error);
+      if (error) {
+        console.error("Erreur lors de la vérification du slug:", error);
+        return { slug: null, error };
+      }
+
+      if (data && data.length === 0) {
+        return { slug, error: null };
+      }
+
+      if (existingId && data && data.length === 1 && data[0].id === existingId) {
+        return { slug, error: null };
+      }
+
+      count++;
+      slug = `${originalSlug}-${count}`;
+    }
+  } catch (error: any) {
+    console.error("Erreur lors de la génération du slug unique:", error);
     return { slug: null, error };
   }
-}
+};
+
+// Fonction pour récupérer toutes les catégories
+export const getAllCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération des catégories:", error);
+    return { data: null, error };
+  }
+};
+
+// ✅ AJOUTÉ : Fonction saveCategory manquante
+export const saveCategory = async (category: Partial<Category>) => {
+  try {
+    if (category.id) {
+      // Mise à jour d'une catégorie existante
+      const { data, error } = await supabase
+        .from('categories')
+        .update({
+          name: category.name,
+          slug: category.slug,
+          description: category.description,
+          parent_id: category.parent_id
+        })
+        .eq('id', category.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return { data, error: null };
+    } else {
+      // Création d'une nouvelle catégorie
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          name: category.name,
+          slug: category.slug,
+          description: category.description,
+          parent_id: category.parent_id
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return { data, error: null };
+    }
+  } catch (error: any) {
+    console.error('Erreur lors de la sauvegarde de la catégorie:', error);
+    return { data: null, error };
+  }
+};
+
+// ✅ AJOUTÉ : Fonction deleteCategory manquante
+export const deleteCategory = async (categoryId: string) => {
+  try {
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', categoryId);
+    
+    if (error) throw error;
+    return { success: true, error: null };
+  } catch (error: any) {
+    console.error('Erreur lors de la suppression de la catégorie:', error);
+    return { success: false, error };
+  }
+};

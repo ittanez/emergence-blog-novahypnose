@@ -2,10 +2,12 @@
 import { useRef, useState, lazy, Suspense } from 'react';
 import { Label } from "@/components/ui/label";
 
-// ✅ CORRIGÉ : Import TinyMCE avec type assertion correcte
-const Editor = lazy(() => import('@tinymce/tinymce-react').then(module => ({ 
-  default: module.Editor
-})));
+// ✅ CORRIGÉ : Import TinyMCE avec typage correct
+const Editor = lazy(() => 
+  import('@tinymce/tinymce-react').then(module => ({ 
+    default: module.Editor as any
+  }))
+);
 
 interface RichTextEditorProps {
   value: string;
@@ -33,13 +35,13 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
         )}
         <Editor
         apiKey="6q2l0qo2d981lsmsnugf2o15m593samljjw043nc4ol1ao8t"
-        onInit={(evt, editor) => {
+        onInit={(evt: any, editor: any) => {
           editorRef.current = editor;
           setIsReady(true);
         }}
         initialValue={value}
         value={value}
-        onEditorChange={(newContent) => onChange(newContent)}
+        onEditorChange={(newContent: string) => onChange(newContent)}
         init={{
           height,
           menubar: true,
@@ -54,7 +56,7 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
             'link image media | removeformat | help',
           content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
           image_advtab: true,
-          images_upload_handler: (blobInfo, progress) => {
+          images_upload_handler: (blobInfo: any, progress: any) => {
             return new Promise((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = (e) => {

@@ -90,6 +90,38 @@ export type Database = {
           },
         ]
       }
+      article_redirects: {
+        Row: {
+          article_id: string | null
+          created_at: string | null
+          id: number
+          new_slug: string
+          old_slug: string
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: number
+          new_slug: string
+          old_slug: string
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: number
+          new_slug?: string
+          old_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_redirects_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_tags: {
         Row: {
           article_id: string
@@ -131,9 +163,15 @@ export type Database = {
           featured: boolean | null
           id: string
           image_url: string | null
+          keywords: string[] | null
+          meta_description: string | null
           published: boolean | null
+          published_at: string | null
+          read_time: number | null
           scheduled_for: string | null
+          seo_description: string | null
           slug: string | null
+          storage_image_url: string | null
           tags: string[] | null
           title: string
           updated_at: string | null
@@ -148,9 +186,15 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          keywords?: string[] | null
+          meta_description?: string | null
           published?: boolean | null
+          published_at?: string | null
+          read_time?: number | null
           scheduled_for?: string | null
+          seo_description?: string | null
           slug?: string | null
+          storage_image_url?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string | null
@@ -165,9 +209,15 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          keywords?: string[] | null
+          meta_description?: string | null
           published?: boolean | null
+          published_at?: string | null
+          read_time?: number | null
           scheduled_for?: string | null
+          seo_description?: string | null
           slug?: string | null
+          storage_image_url?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string | null
@@ -269,6 +319,33 @@ export type Database = {
           },
         ]
       }
+      fear_flight_tests: {
+        Row: {
+          created_at: string | null
+          email: string
+          email_sent_at: string | null
+          fear_level: string
+          id: number
+          test_responses: Json
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          email_sent_at?: string | null
+          fear_level: string
+          id?: number
+          test_responses: Json
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          email_sent_at?: string | null
+          fear_level?: string
+          id?: number
+          test_responses?: Json
+        }
+        Relationships: []
+      }
       images: {
         Row: {
           description: string | null
@@ -305,6 +382,75 @@ export type Database = {
           storage_path?: string
           uploaded_at?: string | null
           width?: number | null
+        }
+        Relationships: []
+      }
+      package_orders: {
+        Row: {
+          amount: number
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: number
+          reference_code: string
+          status: string | null
+          stripe_session_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: number
+          reference_code: string
+          status?: string | null
+          stripe_session_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: number
+          reference_code?: string
+          status?: string | null
+          stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
+      peur_avion_test_results: {
+        Row: {
+          answers: Json
+          created_at: string | null
+          email: string
+          fear_level: string
+          first_name: string
+          id: string
+          percentage: number
+          recommendations: string
+          total_score: number
+        }
+        Insert: {
+          answers: Json
+          created_at?: string | null
+          email: string
+          fear_level: string
+          first_name: string
+          id?: string
+          percentage: number
+          recommendations: string
+          total_score: number
+        }
+        Update: {
+          answers?: Json
+          created_at?: string | null
+          email?: string
+          fear_level?: string
+          first_name?: string
+          id?: string
+          percentage?: number
+          recommendations?: string
+          total_score?: number
         }
         Relationships: []
       }
@@ -590,9 +736,36 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      generate_clean_slug: {
+        Args: { title: string }
+        Returns: string
+      }
       generate_promo_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_article_by_slug: {
+        Args: { input_slug: string }
+        Returns: {
+          id: string
+          title: string
+          content: string
+          slug: string
+          excerpt: string
+          image_url: string
+          author: string
+          categories: string[]
+          tags: string[]
+          published: boolean
+          featured: boolean
+          created_at: string
+          updated_at: string
+          category: string
+          scheduled_for: string
+          storage_image_url: string
+          is_redirect: boolean
+          canonical_slug: string
+        }[]
       }
       get_article_id_by_slug: {
         Args: { slug_param: string }

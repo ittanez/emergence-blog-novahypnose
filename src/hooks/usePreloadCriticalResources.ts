@@ -46,19 +46,24 @@ const usePreloadCriticalResources = (resources: PreloadResource[]) => {
   }, [resources]);
 };
 
-// Hook spécialisé pour précharger l'image LCP
+// Hook spécialisé pour précharger l'image LCP - FIXED: No longer calls hooks inside useEffect
 export const usePreloadLCPImage = (imageUrl: string | null, isFirstArticle: boolean = false) => {
+  // Create resources array conditionally at the top level
+  const resources: PreloadResource[] = imageUrl && isFirstArticle ? [{
+    href: imageUrl,
+    as: 'image',
+    fetchpriority: 'high'
+  }] : [];
+
+  // Call the hook at the top level with conditional resources
+  usePreloadCriticalResources(resources);
+
+  // Separate effect for image preloading optimization
   useEffect(() => {
     if (!imageUrl || !isFirstArticle) return;
 
-    // Précharger avec fetchpriority high pour l'image LCP
-    const resources: PreloadResource[] = [{
-      href: imageUrl,
-      as: 'image',
-      fetchpriority: 'high'
-    }];
-
-    usePreloadCriticalResources(resources);
+    const img = new Image();
+    img.src = imageUrl;
   }, [imageUrl, isFirstArticle]);
 };
 

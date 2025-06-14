@@ -1,5 +1,5 @@
 
-import { Article, Tag } from '@/lib/types';
+import { Article, Tag, Category } from '@/lib/types';
 
 const hypnoseTags: Tag[] = [
   { id: '1', name: 'Hypnose', slug: 'hypnose', created_at: '2024-01-01T00:00:00Z' },
@@ -157,4 +157,54 @@ export const mockArticles: Article[] = [
     meta_description: 'Explorez la richesse de votre monde émotionnel et inconscient grâce à l\'hypnose. Un voyage de découverte intérieure.',
     storage_image_url: 'https://akrlyzmfszumibwgocae.supabase.co/storage/v1/object/public/images/emotions-inconscient.webp',
   },
+];
+
+// Export aliases for backward compatibility
+export const articles = mockArticles;
+
+// Categories mock data
+export const categories: Category[] = [
+  {
+    id: '1',
+    name: 'Hypnose',
+    slug: 'hypnose',
+    description: 'Tout sur les techniques et applications de l\'hypnose',
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'Thérapie',
+    slug: 'therapie',
+    description: 'Approches thérapeutiques et accompagnement',
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '3',
+    name: 'Bien-être',
+    slug: 'bien-etre',
+    description: 'Conseils et pratiques pour le bien-être personnel',
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '4',
+    name: 'Développement personnel',
+    slug: 'developpement-personnel',
+    description: 'Croissance personnelle et évolution intérieure',
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '5',
+    name: 'Transformation',
+    slug: 'transformation',
+    description: 'Changement et métamorphose personnelle',
+    created_at: '2024-01-01T00:00:00Z'
+  }
+];
+
+// Sort options
+export const sortOptions = [
+  { value: "newest", label: "Plus récents" },
+  { value: "oldest", label: "Plus anciens" },
+  { value: "az", label: "A à Z" },
+  { value: "za", label: "Z à A" }
 ];

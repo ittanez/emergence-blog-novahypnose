@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllArticles } from '@/lib/services/articleService';
@@ -40,11 +39,7 @@ const AdminArticles = () => {
   // Fetch articles
   const { data: articlesData, isLoading } = useQuery({
     queryKey: ['admin-articles'],
-    queryFn: () => getAllArticles({ 
-      includeDrafts: true,
-      page: 1, 
-      limit: 100 
-    }),
+    queryFn: () => getAllArticles(1, 100),
   });
 
   const articles = articlesData?.data || [];

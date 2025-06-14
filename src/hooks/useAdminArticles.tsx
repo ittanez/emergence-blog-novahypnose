@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Article } from "@/lib/types";
@@ -16,7 +17,7 @@ export const useAdminArticles = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const articlesPerPage = 50; // ✅ AUGMENTÉ de 10 à 50
+  const articlesPerPage = 50;
 
   // Charger les catégories
   useEffect(() => {
@@ -49,13 +50,7 @@ export const useAdminArticles = () => {
         });
         
         // Récupérer TOUS les articles (publiés ET brouillons)
-        const { data, error, totalCount: count } = await getAllArticles({
-          search: filters.search,
-          category: filters.category,
-          page: currentPage,
-          limit: articlesPerPage,
-          includeDrafts: true // IMPORTANT: inclure les brouillons
-        });
+        const { data, error, count } = await getAllArticles(currentPage, articlesPerPage);
           
         if (error) {
           console.error("Erreur lors de la récupération des articles:", error);
@@ -121,13 +116,7 @@ export const useAdminArticles = () => {
       toast.success("Article supprimé avec succès");
       
       // Recharger les articles pour mettre à jour la pagination
-      const { data, error: fetchError, totalCount: count } = await getAllArticles({
-        search: filters.search,
-        category: filters.category,
-        page: currentPage,
-        limit: articlesPerPage,
-        includeDrafts: true
-      });
+      const { data, error: fetchError, count } = await getAllArticles(currentPage, articlesPerPage);
       
       if (!fetchError && data) {
         setArticles(data);

@@ -1,6 +1,10 @@
-
-import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js';
 import { Subscriber } from '../types';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
 
 export async function addSubscriber(email: string): Promise<{ data: Subscriber | null; error: any }> {
   console.log('=== DÉBUT INSCRIPTION ABONNÉ ===');

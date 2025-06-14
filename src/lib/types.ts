@@ -1,3 +1,4 @@
+
 export interface Article {
   id: string;
   created_at: string;
@@ -33,7 +34,24 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
-  parent_id?: string; // ✅ AJOUTÉ : Propriété parent_id manquante
+  parent_id?: string;
+  created_at: string;
+}
+
+export interface Author {
+  id: string;
+  name: string;
+  bio?: string;
+  email?: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Subscriber {
+  id: string;
+  email: string;
+  verified: boolean;
   created_at: string;
 }
 
@@ -42,4 +60,15 @@ export interface Redirect {
   from: string;
   to: string;
   created_at: string;
+}
+
+export interface OptimizedImageProps {
+  src: string;
+  alt: string;
+  className?: string;
+  width?: number;
+  height?: number;
+  loading?: 'lazy' | 'eager';
+  fetchPriority?: 'auto' | 'high' | 'low';
+  isHero?: boolean;
 }

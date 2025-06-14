@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -58,10 +59,9 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    // Désactiver lovable-tagger en production pour éviter injection script dans XML
-    false && mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
+    // ✅ CORRIGÉ : Condition plus propre pour éviter les types boolean dans plugins
+    ...(mode === 'development' ? [componentTagger()] : []),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

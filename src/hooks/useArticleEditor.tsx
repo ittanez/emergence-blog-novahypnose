@@ -357,10 +357,11 @@ export const useArticleEditor = () => {
     }
   };
 
+  // ✅ CORRIGÉ : Typage correct pour éviter les erreurs 'never'
   const getTagsForPreview = (): Tag[] => {
     if (!article.tags) return [];
     
-    return article.tags.map(tag => {
+    return article.tags.map((tag: any) => {
       if (typeof tag === 'string') {
         return {
           id: tag.toLowerCase().replace(/\s+/g, '-'),
@@ -369,7 +370,7 @@ export const useArticleEditor = () => {
           created_at: new Date().toISOString()
         };
       }
-      return tag;
+      return tag as Tag;
     });
   };
 

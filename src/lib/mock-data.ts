@@ -1,15 +1,5 @@
 
-import { Article, Author, Category, Tag } from "./types";
-
-export const author: Author = {
-  id: "1",
-  name: "Alain Zenatti",
-  bio: "Hypnothérapeute certifié avec plus de 15 ans d'expérience dans l'accompagnement thérapeutique et le développement personnel.",
-  avatar_url: "/placeholder.svg",
-  email: "contact@novahypnose.fr",
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-};
+import { Article, Category, Tag } from "./types";
 
 export const categories: Category[] = [
   {
@@ -91,14 +81,14 @@ export const articles: Article[] = [
     seo_description: "Tout savoir sur l'hypnose ericksonienne: principes, techniques et applications thérapeutiques pour le bien-être et la transformation personnelle.",
     keywords: ["hypnose", "erickson", "thérapie", "inconscient"],
     categories: ["Hypnose Thérapeutique"],
-    author_id: "1",
+    author: "Alain Zenatti",
     slug: "fondements-hypnose-ericksonienne",
     read_time: 8,
     published: true,
     created_at: "2025-05-01T10:00:00Z",
     updated_at: "2025-05-01T10:00:00Z",
     tags: [tags[0], tags[6]],
-    author: author
+    featured: false
   },
   {
     id: "2",
@@ -135,14 +125,14 @@ export const articles: Article[] = [
     seo_description: "Découvrez comment l'hypnose peut aider à résoudre les troubles du sommeil et l'insomnie grâce à des techniques naturelles et efficaces.",
     keywords: ["sommeil", "insomnie", "hypnose", "bien-être"],
     categories: ["Bien-être"],
-    author_id: "1",
+    author: "Alain Zenatti",
     slug: "hypnose-amelioration-sommeil",
     read_time: 6,
     published: true,
     created_at: "2025-04-25T14:30:00Z",
     updated_at: "2025-04-25T14:30:00Z",
     tags: [tags[2], tags[0]],
-    author: author
+    featured: false
   },
   {
     id: "3",
@@ -176,14 +166,14 @@ export const articles: Article[] = [
     seo_description: "L'hypnothérapie comme solution efficace pour vaincre les phobies et les peurs - Méthodes et résultats concrets pour retrouver sa liberté.",
     keywords: ["peurs", "phobies", "hypnothérapie", "thérapie"],
     categories: ["Hypnose Thérapeutique"],
-    author_id: "1",
+    author: "Alain Zenatti",
     slug: "vaincre-peurs-hypnotherapie",
     read_time: 7,
     published: true,
     created_at: "2025-04-18T09:15:00Z",
     updated_at: "2025-04-18T09:15:00Z",
     tags: [tags[5], tags[3]],
-    author: author
+    featured: false
   },
   {
     id: "4",
@@ -233,14 +223,14 @@ export const articles: Article[] = [
     seo_description: "Guide pratique d'auto-hypnose : techniques simples et efficaces pour gérer le stress, améliorer le sommeil et renforcer la confiance en soi.",
     keywords: ["auto-hypnose", "bien-être", "pratique", "technique"],
     categories: ["Développement Personnel"],
-    author_id: "1",
+    author: "Alain Zenatti",
     slug: "auto-hypnose-pratique-quotidienne",
     read_time: 9,
     published: true,
     created_at: "2025-04-10T11:45:00Z",
     updated_at: "2025-04-10T11:45:00Z",
     tags: [tags[4], tags[3], tags[6]],
-    author: author
+    featured: false
   },
   {
     id: "5",
@@ -276,14 +266,14 @@ export const articles: Article[] = [
     seo_description: "Témoignage sur l'efficacité de l'hypnose thérapeutique dans le traitement de l'anxiété chronique - Un parcours de guérison inspirant.",
     keywords: ["témoignage", "anxiété", "hypnose", "guérison"],
     categories: ["Témoignages"],
-    author_id: "1",
+    author: "Alain Zenatti",
     slug: "temoignage-hypnose-anxiete",
     read_time: 5,
     published: true,
     created_at: "2025-04-05T16:20:00Z",
     updated_at: "2025-04-05T16:20:00Z",
     tags: [tags[1], tags[0]],
-    author: author
+    featured: false
   },
 ];
 

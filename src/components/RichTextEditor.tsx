@@ -2,9 +2,9 @@
 import { useRef, useState, lazy, Suspense } from 'react';
 import { Label } from "@/components/ui/label";
 
-// ✅ CORRIGÉ : Import TinyMCE avec type assertion
+// ✅ CORRIGÉ : Import TinyMCE avec type assertion correcte
 const Editor = lazy(() => import('@tinymce/tinymce-react').then(module => ({ 
-  default: module.Editor as any 
+  default: module.Editor
 })));
 
 interface RichTextEditorProps {
@@ -32,7 +32,6 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
           </div>
         )}
         <Editor
-        id="content"
         apiKey="6q2l0qo2d981lsmsnugf2o15m593samljjw043nc4ol1ao8t"
         onInit={(evt, editor) => {
           editorRef.current = editor;

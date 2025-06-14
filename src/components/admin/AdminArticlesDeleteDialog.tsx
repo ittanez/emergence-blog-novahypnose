@@ -14,12 +14,16 @@ interface AdminArticlesDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  articleTitle: string;
+  isDeleting: boolean;
 }
 
 const AdminArticlesDeleteDialog = ({ 
   open, 
   onOpenChange, 
-  onConfirm 
+  onConfirm,
+  articleTitle,
+  isDeleting
 }: AdminArticlesDeleteDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -27,16 +31,17 @@ const AdminArticlesDeleteDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
           <AlertDialogDescription>
-            Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.
+            Êtes-vous sûr de vouloir supprimer l'article "{articleTitle}" ? Cette action est irréversible.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
           <AlertDialogAction 
             className="bg-red-500 text-white hover:bg-red-600" 
             onClick={onConfirm}
+            disabled={isDeleting}
           >
-            Supprimer
+            {isDeleting ? "Suppression..." : "Supprimer"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

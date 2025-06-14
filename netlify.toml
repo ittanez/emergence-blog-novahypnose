@@ -1,4 +1,5 @@
 
+
 [build]
   publish = "dist"
   command = "npm run build"
@@ -50,12 +51,6 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self' https:; img-src 'self' https: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tiny.cloud; style-src 'self' 'unsafe-inline' https:; font-src 'self' https:; connect-src 'self' https:; upgrade-insecure-requests"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
-    
-# ✅ OPTIMISATION PERFORMANCE : Compression automatique + preload headers
-[[headers]]
-  for = "/"
-  [headers.values]
-    Link = "</assets/fonts/inter.woff2>; rel=preload; as=font; type=font/woff2; crossorigin, </assets/fonts/playfair.woff2>; rel=preload; as=font; type=font/woff2; crossorigin"
 
 # Sitemap via fonction propre pour éviter injection script
 [[redirects]]

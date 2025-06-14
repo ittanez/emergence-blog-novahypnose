@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -10,9 +11,10 @@ import LazyLoadWrapper from "@/components/LazyLoadWrapper";
 interface ArticleCardProps {
   article: Article;
   isFirst?: boolean;
+  isLCP?: boolean; // Nouveau prop pour identifier l'image LCP
 }
 
-const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
+const ArticleCard = ({ article, isFirst = false, isLCP = false }: ArticleCardProps) => {
   const formattedDate = format(new Date(article.published_at || article.created_at), "d MMMM yyyy", {
     locale: fr
   });
@@ -76,22 +78,24 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden">
       <Link to={`/article/${article.slug}`} className="block">
-        <div className="aspect-video overflow-hidden relative">
-          {isFirst ? (
+        {/* ✅ OPTIMISATION CLS : Container avec aspect-ratio fixe */}
+        <div className="aspect-video overflow-hidden relative bg-gray-100">
+          {isFirst || isLCP ? (
             <OptimizedImage
               src={article.image_url || "/placeholder.svg"}
               alt={article.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              width={320}
-              height={180}
+              width={400}
+              height={225}
               loading="eager"
               fetchPriority="high"
+              isLCP={isLCP}
             />
           ) : (
             <LazyLoadWrapper
               fallback={
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center absolute inset-0">
-                  <div className="text-gray-400">Chargement...</div>
+                  <div className="text-gray-400 text-sm">Chargement...</div>
                 </div>
               }
             >
@@ -99,8 +103,8 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
                 src={article.image_url || "/placeholder.svg"}
                 alt={article.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                width={320}
-                height={180}
+                width={400}
+                height={225}
                 loading="lazy"
                 fetchPriority="auto"
               />
@@ -108,31 +112,34 @@ const ArticleCard = ({ article, isFirst = false }: ArticleCardProps) => {
           )}
         </div>
         
-        <CardContent className="p-6">
-          {/* ✅ TAGS CORRIGÉS - Affichage des tags parsés */}
-          {displayTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {displayTags.slice(0, 3).map((tagName, index) => (
-                <Badge 
-                  key={`${tagName}-${index}`}
-                  variant="secondary" 
-                  className="text-xs hover:bg-nova-50 transition-colors"
-                >
-                  {tagName}
-                </Badge>
-              ))}
-            </div>
-          )}
+        {/* ✅ OPTIMISATION CLS : Contenu avec hauteur minimum fixe */}
+        <CardContent className="p-6 min-h-[160px] flex flex-col">
+          {/* ✅ TAGS CORRIGÉS - Hauteur fixe pour éviter CLS */}
+          <div className="min-h-[32px] mb-3">
+            {displayTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {displayTags.slice(0, 3).map((tagName, index) => (
+                  <Badge 
+                    key={`${tagName}-${index}`}
+                    variant="secondary" 
+                    className="text-xs hover:bg-nova-50 transition-colors"
+                  >
+                    {tagName}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
           
-          <h3 className="text-xl font-serif font-medium mb-3 group-hover:text-nova-700 transition-colors line-clamp-2">
+          <h3 className="text-xl font-serif font-medium mb-3 group-hover:text-nova-700 transition-colors line-clamp-2 flex-grow">
             {article.title}
           </h3>
           
-          <p className="text-gray-600 mb-4 line-clamp-3">
+          <p className="text-gray-600 mb-4 line-clamp-2 text-sm">
             {article.excerpt}
           </p>
           
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm text-gray-500 mt-auto">
             <span>{formattedDate}</span>
             <span>{readTime} min de lecture</span>
           </div>

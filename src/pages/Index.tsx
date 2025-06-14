@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Article } from "@/lib/types";
@@ -11,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getAllArticlesNoPagination, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
 import { useStructuredData } from "@/hooks/useStructuredData";
+import { usePreloadLCPImage } from "@/hooks/usePreloadCriticalResources";
 
 // Configuration de la pagination
 const ARTICLES_PER_PAGE = 9;
@@ -21,7 +23,6 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [articles, setArticles] = useState<Article[]>([]);
-  // ✅ CORRECTION : categories est un tableau de strings, pas d'objets Category
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
@@ -81,7 +82,6 @@ const Index = () => {
         }
         
         if (categoriesResult.data) {
-          // ✅ CORRECTION : categoriesResult.data est déjà un tableau de strings
           const availableCategories = categoriesResult.data;
           setCategories(availableCategories);
           console.log("✅ Catégories chargées:", availableCategories.length, availableCategories);
@@ -113,7 +113,6 @@ const Index = () => {
       }
     });
     
-    // Retourner seulement les catégories qui ont des articles
     return Object.entries(categoryCount)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -144,7 +143,6 @@ const Index = () => {
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          // Utiliser published_at si disponible, sinon created_at (pour compatibilité anciens articles)
           const dateA = a.published_at ? new Date(a.published_at) : new Date(a.created_at);
           const dateB = b.published_at ? new Date(b.published_at) : new Date(a.created_at);
           return dateB.getTime() - dateA.getTime();
@@ -170,6 +168,10 @@ const Index = () => {
   const endIndex = startIndex + ARTICLES_PER_PAGE;
   const currentPageArticles = filteredAndSortedArticles.slice(startIndex, endIndex);
 
+  // ✅ OPTIMISATION LCP : Précharger l'image du premier article
+  const firstArticleImage = currentPageArticles.length > 0 && currentPage === 1 ? currentPageArticles[0].image_url : null;
+  usePreloadLCPImage(firstArticleImage, currentPage === 1 && currentPageArticles.length > 0);
+
   // Réinitialiser la page quand les filtres changent
   useEffect(() => {
     setCurrentPage(1);
@@ -188,7 +190,6 @@ const Index = () => {
   const handleCategoryChange = (category: string) => {
     console.log("🔄 Changement de catégorie:", category);
     setSelectedCategory(category);
-    // Mettre à jour l'URL sans recharger la page
     if (category) {
       const url = new URL(window.location.href);
       url.searchParams.set('category', category);
@@ -222,9 +223,10 @@ const Index = () => {
       <Header />
       
       <main className="flex-grow container mx-auto px-4 pt-8 pb-12">
-        <div className="mb-12 text-center min-h-[180px] flex flex-col justify-center">
+        {/* ✅ OPTIMISATION CLS : Hero section avec dimensions fixes */}
+        <div className="mb-12 text-center min-h-[200px] flex flex-col justify-center">
           <h1 className="font-serif mb-4 text-4xl md:text-5xl lg:text-6xl">Émergences</h1>
-          <div className="hero-paragraph">
+          <div className="hero-paragraph min-h-[60px] flex items-center justify-center">
             <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti.
             </p>
@@ -235,31 +237,14 @@ const Index = () => {
         <SearchAndFilter
           onSearchChange={handleSearchChange}
           onCategoryChange={handleCategoryChange}
-          // ✅ CORRECTION : Passer les catégories avec compte uniquement si pas en cours de chargement
           categories={isLoadingCategories ? [] : categoriesWithCount.map(cat => cat.name)}
           searchValue={searchQuery}
           categoryValue={selectedCategory}
           isLoading={isLoadingCategories}
         />
         
-        {/* ✅ NOUVEAU : Affichage debug des catégories (à supprimer en production) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-gray-100 rounded">
-            <h3 className="font-bold">Debug - Catégories disponibles:</h3>
-            <p>Total catégories: {categories.length}</p>
-            <p>Catégories avec articles: {categoriesWithCount.length}</p>
-            <ul className="mt-2">
-              {categoriesWithCount.map(cat => (
-                <li key={cat.name}>
-                  {cat.name} ({cat.count} article{cat.count > 1 ? 's' : ''})
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        
-        {/* Sorting and results count */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+        {/* ✅ OPTIMISATION CLS : Section résultats avec hauteur minimum */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 min-h-[80px]">
           <div className="mb-4 sm:mb-0">
             <h2 className="text-xl font-medium">
               {searchQuery || selectedCategory ? 'Résultats' : 'Tous les articles'} 
@@ -296,7 +281,7 @@ const Index = () => {
         
         {/* Articles grid */}
         {isLoading ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 min-h-[400px] flex items-center justify-center">
             <p className="text-xl text-gray-600">Chargement des articles...</p>
           </div>
         ) : currentPageArticles.length > 0 ? (
@@ -307,6 +292,7 @@ const Index = () => {
                   key={article.id} 
                   article={article}  
                   isFirst={currentPage === 1 && index === 0}
+                  isLCP={currentPage === 1 && index === 0}
                 />
               ))}
             </div>
@@ -320,7 +306,7 @@ const Index = () => {
             )}
           </>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-12 min-h-[300px] flex flex-col items-center justify-center">
             <h3 className="text-xl text-gray-600">Aucun article trouvé</h3>
             <p className="mt-2 text-gray-500">
               {searchQuery || selectedCategory ? 

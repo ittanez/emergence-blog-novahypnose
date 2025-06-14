@@ -1,4 +1,5 @@
- <!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
@@ -9,15 +10,17 @@
     <meta name="keywords" content="hypnose, hypnothérapie, bien-être, transformation, développement personnel, gestion du stress" />
 
     <meta name="google-site-verification" content="pZ3BdjS_HlqWPCBxoyVUOrFuBsqSr5PNt_kfWkw27pE" />
-     <!-- test  -->
-    <!-- Optimisation des polices -->
+    
+    <!-- ✅ OPTIMISATION CRITIQUE : Préconnexions DNS prioritaires -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Préconnexion pour images Supabase (LCP) -->
     <link rel="preconnect" href="https://akrlyzmfszumibwgocae.supabase.co" crossorigin>
     
-    <!-- Critical CSS inliné pour éliminer le render blocking -->
+    <!-- ✅ OPTIMISATION LCP : Préchargement des polices critiques -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/playfairdisplay/v30/nuFiD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiunDYbtXK-F2qO0isEw.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- ✅ CSS CRITIQUE OPTIMISÉ pour LCP et CLS -->
     <style>
       /* Reset et base styles critiques */
       *, *::before, *::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb; }
@@ -32,7 +35,23 @@
         color: #1f2937;
       }
       
-      /* Typography critique */
+      /* Typography critique avec font-display swap */
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2) format('woff2');
+      }
+      
+      @font-face {
+        font-family: 'Playfair Display';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(https://fonts.gstatic.com/s/playfairdisplay/v30/nuFiD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiunDYbtXK-F2qO0isEw.woff2) format('woff2');
+      }
+      
       .font-serif, h1, h2, h3, h4, h5, h6 {
         font-family: 'Playfair Display', 'Times New Roman', serif;
       }
@@ -41,7 +60,7 @@
       @media (min-width: 768px) { h1 { font-size: 3rem; } }
       @media (min-width: 1024px) { h1 { font-size: 3.75rem; } }
       
-      /* Layout critique - header et hero */
+      /* Layout critique - DIMENSIONS FIXES pour CLS */
       .min-h-screen { min-height: 100vh; }
       .flex { display: flex; }
       .flex-col { flex-direction: column; }
@@ -52,7 +71,7 @@
       @media (min-width: 1024px) { .container { max-width: 1024px; } }
       @media (min-width: 1280px) { .container { max-width: 1280px; } }
       
-      /* Hero section critique - dimensions fixes pour CLS */
+      /* ✅ HERO SECTION - Dimensions fixes pour éviter CLS */
       .text-center { text-align: center; }
       .mb-12 { margin-bottom: 3rem; }
       .mb-4 { margin-bottom: 1rem; }
@@ -64,26 +83,23 @@
       .max-w-2xl { max-width: 42rem; }
       .mx-auto { margin-left: auto; margin-right: auto; }
       .leading-relaxed { line-height: 1.625; }
-      .min-h-\[120px\] { min-height: 120px; }
-      .min-h-\[180px\] { min-height: 180px; }
+      .min-h-\[200px\] { min-height: 200px; }
+      .min-h-\[60px\] { min-height: 60px; }
+      .min-h-\[80px\] { min-height: 80px; }
+      .min-h-\[160px\] { min-height: 160px; }
+      .min-h-\[32px\] { min-height: 32px; }
       .justify-center { justify-content: center; }
+      .items-center { align-items: center; }
+      .justify-between { justify-content: space-between; }
       
-      /* Fix hero paragraph dimensions pour éviter CLS */
-      .hero-paragraph {
-        height: 80px; /* Hauteur fixe pour 2-3 lignes */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      /* Grid critique pour articles */
+      /* ✅ GRID et CARDS - Dimensions fixes pour CLS */
       .grid { display: grid; }
       .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
       @media (min-width: 768px) { .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
       @media (min-width: 1024px) { .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
       .gap-8 { gap: 2rem; }
       
-      /* Card styles critiques */
+      /* ✅ ASPECT RATIO et IMAGES - Pour LCP optimisé */
       .aspect-video { aspect-ratio: 16 / 9; }
       .overflow-hidden { overflow: hidden; }
       .relative { position: relative; }
@@ -93,26 +109,40 @@
       .transition-opacity { transition-property: opacity; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
       .duration-300 { transition-duration: 300ms; }
       .opacity-100 { opacity: 1; }
+      .bg-gray-100 { background-color: #f3f4f6; }
+      .bg-gray-200 { background-color: #e5e7eb; }
+      .text-gray-400 { color: #9ca3af; }
+      .text-gray-500 { color: #6b7280; }
       
-      /* Plus de styles pour réduire render blocking */
+      /* ✅ CARD LAYOUT - Hauteurs fixes pour éviter CLS */
       .block { display: block; }
       .p-6 { padding: 1.5rem; }
       .mb-3 { margin-bottom: 0.75rem; }
       .text-xl { font-size: 1.25rem; }
       .font-medium { font-weight: 500; }
       .text-xs { font-size: 0.75rem; }
+      .text-sm { font-size: 0.875rem; }
       .rounded { border-radius: 0.25rem; }
       .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-      .bg-gray-200 { background-color: #e5e7eb; }
-      .text-gray-400 { color: #9ca3af; }
-      .items-center { align-items: center; }
-      .justify-between { justify-content: space-between; }
-      .text-sm { font-size: 0.875rem; }
-      .text-gray-500 { color: #6b7280; }
+      .line-clamp-2 { 
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .mt-auto { margin-top: auto; }
+      
+      /* ✅ LOADING STATES avec dimensions fixes */
+      .min-h-\[400px\] { min-height: 400px; }
+      .min-h-\[300px\] { min-height: 300px; }
+      
+      /* ✅ PREVENT LAYOUT SHIFT pour les éléments de contrôle */
+      .mb-6 { margin-bottom: 1.5rem; }
+      .mt-16 { margin-top: 4rem; }
       
     </style>
     
-    <!-- Chargement différé des polices et CSS non-critique -->
+    <!-- ✅ POLICES NON-CRITIQUES chargées de manière asynchrone -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap"></noscript>
     
@@ -120,7 +150,7 @@
     <meta property="og:title" content="Émergences - le blog de NovaHypnose" />
     <meta property="og:description" content="Regards sur l'hypnose, la transformation intérieure et le bien-être" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://emergence-blog-scribe.lovable.app/" />
+    <meta property="og:url" content="https://emergences.novahypnose.fr/" />
     <meta property="og:image" content="https://akrlyzmfszumibwgocae.supabase.co/storage/v1/object/public/images/emergences-hypnose.webp" />
     <meta property="og:site_name" content="Émergences" />
     <meta property="og:locale" content="fr_FR" />
@@ -138,7 +168,7 @@
       "@type": "WebSite",
       "name": "Émergences",
       "alternateName": "le blog de NovaHypnose",
-      "url": "https://emergence-blog-scribe.lovable.app/",
+      "url": "https://emergences.novahypnose.fr/",
       "description": "Regards sur l'hypnose, la transformation intérieure et le bien-être",
       "publisher": {
         "@type": "Organization",
@@ -154,9 +184,6 @@
     
     <!-- Robots meta -->
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-
-     <!-- Lucky Orange désactivé temporairement pour debug sitemap -->
-  
   </head>
 
   <body>

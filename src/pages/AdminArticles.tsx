@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getAllArticles } from '@/lib/services/articleService';
+
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -12,6 +11,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Import new components
 import AdminArticlesFilters from '@/components/admin/AdminArticlesFilters';
@@ -19,49 +19,44 @@ import AdminArticlesActions from '@/components/admin/AdminArticlesActions';
 import AdminArticlesStatusBadge from '@/components/admin/AdminArticlesStatusBadge';
 import AdminArticlesImageCell from '@/components/admin/AdminArticlesImageCell';
 import AdminArticlesSortableHeader from '@/components/admin/AdminArticlesSortableHeader';
+import AdminArticlesDeleteDialog from '@/components/admin/AdminArticlesDeleteDialog';
 
-// Import new hooks
-import { useAdminArticlesActions } from '@/hooks/useAdminArticlesActions';
-import { useAdminArticlesSort } from '@/hooks/useAdminArticlesSort';
+// Import hook
+import { useAdminArticles } from '@/hooks/useAdminArticles';
 
 const AdminArticles = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
   
   const {
-    isDeleting,
-    handleNewArticle,
-    handleViewArticle,
-    handleEditArticle,
-    handleDeleteArticle,
-    handleShareArticle
-  } = useAdminArticlesActions();
+    articles,
+    categories,
+    isLoading,
+    deleteDialogOpen,
+    selectedArticle,
+    isNotifying,
+    filters,
+    currentPage,
+    totalPages,
+    totalCount,
+    setDeleteDialogOpen,
+    handleFiltersChange,
+    handlePageChange,
+    handleDeleteClick,
+    confirmDelete,
+    handleNotifySubscribers
+  } = useAdminArticles();
 
-  // Fetch articles
-  const { data: articlesData, isLoading } = useQuery({
-    queryKey: ['admin-articles'],
-    queryFn: () => getAllArticles(1, 100),
-  });
+  const handleNewArticle = () => {
+    navigate('/admin/article/new');
+  };
 
-  const articles = articlesData?.data || [];
+  const handleViewArticle = (slug: string) => {
+    window.open(`/article/${slug}`, '_blank');
+  };
 
-  // Filter articles by search
-  const filteredArticles = useMemo(() => {
-    if (!searchQuery.trim()) return articles;
-    
-    const query = searchQuery.toLowerCase();
-    return articles.filter(article => 
-      article.title.toLowerCase().includes(query) ||
-      article.categories?.some((cat: string) => cat.toLowerCase().includes(query))
-    );
-  }, [articles, searchQuery]);
-
-  // Sort articles
-  const {
-    sortField,
-    sortDirection,
-    sortedArticles,
-    handleSort
-  } = useAdminArticlesSort(filteredArticles);
+  const handleEditArticle = (articleId: string) => {
+    navigate(`/admin/article/${articleId}`);
+  };
 
   // Format date utility
   const formatDate = (dateString?: string) => {
@@ -85,7 +80,7 @@ const AdminArticles = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Gestion des articles</h1>
-          <p className="text-gray-600">{articles.length} articles au total</p>
+          <p className="text-gray-600">{totalCount} articles au total</p>
         </div>
         <Button onClick={handleNewArticle}>
           <Plus className="h-4 w-4 mr-2" />
@@ -95,8 +90,8 @@ const AdminArticles = () => {
 
       {/* Filters */}
       <AdminArticlesFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={filters.search}
+        onSearchChange={(search) => handleFiltersChange({ ...filters, search })}
       />
 
       {/* Table */}
@@ -105,39 +100,18 @@ const AdminArticles = () => {
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">Image</TableHead>
-              <AdminArticlesSortableHeader 
-                field="title" 
-                sortField={sortField} 
-                sortDirection={sortDirection} 
-                onSort={handleSort}
-              >
-                Titre
-              </AdminArticlesSortableHeader>
+              <TableHead>Titre</TableHead>
               <TableHead>Date de création</TableHead>
-              <AdminArticlesSortableHeader 
-                field="published_at" 
-                sortField={sortField} 
-                sortDirection={sortDirection} 
-                onSort={handleSort}
-              >
-                Date de publication
-              </AdminArticlesSortableHeader>
+              <TableHead>Date de publication</TableHead>
               <TableHead>Programmée</TableHead>
-              <AdminArticlesSortableHeader 
-                field="status" 
-                sortField={sortField} 
-                sortDirection={sortDirection} 
-                onSort={handleSort}
-              >
-                Statut
-              </AdminArticlesSortableHeader>
+              <TableHead>Statut</TableHead>
               <TableHead>Catégories</TableHead>
               <TableHead className="w-16">Temps de lecture</TableHead>
               <TableHead className="w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedArticles.map((article) => (
+            {articles.map((article) => (
               <TableRow key={article.id}>
                 <TableCell>
                   <AdminArticlesImageCell 
@@ -194,11 +168,11 @@ const AdminArticles = () => {
                 <TableCell>
                   <AdminArticlesActions
                     article={article}
-                    isDeleting={isDeleting === article.id}
-                    onView={handleViewArticle}
-                    onEdit={handleEditArticle}
-                    onDelete={handleDeleteArticle}
-                    onShare={handleShareArticle}
+                    isDeleting={false}
+                    onView={() => handleViewArticle(article.slug)}
+                    onEdit={() => handleEditArticle(article.id)}
+                    onDelete={() => handleDeleteClick(article)}
+                    onShare={() => {}}
                   />
                 </TableCell>
               </TableRow>
@@ -207,11 +181,20 @@ const AdminArticles = () => {
         </Table>
       </div>
 
-      {sortedArticles.length === 0 && (
+      {articles.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           Aucun article trouvé
         </div>
       )}
+
+      {/* Delete Dialog */}
+      <AdminArticlesDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        articleTitle={selectedArticle?.title || ''}
+        onConfirm={confirmDelete}
+        isDeleting={isLoading}
+      />
     </div>
   );
 };

@@ -1,4 +1,5 @@
- // articleService.ts - Version finale avec published_at
+
+// articleService.ts - Version finale avec published_at
 
 import { supabase } from './supabase';
 
@@ -135,8 +136,8 @@ export async function getAllArticles(options: {
         seo_description,
         read_time
       `, { count: 'exact' })
-      // ✅ CORRECTION : Tri par published_at puis created_at
-      .order('published_at', { ascending: false, nullsLast: true })
+      // ✅ CORRECTION : Tri par published_at puis created_at sans nullsLast
+      .order('published_at', { ascending: false })
       .order('created_at', { ascending: false })
       .range(from, to);
 
@@ -207,8 +208,8 @@ export async function getAllArticlesNoPagination() {
         read_time
       `)
       .eq('published', true)
-      // ✅ CORRECTION : Tri par published_at en priorité, puis created_at
-      .order('published_at', { ascending: false, nullsLast: true })
+      // ✅ CORRECTION : Tri par published_at en priorité, puis created_at sans nullsLast
+      .order('published_at', { ascending: false })
       .order('created_at', { ascending: false });
 
     console.log(`✅ ${data?.length || 0} articles récupérés`);
@@ -263,8 +264,8 @@ export async function getRelatedArticles(articleId: string, limit: number = 3) {
       `)
       .eq('published', true)
       .neq('id', articleId)
-      // ✅ CORRECTION : Tri par published_at puis created_at
-      .order('published_at', { ascending: false, nullsLast: true })
+      // ✅ CORRECTION : Tri par published_at puis created_at sans nullsLast
+      .order('published_at', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(limit);
 

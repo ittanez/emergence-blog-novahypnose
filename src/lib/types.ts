@@ -1,4 +1,5 @@
- // src/lib/types.ts - VERSION COMPLÈTE CORRIGÉE
+
+// src/lib/types.ts - VERSION COMPLÈTE CORRIGÉE
 
 export interface Tag {
   id: string;
@@ -25,12 +26,12 @@ export interface Article {
   image_url?: string;
   author: string;
   categories: string[];
-  tags: string[];
+  tags: Tag[]; // ✅ MODIFIÉ : Tags sont des objets Tag, pas des strings
   published: boolean;
   featured: boolean;
   created_at: string;
   updated_at: string;
-  published_at?: string; // ✅ NOUVEAU CHAMP
+  published_at?: string;
   slug: string;
   scheduled_for?: string;
   storage_image_url?: string;
@@ -75,4 +76,12 @@ export interface Newsletter {
   subscribed: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// ✅ AJOUTÉ : Interface Subscriber manquante
+export interface Subscriber {
+  id: string;
+  email: string;
+  verified: boolean;
+  created_at: string;
 }

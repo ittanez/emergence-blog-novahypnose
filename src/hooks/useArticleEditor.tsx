@@ -1,4 +1,5 @@
- // src/hooks/useArticleEditor.tsx - VERSION COMPLÈTE CORRIGÉE
+
+// src/hooks/useArticleEditor.tsx - VERSION COMPLÈTE CORRIGÉE
 
 import { useState, useEffect, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -6,10 +7,8 @@ import { toast } from "sonner";
 import { Article, Tag } from "@/lib/types";
 import { saveArticle, generateUniqueSlug, getArticleById } from "@/lib/services/articleService";
 import { useAuth } from "@/lib/contexts/AuthContext";
-// ✅ AJOUT : Import Supabase
 import { createClient } from '@supabase/supabase-js';
 
-// ✅ AJOUT : Configuration Supabase
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
   import.meta.env.VITE_SUPABASE_ANON_KEY!
@@ -25,10 +24,8 @@ export const useArticleEditor = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  // ✅ AJOUT : État pour l'upload d'image
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   
-  // ✅ MODIFIÉ : État initial avec toutes les colonnes
   const [article, setArticle] = useState<Partial<Article>>({
     title: "",
     content: "",
@@ -37,14 +34,14 @@ export const useArticleEditor = () => {
     published: false,
     categories: [],
     slug: "",
-    tags: [],
+    tags: [], // ✅ CORRIGÉ : Array de Tag[]
     keywords: [],
     seo_description: "",
-    meta_description: "", // ✅ AJOUTÉ
-    read_time: 1, // ✅ AJOUTÉ
-    author: "", // ✅ AJOUTÉ
-    featured: false, // ✅ AJOUTÉ
-    storage_image_url: "", // ✅ AJOUTÉ
+    meta_description: "",
+    read_time: 1,
+    author: "",
+    featured: false,
+    storage_image_url: "",
   });
   const [publishMode, setPublishMode] = useState<"draft" | "publish" | "schedule">("draft");
 
@@ -121,7 +118,6 @@ export const useArticleEditor = () => {
     
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(wordCount / 200));
-    // ✅ MODIFIÉ : S'assurer que c'est read_time
     setArticle(prev => ({ ...prev, read_time: readTime }));
     
     if (!article.keywords || article.keywords.length === 0) {
@@ -147,8 +143,9 @@ export const useArticleEditor = () => {
     }
   };
 
+  // ✅ CORRIGÉ : Gestion des tags comme objets Tag
   const handleTagsChange = (tags: string[]) => {
-    const tagObjects = tags.map(tag => ({
+    const tagObjects: Tag[] = tags.map(tag => ({
       id: tag.toLowerCase().replace(/\s+/g, '-'),
       name: tag,
       slug: tag.toLowerCase().replace(/\s+/g, '-'),
@@ -162,7 +159,6 @@ export const useArticleEditor = () => {
     setArticle(prev => ({ ...prev, keywords }));
   };
 
-  // MODIFIÉ : Gestion correcte du mode de publication
   const handlePublishModeChange = (mode: "draft" | "publish" | "schedule") => {
     console.log("Changement de mode de publication:", mode);
     setPublishMode(mode);
@@ -188,13 +184,16 @@ export const useArticleEditor = () => {
     }
   };
 
+  // ✅ CORRIGÉ : Gestion correcte du slug
   const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setArticle(prev => ({ ...prev, title: newTitle }));
     
     if (!article.slug || article.slug === "") {
-      const newSlug = await generateUniqueSlug(newTitle, article.id);
-      setArticle(prev => ({ ...prev, slug: newSlug }));
+      const { slug: newSlug } = await generateUniqueSlug(newTitle, article.id);
+      if (newSlug) {
+        setArticle(prev => ({ ...prev, slug: newSlug }));
+      }
     }
   };
 
@@ -203,18 +202,16 @@ export const useArticleEditor = () => {
     setArticle(prev => ({ ...prev, categories }));
   };
 
-  // 🚀 NOUVELLE VERSION : handleImageUpload avec Supabase Storage
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validation du fichier
     if (!file.type.startsWith('image/')) {
       toast.error('Veuillez sélectionner un fichier image');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB max
+    if (file.size > 5 * 1024 * 1024) {
       toast.error('L\'image ne peut pas dépasser 5MB');
       return;
     }
@@ -224,12 +221,10 @@ export const useArticleEditor = () => {
     try {
       console.log('🚀 Upload vers Supabase Storage...');
       
-      // 1. Générer un nom de fichier unique
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
       const timestamp = Date.now();
       const random = Math.random().toString(36).substring(2, 8);
       
-      // Nom basé sur le titre de l'article ou ID temporaire
       const baseName = article.title 
         ? article.title.toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
@@ -239,7 +234,6 @@ export const useArticleEditor = () => {
         
       const fileName = `${baseName}-${timestamp}-${random}.${fileExtension}`;
 
-      // 2. Upload vers Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('blog_images')
         .upload(fileName, file, {
@@ -252,21 +246,18 @@ export const useArticleEditor = () => {
         throw uploadError;
       }
 
-      // 3. Récupérer l'URL publique
       const { data: urlData } = supabase.storage
         .from('blog_images')
         .getPublicUrl(fileName);
 
       console.log('✅ Image uploadée:', urlData.publicUrl);
 
-      // 4. Mettre à jour le state local
       setArticle(prev => ({
         ...prev,
         image_url: urlData.publicUrl,
-        storage_image_url: urlData.publicUrl // ✅ AJOUTÉ
+        storage_image_url: urlData.publicUrl
       }));
 
-      // 5. Si on modifie un article existant, mettre à jour la DB immédiatement
       if (isEditing && article.id) {
         try {
           const { error: updateError } = await supabase
@@ -309,7 +300,6 @@ export const useArticleEditor = () => {
     }
   };
 
-  // ✅ MODIFIÉ : Sauvegarde avec toutes les colonnes
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -321,14 +311,10 @@ export const useArticleEditor = () => {
     try {
       setIsSaving(true);
       
-      // ✅ MODIFIÉ : Préparer l'article avec TOUTES les colonnes nécessaires
       const articleToSave = { 
         ...article,
-        // ✅ AJOUTÉ : Synchroniser meta_description avec seo_description
         meta_description: article.seo_description || article.meta_description || "",
-        // ✅ AJOUTÉ : S'assurer qu'author est défini
         author: article.author || user?.email || 'Admin',
-        // ✅ AJOUTÉ : Valeurs par défaut pour les champs obligatoires
         featured: article.featured || false,
         read_time: article.read_time || 1,
         storage_image_url: article.storage_image_url || article.image_url || "",
@@ -340,7 +326,7 @@ export const useArticleEditor = () => {
       } else if (publishMode === "publish") {
         articleToSave.published = true;
         articleToSave.scheduled_for = undefined;
-      } else { // draft
+      } else {
         articleToSave.published = false;
         articleToSave.scheduled_for = undefined;
       }
@@ -371,7 +357,7 @@ export const useArticleEditor = () => {
     }
   };
 
-  const getTagsForPreview = () => {
+  const getTagsForPreview = (): Tag[] => {
     if (!article.tags) return [];
     
     return article.tags.map(tag => {
@@ -396,7 +382,6 @@ export const useArticleEditor = () => {
     scheduledDate,
     article,
     publishMode,
-    // ✅ AJOUT : Nouvel état pour l'upload
     isUploadingImage,
     handleChange,
     handleContentChange,
@@ -405,7 +390,7 @@ export const useArticleEditor = () => {
     handlePublishModeChange,
     handleTitleChange,
     handleCategoriesChange,
-    handleImageUpload, // ✅ Fonction modifiée
+    handleImageUpload,
     handleScheduledDateChange,
     handleSubmit,
     getTagsForPreview,

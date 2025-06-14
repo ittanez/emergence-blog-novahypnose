@@ -2,7 +2,10 @@
 import { useRef, useState, lazy, Suspense } from 'react';
 import { Label } from "@/components/ui/label";
 
-const Editor = lazy(() => import('@tinymce/tinymce-react').then(module => ({ default: module.Editor })));
+// ✅ CORRIGÉ : Import TinyMCE avec type assertion
+const Editor = lazy(() => import('@tinymce/tinymce-react').then(module => ({ 
+  default: module.Editor as any 
+})));
 
 interface RichTextEditorProps {
   value: string;

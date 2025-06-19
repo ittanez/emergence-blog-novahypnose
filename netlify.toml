@@ -2,7 +2,7 @@
 
 [build]
   publish = "dist"
-  command = "npm run build:seo"
+  command = "npm run build"
 
 # ✅ OPTIMISATION PERFORMANCE : Cache optimisé pour blog avec images changeantes
 [[headers]]

@@ -5,10 +5,9 @@
  * Génère des versions HTML statiques des pages principales
  */
 
-import fs from 'fs/fs-extra';
+import fs from 'fs-extra';
 import path from 'path';
 import puppeteer from 'puppeteer';
-import { createServer } from 'vite';
 
 // Pages à pré-rendre pour les crawlers
 const ROUTES = [

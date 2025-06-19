@@ -8,10 +8,11 @@ const Header = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   
   const menuItems = [
-    { label: "NovaHypnose", href: "https://novahypnose.fr", external: true },
     { label: "Articles", href: "/", external: false },
-    { label: "L'auteur", href: "https://novahypnose.fr/#about", external: true }, // ✅ CHANGÉ
-    { label: "Rendez-vous", href: "https://novahypnose.fr/", external: true }, // ✅ CHANGÉ
+    { label: "À propos", href: "/about", external: false },
+    { label: "FAQ", href: "/faq", external: false },
+    { label: "NovaHypnose", href: "https://novahypnose.fr", external: true },
+    { label: "Rendez-vous", href: "https://www.resalib.fr/praticien/47325-alain-zenatti-hypnotherapeute-paris", external: true },
   ];
 
   return (
@@ -32,7 +33,10 @@ const Header = () => {
                   href={item.href} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-nova-700 transition-colors"
+                  className={item.label === "Rendez-vous" 
+                    ? "bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors" 
+                    : "text-gray-600 hover:text-nova-700 transition-colors"
+                  }
                 >
                   {item.label}
                 </a>
@@ -69,7 +73,10 @@ const Header = () => {
                     href={item.href} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-nova-700 transition-colors"
+                    className={item.label === "Rendez-vous" 
+                      ? "bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors text-center" 
+                      : "text-gray-600 hover:text-nova-700 transition-colors"
+                    }
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}

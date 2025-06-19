@@ -13,6 +13,8 @@ import AdminRoute from "./components/AdminRoute";
 // Lazy load des pages pour réduire le bundle initial
 const ArticlePage = lazy(() => import("./pages/ArticlePage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const About = lazy(() => import("./pages/About"));
+const FAQ = lazy(() => import("./pages/FAQ"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminArticles = lazy(() => import("./pages/AdminArticles"));
@@ -53,6 +55,8 @@ const App = () => {
                   <Route path="/" element={<Index />} />
                   <Route path="/article/:slug" element={<ArticlePage />} />
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/faq" element={<FAQ />} />
                   <Route path="/admin" element={<AdminLogin />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
                   <Route path="/admin/reset-password" element={<AdminResetPassword />} />

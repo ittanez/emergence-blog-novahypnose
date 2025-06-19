@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,16 +11,10 @@ import {
 } from '@/components/ui/table';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
-// Import new components
-import AdminArticlesFilters from '@/components/admin/AdminArticlesFilters';
-import AdminArticlesActions from '@/components/admin/AdminArticlesActions';
-import AdminArticlesStatusBadge from '@/components/admin/AdminArticlesStatusBadge';
-import AdminArticlesImageCell from '@/components/admin/AdminArticlesImageCell';
-import AdminArticlesSortableHeader from '@/components/admin/AdminArticlesSortableHeader';
-import AdminArticlesDeleteDialog from '@/components/admin/AdminArticlesDeleteDialog';
-
-// Import hook
+// Import simple hook
 import { useAdminArticles } from '@/hooks/useAdminArticles';
 
 const AdminArticles = () => {
@@ -29,21 +22,12 @@ const AdminArticles = () => {
   
   const {
     articles,
-    categories,
     isLoading,
     deleteDialogOpen,
     selectedArticle,
-    isNotifying,
-    filters,
-    currentPage,
-    totalPages,
-    totalCount,
     setDeleteDialogOpen,
-    handleFiltersChange,
-    handlePageChange,
     handleDeleteClick,
-    confirmDelete,
-    handleNotifySubscribers
+    confirmDelete
   } = useAdminArticles();
 
   const handleNewArticle = () => {
@@ -71,130 +55,156 @@ const AdminArticles = () => {
   };
 
   if (isLoading) {
-    return <div className="p-8">Chargement...</div>;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-grow flex items-center justify-center">
+          <p>Chargement...</p>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Gestion des articles</h1>
-          <p className="text-gray-600">{totalCount} articles au total</p>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      
+      <main className="flex-grow container mx-auto p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Gestion des articles</h1>
+            <p className="text-gray-600">{articles.length} articles au total</p>
+          </div>
+          <Button onClick={handleNewArticle}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvel article
+          </Button>
         </div>
-        <Button onClick={handleNewArticle}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvel article
-        </Button>
-      </div>
 
-      {/* Filters */}
-      <AdminArticlesFilters
-        searchQuery={filters.search}
-        onSearchChange={(search) => handleFiltersChange({ ...filters, search })}
-      />
+        {/* Simple search */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Rechercher par titre..."
+            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
 
-      {/* Table */}
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">Image</TableHead>
-              <TableHead>Titre</TableHead>
-              <TableHead>Date de création</TableHead>
-              <TableHead>Date de publication</TableHead>
-              <TableHead>Programmée</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead>Catégories</TableHead>
-              <TableHead className="w-16">Temps de lecture</TableHead>
-              <TableHead className="w-20">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {articles.map((article) => (
-              <TableRow key={article.id}>
-                <TableCell>
-                  <AdminArticlesImageCell 
-                    imageUrl={article.image_url}
-                    title={article.title}
-                  />
-                </TableCell>
-                
-                <TableCell className="font-medium">
-                  <div className="max-w-xs truncate" title={article.title}>
-                    {article.title}
-                  </div>
-                </TableCell>
-                
-                <TableCell className="text-sm text-gray-600">
-                  {formatDate(article.created_at)}
-                </TableCell>
-                
-                <TableCell className="text-sm text-gray-600">
-                  {article.published ? formatDate(article.published_at) : '-'}
-                </TableCell>
-                
-                <TableCell className="text-sm text-gray-600">
-                  {article.scheduled_for ? (
-                    <span className="text-orange-600 font-medium">
-                      {formatDate(article.scheduled_for)}
-                    </span>
-                  ) : '-'}
-                </TableCell>
-                
-                <TableCell>
-                  <AdminArticlesStatusBadge article={article} />
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {article.categories?.slice(0, 2).map((category: string) => (
-                      <Badge key={category} variant="outline" className="text-xs">
-                        {category}
-                      </Badge>
-                    ))}
-                    {(article.categories?.length || 0) > 2 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{(article.categories?.length || 0) - 2}
-                      </Badge>
-                    )}
-                  </div>
-                </TableCell>
-                
-                <TableCell className="text-sm text-gray-600">
-                  {article.read_time || '-'} min
-                </TableCell>
-                
-                <TableCell>
-                  <AdminArticlesActions
-                    article={article}
-                    isDeleting={false}
-                    onView={() => handleViewArticle(article.slug)}
-                    onEdit={() => handleEditArticle(article.id)}
-                    onDelete={() => handleDeleteClick(article)}
-                    onShare={() => {}}
-                  />
-                </TableCell>
+        {/* Table */}
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Titre</TableHead>
+                <TableHead>Date de création</TableHead>
+                <TableHead>Date de publication</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Catégories</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {articles.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          Aucun article trouvé
+            </TableHeader>
+            <TableBody>
+              {articles.map((article) => (
+                <TableRow key={article.id}>
+                  <TableCell className="font-medium">
+                    <div className="max-w-xs truncate" title={article.title}>
+                      {article.title}
+                    </div>
+                  </TableCell>
+                  
+                  <TableCell className="text-sm text-gray-600">
+                    {formatDate(article.created_at)}
+                  </TableCell>
+                  
+                  <TableCell className="text-sm text-gray-600">
+                    {article.published ? formatDate(article.published_at) : '-'}
+                  </TableCell>
+                  
+                  <TableCell>
+                    <Badge variant={article.published ? "default" : "secondary"}>
+                      {article.published ? "Publié" : "Brouillon"}
+                    </Badge>
+                  </TableCell>
+                  
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {article.categories?.slice(0, 2).map((category: string) => (
+                        <Badge key={category} variant="outline" className="text-xs">
+                          {category}
+                        </Badge>
+                      ))}
+                      {(article.categories?.length || 0) > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{(article.categories?.length || 0) - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleViewArticle(article.slug)}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        Voir
+                      </button>
+                      <button
+                        onClick={() => handleEditArticle(article.id)}
+                        className="text-green-600 hover:text-green-800 text-sm"
+                      >
+                        Éditer
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(article)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
-      )}
 
-      {/* Delete Dialog */}
-      <AdminArticlesDeleteDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        articleTitle={selectedArticle?.title || ''}
-        onConfirm={confirmDelete}
-        isDeleting={isLoading}
-      />
+        {articles.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            Aucun article trouvé
+          </div>
+        )}
+
+        {/* Simple Delete Confirmation */}
+        {deleteDialogOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Confirmer la suppression</h3>
+              <p className="text-gray-600 mb-6">
+                Êtes-vous sûr de vouloir supprimer l'article "{selectedArticle?.title}" ?
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDelete}
+                >
+                  Supprimer
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+      
+      <Footer />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Article } from "@/lib/types";
@@ -7,7 +6,7 @@ import { notifySubscribersOfNewArticle } from "@/lib/services/notificationServic
 
 export const useAdminArticles = () => {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [categories, setCategories] = useState<Array<{ name: string }>>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -26,7 +25,7 @@ export const useAdminArticles = () => {
         const { data, error } = await getAllCategories();
         if (error) throw error;
         if (data) {
-          setCategories(data.map(cat => ({ name: cat.name || cat })));
+          setCategories(data);
         }
       } catch (error: any) {
         console.error("Erreur lors de la récupération des catégories:", error);
@@ -36,14 +35,13 @@ export const useAdminArticles = () => {
     fetchCategories();
   }, []);
 
-  // Charger les articles avec filtres et pagination (INCLURE LES BROUILLONS)
+  // Charger les articles
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         setIsLoading(true);
         console.log("Récupération des articles pour l'admin...");
         
-        // Récupérer TOUS les articles (publiés ET brouillons) pour l'admin
         const { data, error, count } = await getAllArticles(currentPage, articlesPerPage);
           
         if (error) {
@@ -52,14 +50,8 @@ export const useAdminArticles = () => {
         }
 
         console.log("Articles récupérés pour l'admin:", data?.length || 0);
-        console.log("Nombre total d'articles:", count);
         
         if (data) {
-          // Log pour vérifier les statuts des articles
-          data.forEach(article => {
-            console.log(`Article "${article.title}": published=${article.published}, scheduled_for=${article.scheduled_for}`);
-          });
-          
           setArticles(data);
           setTotalCount(count || 0);
           setTotalPages(Math.ceil((count || 0) / articlesPerPage));
@@ -100,7 +92,6 @@ export const useAdminArticles = () => {
     
     try {
       setIsLoading(true);
-      // Note: Cette fonction doit être implémentée dans articleService
       console.log("Suppression de l'article:", selectedArticle.id);
       
       // Simuler la suppression pour l'instant

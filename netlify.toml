@@ -2,7 +2,7 @@
 
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npm run build:seo"
 
 # ✅ OPTIMISATION PERFORMANCE : Cache optimisé pour blog avec images changeantes
 [[headers]]
@@ -59,8 +59,8 @@
   status = 200
   headers = {Content-Type = "application/xml"}
 
-# Redirection SPA (doit être en dernier)
+# Redirection intelligente pour bots et utilisateurs
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/.netlify/functions/bot-handler"
   status = 200

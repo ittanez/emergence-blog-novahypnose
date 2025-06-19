@@ -45,21 +45,6 @@ const AdminDashboard = () => {
     navigate(path);
   };
 
-  const handleAction = (action: string) => {
-    if (action === "Gestion des articles") {
-      navigate("/admin/articles");
-      return;
-    }
-    
-    if (action === "Gestion des administrateurs") {
-      navigate("/admin/users");
-      return;
-    }
-    
-    toast.info(`Fonctionnalité "${action}" en cours de développement`, {
-      description: "Cette fonctionnalité sera disponible prochainement."
-    });
-  };
 
   console.log("AdminDashboard rendu, utilisateur:", user);
 
@@ -101,46 +86,6 @@ const AdminDashboard = () => {
                 onClick={() => handleNavigation("/admin/articles")}
               >
                 Gérer les articles
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Carte pour gérer les catégories */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Catégories</CardTitle>
-              <CardDescription>Organiser le contenu</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Créez et modifiez les catégories pour organiser vos articles.</p>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                variant="default" 
-                className="w-full brand-gradient"
-                onClick={() => handleAction("Gestion des catégories")}
-              >
-                Gérer les catégories
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Carte pour gérer les administrateurs */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Administrateurs</CardTitle>
-              <CardDescription>Gérer les accès</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Ajoutez de nouveaux administrateurs pour gérer le blog.</p>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                variant="default" 
-                className="w-full brand-gradient"
-                onClick={() => handleAction("Gestion des administrateurs")}
-              >
-                Gérer les administrateurs
               </Button>
             </CardFooter>
           </Card>

@@ -19,9 +19,15 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://emergences.novahypnose.fr/admin</loc>
-    <lastmod>2025-01-09</lastmod>
+    <loc>https://emergences.novahypnose.fr/about</loc>
+    <lastmod>2025-01-19</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://emergences.novahypnose.fr/faq</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

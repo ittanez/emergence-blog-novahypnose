@@ -44,25 +44,6 @@ const Index = () => {
         setIsLoading(true);
         setIsLoadingCategories(true);
         
-        // ✅ NOUVEAU : Vérifier les articles programmés à chaque visite
-        try {
-          const response = await fetch('/functions/v1/publish-scheduled', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          const result = await response.json();
-          if (result.count > 0) {
-            console.log(`✅ ${result.count} articles publiés automatiquement`);
-          }
-        } catch (error) {
-          console.log('🔄 Vérification programmation ignorée:', error);
-        }
-        
-        console.log("🔄 Chargement des articles et catégories...");
-        
         const [articlesResult, categoriesResult] = await Promise.all([
           getAllArticlesNoPagination(),
           getAllCategories()
@@ -71,10 +52,7 @@ const Index = () => {
         if (articlesResult.data && articlesResult.data.length > 0) {
           const publishedArticles = articlesResult.data.filter(article => article.published);
           setArticles(publishedArticles);
-          console.log("✅ Articles publiés chargés:", publishedArticles.length);
         } else {
-          console.error("❌ Erreur chargement articles:", articlesResult.error);
-          console.log("🔄 Fallback vers données mock en cas de problème...");
           // Fallback vers données mock si problème Supabase
           const { articles: mockArticles } = await import("@/lib/mock-data");
           setArticles(mockArticles);
@@ -215,8 +193,8 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title="Émergences - le blog de NovaHypnose"
-        description="Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti."
-        keywords={["hypnose", "hypnothérapie", "bien-être", "transformation", "développement personnel", "gestion du stress"]}
+        description="Blog d'Alain Zenatti, hypnothérapeute à Paris. Découvrez l'hypnose ericksonienne, la transformation intérieure et le bien-être. Articles sur l'hypnothérapie et la gestion du stress."
+        keywords={["hypnose", "hypnothérapie", "hypnose Paris", "Alain Zenatti", "hypnothérapeute Paris", "bien-être", "transformation", "développement personnel", "gestion du stress", "hypnose ericksonienne"]}
         structuredData={[websiteStructuredData, blogStructuredData, organizationStructuredData]}
       />
       

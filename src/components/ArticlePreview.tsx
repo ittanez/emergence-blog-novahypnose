@@ -5,6 +5,7 @@ import { Article } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { parseMarkdownToHtml } from "@/utils/markdownParser";
 
 interface ArticlePreviewProps {
   article: Partial<Article>;
@@ -75,7 +76,7 @@ const ArticlePreview = ({ article, open, onClose }: ArticlePreviewProps) => {
           
           <div 
             className="prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content || "" }}
+            dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(article.content || "") }}
           />
         </div>
       </DialogContent>

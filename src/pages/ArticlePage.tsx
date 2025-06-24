@@ -23,6 +23,7 @@ import { getArticleBySlug, getRelatedArticles, getAllArticlesNoPagination } from
 import { articles } from "@/lib/mock-data";
 import { Article } from "@/lib/types";
 import { useStructuredData } from "@/hooks/useStructuredData";
+import { parseMarkdownToHtml } from "@/utils/markdownParser";
 
 // ✅ FONCTION POUR OBTENIR LES ARTICLES ADJACENTS
 const getAdjacentArticles = (currentArticle: Article, allArticles: Article[]) => {
@@ -321,7 +322,7 @@ const ArticlePage = () => {
               
               <div 
                 className="article-hypnose"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(article.content) }}
               />
               
               {/* ✅ NAVIGATION PRÉCÉDENT/SUIVANT */}

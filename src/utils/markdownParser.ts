@@ -1,40 +1,46 @@
-import { marked } from 'marked';
-
 /**
- * Parse le contenu Markdown basique pour convertir **texte** en <strong>texte</strong>
- * et autres syntaxes Markdown courantes en HTML
+ * Parse le contenu pour corriger les problèmes de formatage
+ * - Convertit **texte** en <strong>texte</strong>
+ * - Corrige les apostrophes doublées
  */
 export const parseMarkdownToHtml = (content: string): string => {
   if (!content) return '';
 
-  // Configuration de marked pour être plus permissive avec le HTML existant
-  marked.setOptions({
-    gfm: true, // GitHub Flavored Markdown
-    breaks: false, // Ne pas convertir les retours à la ligne simples en <br>
-    sanitize: false, // Ne pas supprimer le HTML existant
-  });
+  let processed = content;
 
-  // Parser le Markdown vers HTML
-  try {
-    return marked.parse(content) as string;
-  } catch (error) {
-    console.error('Erreur lors du parsing Markdown:', error);
-    
-    // Fallback: parser seulement le gras **texte** manuellement
-    return content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  }
+  // 1. Corriger les problèmes d'encodage et apostrophes
+  processed = processed
+    // Apostrophes doublées '' → '
+    .replace(/''/g, "'")
+    // Apostrophes typographiques → apostrophe simple
+    .replace(/'/g, "'")
+    .replace(/'/g, "'")
+    // Guillemets problématiques
+    .replace(/"/g, '"')
+    .replace(/"/g, '"');
+
+  // 2. Convertir la syntaxe Markdown vers HTML
+  // Gras: **texte** → <strong>texte</strong>
+  processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  
+  // Italique: *texte* → <em>texte</em> (mais pas si c'est déjà des **)
+  processed = processed.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+
+  return processed;
 };
 
 /**
  * Parser léger pour convertir seulement la syntaxe de gras **texte** → <strong>texte</strong>
- * Utilisé comme fallback plus sûr
+ * et corriger les apostrophes
  */
 export const parseBasicMarkdown = (content: string): string => {
   if (!content) return '';
   
   return content
+    // Corriger apostrophes doublées
+    .replace(/''/g, "'")
     // Gras: **texte** → <strong>texte</strong>
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    // Italique: *texte* → <em>texte</em> (optionnel)
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    // Italique: *texte* → <em>texte</em>
+    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
 };

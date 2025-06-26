@@ -193,7 +193,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title="Émergences - le blog de NovaHypnose"
-        description="Blog d'Alain Zenatti, hypnothérapeute à Paris. Découvrez l'hypnose ericksonienne, la transformation intérieure et le bien-être. Articles sur l'hypnothérapie et la gestion du stress."
+        description="Blog d'Alain Zenatti, hypnothérapeute à Paris. Découvrez l'hypnose ericksonienne et la transformation intérieure pour votre bien-être."
         keywords={["hypnose", "hypnothérapie", "hypnose Paris", "Alain Zenatti", "hypnothérapeute Paris", "bien-être", "transformation", "développement personnel", "gestion du stress", "hypnose ericksonienne"]}
         structuredData={[websiteStructuredData, blogStructuredData, organizationStructuredData]}
       />
@@ -303,6 +303,39 @@ const Index = () => {
           </div>
         )}
         
+        {/* Pages connexes */}
+        <div className="mt-16 mb-12">
+          <h2 className="text-3xl font-serif mb-8 text-center">Découvrir l'hypnose ericksonienne</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white p-6 rounded-lg shadow-md border text-center">
+              <h3 className="text-xl font-medium mb-3 text-nova-700">À propos d'Alain Zenatti</h3>
+              <p className="text-gray-700 text-sm mb-4">
+                Découvrez le parcours et l'expertise d'Alain Zenatti, Maître Hypnologue certifié 
+                en hypnose ericksonienne. Son approche bienveillante et personnalisée pour votre transformation.
+              </p>
+              <Link
+                to="/about"
+                className="inline-block bg-nova-600 text-white px-4 py-2 rounded hover:bg-nova-700 transition-colors"
+              >
+                En savoir plus
+              </Link>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md border text-center">
+              <h3 className="text-xl font-medium mb-3 text-nova-700">Questions fréquentes</h3>
+              <p className="text-gray-700 text-sm mb-4">
+                Trouvez les réponses aux questions les plus courantes sur l'hypnose thérapeutique, 
+                les séances d'hypnothérapie et l'approche ericksonienne.
+              </p>
+              <Link
+                to="/faq"
+                className="inline-block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+              >
+                Voir la FAQ
+              </Link>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-16 max-w-2xl mx-auto">
           <NewsletterForm />
         </div>

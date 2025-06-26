@@ -12,7 +12,7 @@ interface SEOHeadProps {
   modifiedTime?: string;
   author?: string;
   keywords?: string[];
-  structuredData?: object;
+  structuredData?: object | object[];
 }
 
 const SEOHead = ({
@@ -75,9 +75,17 @@ const SEOHead = ({
       
       {/* Données structurées */}
       {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
+        Array.isArray(structuredData) ? (
+          structuredData.map((data, index) => (
+            <script key={index} type="application/ld+json">
+              {JSON.stringify(data)}
+            </script>
+          ))
+        ) : (
+          <script type="application/ld+json">
+            {JSON.stringify(structuredData)}
+          </script>
+        )
       )}
     </Helmet>
   );

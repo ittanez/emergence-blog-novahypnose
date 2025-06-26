@@ -73,7 +73,7 @@ const FAQ = () => {
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title="FAQ - Questions fréquentes sur l'hypnose et l'hypnothérapie"
-        description="Réponses aux questions les plus fréquentes sur l'hypnose ericksonienne, les séances d'hypnothérapie avec Alain Zenatti à Paris. Tout savoir sur l'hypnose thérapeutique."
+        description="Réponses aux questions sur l'hypnose ericksonienne et les séances d'hypnothérapie avec Alain Zenatti à Paris. Guide complet de l'hypnose."
         keywords={["FAQ hypnose", "questions hypnothérapie", "hypnose ericksonienne", "séance hypnose Paris", "Alain Zenatti FAQ"]}
         structuredData={faqStructuredData}
       />
@@ -175,6 +175,39 @@ const FAQ = () => {
                     <p className="text-gray-700 text-sm">
                       Comment se déroule concrètement une séance d'hypnothérapie
                     </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation vers autres pages */}
+              <div className="mb-16 bg-gray-50 p-8 rounded-lg">
+                <h2 className="text-3xl font-serif mb-6 text-center">En savoir plus</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium mb-2">À propos d'Alain Zenatti</h3>
+                    <p className="text-gray-600 mb-4 text-sm">
+                      Découvrez le parcours et l'approche d'Alain Zenatti, 
+                      Maître Hypnologue certifié spécialisé en hypnose ericksonienne.
+                    </p>
+                    <Link
+                      to="/about"
+                      className="inline-block bg-nova-600 text-white px-4 py-2 rounded hover:bg-nova-700 transition-colors"
+                    >
+                      En savoir plus
+                    </Link>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium mb-2">Articles du blog</h3>
+                    <p className="text-gray-600 mb-4 text-sm">
+                      Explorez les articles sur l'hypnose, la transformation intérieure 
+                      et les techniques thérapeutiques.
+                    </p>
+                    <Link
+                      to="/"
+                      className="inline-block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+                    >
+                      Lire les articles
+                    </Link>
                   </div>
                 </div>
               </div>

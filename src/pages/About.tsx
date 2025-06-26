@@ -53,7 +53,7 @@ const About = () => {
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title="À propos d'Alain Zenatti - Hypnothérapeute à Paris"
-        description="Découvrez Alain Zenatti, Maître Hypnologue certifié spécialisé en hypnose ericksonienne à Paris. Son parcours, sa méthode et son approche pour vous accompagner vers la transformation."
+        description="Alain Zenatti, Maître Hypnologue certifié à Paris. Découvrez son parcours et son approche en hypnose ericksonienne pour votre transformation."
         keywords={["Alain Zenatti", "hypnothérapeute Paris", "hypnose ericksonienne", "maître hypnologue", "thérapie hypnose Paris", "cabinet hypnose"]}
         structuredData={[personStructuredData, organizationData]}
       />
@@ -181,6 +181,43 @@ const About = () => {
                         Prendre rendez-vous
                       </Link>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Articles connexes */}
+              <div className="mb-16 bg-blue-50 p-8 rounded-lg">
+                <h2 className="text-3xl font-serif mb-6 text-center">Découvrir mes articles</h2>
+                <p className="text-center text-gray-700 mb-6">
+                  Explorez mes réflexions sur l'hypnose ericksonienne, la transformation personnelle 
+                  et les techniques thérapeutiques dans le blog Émergences.
+                </p>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium mb-2">Articles récents</h3>
+                    <p className="text-gray-600 mb-4 text-sm">
+                      Découvrez les dernières publications sur l'hypnothérapie, 
+                      les techniques de relaxation et l'accompagnement thérapeutique.
+                    </p>
+                    <Link
+                      to="/"
+                      className="inline-block bg-nova-600 text-white px-4 py-2 rounded hover:bg-nova-700 transition-colors"
+                    >
+                      Voir tous les articles
+                    </Link>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium mb-2">Questions fréquentes</h3>
+                    <p className="text-gray-600 mb-4 text-sm">
+                      Consultez les réponses aux questions les plus courantes 
+                      sur l'hypnose ericksonienne et les séances d'hypnothérapie.
+                    </p>
+                    <Link
+                      to="/faq"
+                      className="inline-block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+                    >
+                      Voir la FAQ
+                    </Link>
                   </div>
                 </div>
               </div>

@@ -33,17 +33,15 @@ const OptimizedImage = ({
   const getOptimizedImageUrl = (url: string, targetWidth: number = 400) => {
     if (!url || !url.includes('supabase.co')) return url;
     const separator = url.includes('?') ? '&' : '?';
-    // Optimiser la qualité pour réduire le poids des images
-    return `${url}${separator}width=${targetWidth}&quality=${isLCP ? 85 : 75}&format=webp`;
+    return `${url}${separator}width=${targetWidth}&quality=${isLCP ? 90 : 85}&format=webp`;
   };
 
   // Generate srcset for responsive images
   const generateSrcSet = (url: string, baseWidth: number = 400) => {
     if (!url || !url.includes('supabase.co')) return undefined;
-    // Optimiser les tailles pour réduire le poids des images
-    const widths = isLCP ? [320, 400, 640] : [320, 400]; // Moins de tailles, plus optimisées
+    const widths = isLCP ? [320, 640, 768, 1024] : [320, 640, 768]; // Plus de tailles pour LCP
     return widths
-      .filter(w => w >= Math.min(baseWidth / 2, 320))
+      .filter(w => w >= baseWidth / 2)
       .map(w => `${getOptimizedImageUrl(url, w)} ${w}w`)
       .join(', ');
   };

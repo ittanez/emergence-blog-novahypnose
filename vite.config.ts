@@ -39,35 +39,17 @@ export default defineConfig(({ mode }) => ({
     },
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // React core - pour toutes les pages
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router-dom')) {
-            return 'react-vendor';
-          }
-          // Supabase - chargé seulement quand nécessaire
-          if (id.includes('@supabase/supabase-js')) {
-            return 'supabase';
-          }
-          // Admin editor - chargé seulement pour l'admin
-          if (id.includes('@tinymce/tinymce-react')) {
-            return 'admin-editor';
-          }
-          // Date utilities - utilisées sur plusieurs pages
-          if (id.includes('date-fns')) {
-            return 'date-utils';
-          }
-          // UI utilities - utilisées partout
-          if (id.includes('clsx') || id.includes('tailwind-merge')) {
-            return 'ui-utils';
-          }
-          // Form utilities - principalement admin
-          if (id.includes('@hookform/resolvers') || id.includes('zod') || id.includes('react-hook-form')) {
-            return 'form';
-          }
-          // Markdown parser - utilisé sur pages d'articles
-          if (id.includes('marked') || id.includes('dompurify')) {
-            return 'markdownParser';
-          }
+        manualChunks: {
+          // React core - STABLE grouping
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // TinyMCE séparé pour admin
+          'admin-editor': ['@tinymce/tinymce-react'],
+          // Supabase backend
+          'supabase': ['@supabase/supabase-js'],
+          // Date utilities
+          'date-utils': ['date-fns'],
+          // UI utilities
+          'ui-utils': ['clsx', 'tailwind-merge']
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',

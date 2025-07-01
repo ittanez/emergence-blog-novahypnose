@@ -16,6 +16,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://akrlyzmfszumibwgocae.supabase.co" crossorigin>
     
+    <!-- ✅ Préchargement image LCP pour améliorer LCP de 3.8s -->
+    <link rel="preload" as="image" href="https://akrlyzmfszumibwgocae.supabase.co/storage/v1/object/public/blog_images/gr-ve-la-soci-t-g-n-rale-le-re-175-1lkrkk.webp?width=400&quality=85&format=webp" fetchpriority="high">
+    
     <!-- ✅ OPTIMISATION LCP : Préchargement des polices critiques avec URLs corrigées -->
     <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/playfairdisplay/v30/nuFiD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiunDYbtXK-F2qO0isEw.woff2" as="font" type="font/woff2" crossorigin>
@@ -142,9 +145,9 @@
       
     </style>
     
-    <!-- ✅ POLICES NON-CRITIQUES chargées de manière asynchrone -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap"></noscript>
+    <!-- ✅ POLICES NON-CRITIQUES chargées de manière asynchrone - Optimisées -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap"></noscript>
     
     <!-- Meta tags Open Graph -->
     <meta property="og:title" content="Émergences - le blog de NovaHypnose" />

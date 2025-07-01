@@ -33,7 +33,8 @@ const OptimizedImage = ({
   const getOptimizedImageUrl = (url: string, targetWidth: number = 400) => {
     if (!url || !url.includes('supabase.co')) return url;
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}width=${targetWidth}&quality=${isLCP ? 90 : 85}&format=webp`;
+    // Optimiser la qualité pour réduire le poids des images
+    return `${url}${separator}width=${targetWidth}&quality=${isLCP ? 85 : 75}&format=webp`;
   };
 
   // Generate srcset for responsive images

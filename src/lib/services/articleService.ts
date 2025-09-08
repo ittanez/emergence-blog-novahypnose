@@ -6,6 +6,40 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY!
 );
 
+// Fonction pour synchroniser un article avec Firebase
+const syncArticleToFirebase = async (article: any) => {
+  try {
+    console.log('🔥 Synchronisation Firebase pour:', article.slug);
+    
+    const response = await fetch('https://akrlyzmfszumibwgocae.supabase.co/functions/v1/sync-to-firebase', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: article.title,
+        slug: article.slug,
+        excerpt: article.excerpt || '',
+        published_at: article.created_at || new Date().toISOString(),
+        read_time: article.read_time || 5,
+        category: article.categories?.[0] || 'general'
+      })
+    });
+
+    const result = await response.json();
+    
+    if (response.ok) {
+      console.log('✅ Synchronisation Firebase réussie:', result.message);
+    } else {
+      console.warn('⚠️ Échec synchronisation Firebase:', result.error);
+    }
+  } catch (error) {
+    console.warn('⚠️ Erreur synchronisation Firebase:', error);
+    // Ne pas faire échouer la sauvegarde si Firebase échoue
+  }
+};
+
 // Fonction pour récupérer tous les articles avec pagination
 export const getAllArticles = async (page: number = 1, pageSize: number = 10) => {
   const startIndex = (page - 1) * pageSize;
@@ -179,6 +213,12 @@ export const saveArticle = async (article: Partial<Article>) => {
         .single();
 
       if (error) throw error;
+      
+      // Synchroniser avec Firebase si l'article est publié
+      if (data && article.published) {
+        await syncArticleToFirebase(data);
+      }
+      
       return { data, error: null };
     } else {
       // Création d'un nouvel article
@@ -206,6 +246,12 @@ export const saveArticle = async (article: Partial<Article>) => {
         .single();
 
       if (error) throw error;
+      
+      // Synchroniser avec Firebase si l'article est publié
+      if (data && article.published) {
+        await syncArticleToFirebase(data);
+      }
+      
       return { data, error: null };
     }
   } catch (error: any) {

@@ -95,7 +95,7 @@ const AdminArticles = () => {
             type="text"
             placeholder="Rechercher par titre..."
             value={filters.search}
-            onChange={(e) => handleFiltersChange({ search: e.target.value })}
+            onChange={(e) => handleFiltersChange({ search: e.target.value, category: filters.category })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

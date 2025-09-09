@@ -25,9 +25,6 @@
       }
     </script>
     
-    <!-- ✅ OPTIMISATION LCP : Préchargement des polices critiques avec URLs correctes -->
-    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/playfairdisplay/v30/nuFiD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiunDYbtXK-F2qO0isEw.woff2" as="font" type="font/woff2" crossorigin>
     
     <!-- ✅ CSS CRITIQUE OPTIMISÉ pour LCP et CLS -->
     <style>
@@ -44,22 +41,7 @@
         color: #1f2937;
       }
       
-      /* Typography critique avec font-display swap et URLs correctes */
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url(https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2) format('woff2');
-      }
-      
-      @font-face {
-        font-family: 'Playfair Display';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url(https://fonts.gstatic.com/s/playfairdisplay/v30/nuFiD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiunDYbtXK-F2qO0isEw.woff2) format('woff2');
-      }
+      /* Polices chargées via Google Fonts CSS (voir plus bas) */
       
       .font-serif, h1, h2, h3, h4, h5, h6 {
         font-family: 'Playfair Display', 'Times New Roman', serif;

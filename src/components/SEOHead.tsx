@@ -2,6 +2,20 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 
+// Fonction pour sécuriser le JSON-LD et éviter les erreurs de syntaxe JavaScript
+const safeJSONStringify = (data: any): string => {
+  return JSON.stringify(data)
+    // Échapper les caractères HTML dangereux
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    // Échapper les apostrophes et guillemets problématiques
+    .replace(/'/g, '\\u0027')
+    .replace(/"/g, '\\"')
+    // Supprimer les caractères de contrôle qui peuvent casser le JavaScript
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, '');
+};
+
 interface SEOHeadProps {
   title: string;
   description: string;
@@ -77,14 +91,14 @@ const SEOHead = ({
       {structuredData && (
         Array.isArray(structuredData) ? (
           structuredData.map((data, index) => (
-            <script key={index} type="application/ld+json">
-              {JSON.stringify(data)}
-            </script>
+            <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{
+              __html: safeJSONStringify(data)
+            }} />
           ))
         ) : (
-          <script type="application/ld+json">
-            {JSON.stringify(structuredData)}
-          </script>
+          <script type="application/ld+json" dangerouslySetInnerHTML={{
+            __html: safeJSONStringify(structuredData)
+          }} />
         )
       )}
     </Helmet>

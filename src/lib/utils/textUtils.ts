@@ -23,3 +23,33 @@ export function createExcerpt(content: string, maxLength: number = 150): string 
   }
   return cleanText.substring(0, maxLength).trim() + '...';
 }
+
+// Fonction pour échapper les caractères spéciaux dans le JavaScript
+export function escapeJavaScript(str: string): string {
+  if (!str) return str;
+  return str
+    .replace(/\\/g, '\\\\')  // Échapper les backslashes
+    .replace(/'/g, "\\'")    // Échapper les apostrophes
+    .replace(/"/g, '\\"')    // Échapper les guillemets
+    .replace(/\n/g, '\\n')   // Échapper les retours à la ligne
+    .replace(/\r/g, '\\r')   // Échapper les retours chariot
+    .replace(/\t/g, '\\t');  // Échapper les tabulations
+}
+
+// Fonction pour nettoyer et sécuriser les données avant utilisation
+export function sanitizeData(data: any): any {
+  if (typeof data === 'string') {
+    return escapeJavaScript(data);
+  }
+  if (Array.isArray(data)) {
+    return data.map(sanitizeData);
+  }
+  if (data && typeof data === 'object') {
+    const sanitized: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      sanitized[key] = sanitizeData(value);
+    }
+    return sanitized;
+  }
+  return data;
+}

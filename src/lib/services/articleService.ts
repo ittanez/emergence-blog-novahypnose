@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Article, Category } from '@/lib/types';
+import { sanitizeData } from '@/lib/utils/textUtils';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
@@ -55,7 +56,9 @@ export const getAllArticles = async (page: number = 1, pageSize: number = 10) =>
       throw error;
     }
 
-    return { data, error: null, count };
+    // Nettoyer les données avant de les retourner
+    const sanitizedData = data ? data.map(article => sanitizeData(article)) : null;
+    return { data: sanitizedData, error: null, count };
   } catch (error: any) {
     console.error("Erreur lors de la récupération des articles:", error);
     return { data: null, error, count: 0 };

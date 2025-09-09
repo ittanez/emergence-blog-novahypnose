@@ -116,12 +116,12 @@ const ArticlePage = () => {
       const result = await getArticleBySlug(slug!);
       
       if (result.redirect && typeof window !== 'undefined') {
-        console.log(`🔄 Redirection: ${result.redirect.from} → ${result.redirect.to}`);
+        console.log("🔄 Redirection: " + result.redirect.from + " → " + result.redirect.to);
         
-        navigate(`/article/${result.redirect.to}`, { replace: true });
+        navigate("/article/" + result.redirect.to, { replace: true });
         
         toast.info("Lien mis à jour", {
-          description: `Redirection vers l'URL actualisée`,
+          description: "Redirection vers l'URL actualisée",
           duration: 3000
         });
       }
@@ -227,8 +227,8 @@ const ArticlePage = () => {
   // ✅ FONCTION DE PARTAGE AMÉLIORÉE AVEC RÉSUMÉ ET IMAGE
   const handleShare = (platform: string) => {
     const url = window.location.href;
-    const title = article.title;
-    const description = article.seo_description || article.excerpt || "";
+    const title = (article.title || '').replace(/['"]/g, '');
+    const description = (article.seo_description || article.excerpt || '').replace(/['"]/g, '');
     const imageUrl = article.image_url || "";
     
     let shareUrl = "";
@@ -236,17 +236,17 @@ const ArticlePage = () => {
     
     switch (platform) {
       case "facebook":
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url);
         break;
       case "linkedin":
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        shareUrl = "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(url);
         break;
       case "whatsapp":
-        shareText = `${title}\n\n${description}\n\n${url}`;
-        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+        shareText = title + "\n\n" + description + "\n\n" + url;
+        shareUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareText);
         break;
       case "copy":
-        const copyText = `${title}\n${description}\n${url}`;
+        const copyText = title + "\n" + description + "\n" + url;
         navigator.clipboard.writeText(copyText);
         toast.success("Lien copié dans le presse-papier", {
           description: "Le titre, la description et le lien ont été copiés"
@@ -310,7 +310,7 @@ const ArticlePage = () => {
                 <div className="mb-4 flex flex-wrap gap-2">
                   {displayTags.map((tagName, index) => (
                     <Badge 
-                      key={`${tagName}-${index}`} 
+                      key={tagName + "-" + index} 
                       variant="outline" 
                       className="hover:bg-nova-50"
                     >
@@ -333,7 +333,7 @@ const ArticlePage = () => {
                     <div className="flex-1">
                       {previousArticle && (
                         <Link 
-                          to={`/article/${previousArticle.slug}`}
+                          to={"/article/" + previousArticle.slug}
                           className="group flex items-center space-x-3 p-4 rounded-lg border hover:bg-gray-50 transition-colors"
                         >
                           <ChevronLeft className="h-5 w-5 text-nova-600" />
@@ -359,7 +359,7 @@ const ArticlePage = () => {
                     <div className="flex-1 flex justify-end">
                       {nextArticle && (
                         <Link 
-                          to={`/article/${nextArticle.slug}`}
+                          to={"/article/" + nextArticle.slug}
                           className="group flex items-center space-x-3 p-4 rounded-lg border hover:bg-gray-50 transition-colors text-right"
                         >
                           <div>
@@ -396,9 +396,9 @@ const ArticlePage = () => {
                       {article.categories.map((category, index) => (
                         <span key={category}>
                           <Link 
-                            to={`/?category=${encodeURIComponent(category)}`} 
+                            to={"/?category=" + encodeURIComponent(category)} 
                             className="text-nova-700 hover:underline"
-                            title={`Voir tous les articles de la catégorie ${category}`}
+                            title={"Voir tous les articles de la catégorie " + category}
                           >
                             {category}
                           </Link>
@@ -459,7 +459,7 @@ const ArticlePage = () => {
                     {relatedArticles.map(relatedArticle => (
                       <li key={relatedArticle.id} className="border-b pb-4 last:border-0">
                         <Link 
-                          to={`/article/${relatedArticle.slug}`}
+                          to={"/article/" + relatedArticle.slug}
                           className="block group"
                         >
                           <h4 className="font-medium group-hover:text-nova-700 transition-colors">

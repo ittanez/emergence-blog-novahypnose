@@ -16,7 +16,16 @@ const Header = () => {
   ];
 
   return (
-    <header className="border-b" style={{ borderBottom: '1px solid #e5e7eb' }}>
+    <header 
+      className="border-b" 
+      style={{ 
+        borderBottom: '1px solid #e5e7eb',
+        backgroundColor: 'white',
+        position: 'relative',
+        zIndex: 50,
+        width: '100%'
+      }}
+    >
       <div className="container mx-auto px-4" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem' }}>
         <div className="flex justify-between items-center h-16" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '4rem' }}>
           <Link to="/" className="flex items-end" style={{ display: 'flex', alignItems: 'flex-end', textDecoration: 'none' }}>
@@ -41,7 +50,10 @@ const Header = () => {
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-6" style={{ display: 'flex', gap: '1.5rem' }}>
+          <nav className="hidden md:flex space-x-6" style={{ 
+            display: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'flex' : 'none', 
+            gap: '1.5rem' 
+          }}>
             {menuItems.map((item) => (
               item.external ? (
                 <a 
@@ -94,12 +106,13 @@ const Header = () => {
             onClick={toggleMenu}
             aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             style={{
-              display: 'block',
+              display: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'none' : 'block',
               padding: '0.5rem',
               border: 'none',
               backgroundColor: 'transparent',
               cursor: 'pointer',
-              color: '#4b5563'
+              color: '#4b5563',
+              zIndex: 51
             }}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -108,7 +121,16 @@ const Header = () => {
         
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden pb-4" style={{ paddingBottom: '1rem' }}>
+          <div 
+            className="md:hidden pb-4" 
+            style={{ 
+              paddingBottom: '1rem',
+              backgroundColor: 'white',
+              borderTop: '1px solid #e5e7eb',
+              position: 'relative',
+              zIndex: 50
+            }}
+          >
             <nav className="flex flex-col space-y-4" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {menuItems.map((item) => (
                 item.external ? (

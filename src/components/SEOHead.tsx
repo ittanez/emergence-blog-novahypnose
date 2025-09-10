@@ -4,16 +4,21 @@ import { Helmet } from "react-helmet-async";
 
 // Fonction pour sécuriser le JSON-LD et éviter les erreurs de syntaxe JavaScript
 const safeJSONStringify = (data: any): string => {
-  return JSON.stringify(data)
-    // Échapper les caractères HTML dangereux
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026')
-    // Échapper les apostrophes et guillemets problématiques
-    .replace(/'/g, '\\u0027')
-    .replace(/"/g, '\\"')
-    // Supprimer les caractères de contrôle qui peuvent casser le JavaScript
-    .replace(/[\u0000-\u001f\u007f-\u009f]/g, '');
+  try {
+    return JSON.stringify(data)
+      // Échapper les caractères HTML dangereux
+      .replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e')
+      .replace(/&/g, '\\u0026')
+      // Échapper les caractères problématiques pour JSON-LD
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029')
+      // Supprimer les caractères de contrôle qui peuvent casser le JavaScript
+      .replace(/[\u0000-\u001f\u007f-\u009f]/g, '');
+  } catch (error) {
+    console.error('Erreur JSON.stringify:', error);
+    return '{}';
+  }
 };
 
 interface SEOHeadProps {

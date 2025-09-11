@@ -24,9 +24,7 @@ const syncArticleToFirebase = async (article: any) => {
         excerpt: article.excerpt || '',
         published_at: article.created_at || new Date().toISOString(),
         read_time: article.read_time || 5,
-        category: article.categories?.[0] || 'general',
-        image: article.image || '',
-        hero_image: article.hero_image || ''
+        category: article.categories?.[0] || 'general'
       })
     });
 

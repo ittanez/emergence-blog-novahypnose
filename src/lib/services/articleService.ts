@@ -12,7 +12,7 @@ const syncArticleToFirebase = async (article: any) => {
   try {
     console.log('🔥 Synchronisation Firebase pour:', article.slug);
     
-    const response = await fetch('https://akrlyzmfszumibwgocae.supabase.co/functions/v1/sync-to-firebase', {
+    const response = await fetch('https://akrlyzmfszumibwgocae.supabase.co/functions/v1/sync-firebase', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,

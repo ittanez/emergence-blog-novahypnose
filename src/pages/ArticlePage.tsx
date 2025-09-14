@@ -19,11 +19,14 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import RelatedArticles from "@/components/RelatedArticles";
+import { BreadcrumbsWithSchema, generateArticleBreadcrumbs } from "@/components/Breadcrumbs";
 import { toast } from "sonner";
 import { getArticleBySlug, getRelatedArticles, getAllArticlesNoPagination } from "@/lib/services/articleService";
 import { articles } from "@/lib/mock-data";
 import { Article } from "@/lib/types";
 import { useStructuredData } from "@/hooks/useStructuredData";
+import { generateArticleSchema } from "@/lib/services/schemaService";
+import { useInternalLinking } from "@/lib/services/internalLinkingService";
 import { parseMarkdownToHtml } from "@/utils/markdownParser";
 
 // ✅ FONCTION POUR OBTENIR LES ARTICLES ADJACENTS
@@ -77,8 +80,8 @@ const parseTagsForDisplay = (tags: any): string[] => {
 const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { generateArticleStructuredData } = useStructuredData();
   const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const { processArticleContent } = useInternalLinking(allArticles);
   
   // Logs détaillés pour le debugging
   console.log("=== ArticlePage Component Loading ===");
@@ -220,7 +223,10 @@ const ArticlePage = () => {
   const authorName = article.author?.name || article.author || "Alain Zenatti";
   
   // Générer les données structurées pour l'article
-  const structuredData = generateArticleStructuredData(article, article.author);
+  const structuredData = generateArticleSchema(article);
+  
+  // Générer les breadcrumbs pour l'article
+  const breadcrumbs = generateArticleBreadcrumbs(article);
   
   // ✅ PARSER LES TAGS POUR L'AFFICHAGE
   const displayTags = parseTagsForDisplay(article.tags);
@@ -277,6 +283,15 @@ const ArticlePage = () => {
       <Header />
       
       <main className="flex-grow">
+        {/* Breadcrumbs */}
+        <div className="container mx-auto px-4 pt-4">
+          <BreadcrumbsWithSchema 
+            items={breadcrumbs} 
+            generateSchema={true}
+            siteUrl="https://emergences.novahypnose.fr"
+          />
+        </div>
+        
         {/* Article header with image */}
         <div className="w-full h-[40vh] relative">
           <OptimizedImage
@@ -323,7 +338,12 @@ const ArticlePage = () => {
               
               <div 
                 className="article-hypnose"
-                dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(article.content) }}
+                dangerouslySetInnerHTML={{ 
+                  __html: processArticleContent(
+                    parseMarkdownToHtml(article.content), 
+                    article.slug
+                  )
+                }}
               />
               
               {/* ✅ ARTICLES CONNEXES */}

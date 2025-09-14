@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import NewsletterForm from "@/components/NewsletterForm";
+import { BreadcrumbsWithSchema, generatePageBreadcrumbs } from "@/components/Breadcrumbs";
+import { generateFAQPageSchema } from "@/lib/services/schemaService";
 import {
   Accordion,
   AccordionContent,
@@ -56,19 +58,9 @@ const FAQ = () => {
     }
   ];
 
-  // Schema.org FAQPage
-  const faqStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": faqData.map(faq => ({
-      "@type": "Question",
-      "name": faq.question,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": faq.answer
-      }
-    }))
-  };
+  // Générer les breadcrumbs et les données structurées
+  const breadcrumbs = generatePageBreadcrumbs("FAQ");
+  const faqStructuredData = generateFAQPageSchema(faqData);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -82,6 +74,15 @@ const FAQ = () => {
       <Header />
       
       <main className="flex-grow">
+        {/* Breadcrumbs */}
+        <div className="container mx-auto px-4 pt-4">
+          <BreadcrumbsWithSchema 
+            items={breadcrumbs} 
+            generateSchema={true}
+            siteUrl="https://emergences.novahypnose.fr"
+          />
+        </div>
+        
         {/* Hero section */}
         <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
           <div className="container mx-auto px-4">

@@ -5,10 +5,12 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import NewsletterForm from "@/components/NewsletterForm";
 import OptimizedImage from "@/components/OptimizedImage";
-import { useStructuredData } from "@/hooks/useStructuredData";
+import { BreadcrumbsWithSchema, generatePageBreadcrumbs } from "@/components/Breadcrumbs";
+import { generateOrganizationSchema } from "@/lib/services/schemaService";
 
 const About = () => {
-  const { generateOrganizationStructuredData } = useStructuredData();
+  // Générer les breadcrumbs
+  const breadcrumbs = generatePageBreadcrumbs("À propos");
   
   // Données structurées pour la page À propos
   const personStructuredData = {
@@ -47,7 +49,7 @@ const About = () => {
     ]
   };
 
-  const organizationData = generateOrganizationStructuredData();
+  const organizationData = generateOrganizationSchema();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -61,6 +63,15 @@ const About = () => {
       <Header />
       
       <main className="flex-grow">
+        {/* Breadcrumbs */}
+        <div className="container mx-auto px-4 pt-4">
+          <BreadcrumbsWithSchema 
+            items={breadcrumbs} 
+            generateSchema={true}
+            siteUrl="https://emergences.novahypnose.fr"
+          />
+        </div>
+        
         {/* Hero section avec image d'Alain */}
         <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
           <div className="container mx-auto px-4">

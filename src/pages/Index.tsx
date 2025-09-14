@@ -11,7 +11,7 @@ import Pagination from "@/components/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticlesNoPagination, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
-import { useStructuredData } from "@/hooks/useStructuredData";
+import { generateWebsiteSchema, generateOrganizationSchema } from "@/lib/services/schemaService";
 import { usePreloadLCPImage } from "@/hooks/usePreloadCriticalResources";
 
 // Configuration de la pagination
@@ -26,7 +26,10 @@ const Index = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const { generateWebsiteStructuredData, generateBlogStructuredData, generateOrganizationStructuredData } = useStructuredData();
+  // Générer les données structurées pour le site
+  const websiteSchema = generateWebsiteSchema();
+  const organizationSchema = generateOrganizationSchema();
+  const structuredData = [websiteSchema, organizationSchema];
   
   // ✅ GESTION DU PARAMÈTRE CATÉGORIE DEPUIS L'URL
   useEffect(() => {
@@ -184,10 +187,6 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
-  // Générer les données structurées pour la page d'accueil
-  const websiteStructuredData = generateWebsiteStructuredData();
-  const blogStructuredData = generateBlogStructuredData();
-  const organizationStructuredData = generateOrganizationStructuredData();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -195,7 +194,7 @@ const Index = () => {
         title="Émergences - le blog de NovaHypnose"
         description="Blog d'Alain Zenatti, hypnothérapeute à Paris. Découvrez l'hypnose ericksonienne et la transformation intérieure pour votre bien-être."
         keywords={["hypnose", "hypnothérapie", "hypnose Paris", "Alain Zenatti", "hypnothérapeute Paris", "bien-être", "transformation", "développement personnel", "gestion du stress", "hypnose ericksonienne"]}
-        structuredData={[websiteStructuredData, blogStructuredData, organizationStructuredData]}
+        structuredData={structuredData}
       />
       
       <Header />
@@ -332,6 +331,73 @@ const Index = () => {
               >
                 Voir la FAQ
               </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Application Mobile */}
+        <div className="mt-16">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-serif font-medium mb-4">Application Mobile</h2>
+              <p className="text-lg text-gray-700 mb-6">
+                Prolongez les bienfaits de vos séances d'hypnothérapie avec notre application mobile gratuite dédiée aux techniques de respiration.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-sm max-w-4xl mx-auto">
+              <h3 className="text-2xl font-serif font-medium mb-4 text-center text-nova-700">NovaRespire</h3>
+              <p className="text-gray-700 mb-6 text-center">
+                Créée par Alain Zenatti, NovaRespire est votre compagnon quotidien gratuit pour la gestion du stress et de l'anxiété. 
+                Cette application vous propose une collection d'exercices de respiration guidés basés sur l'hypnothérapie.
+              </p>
+              
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </div>
+                  <h4 className="font-medium text-gray-900 mb-2">Techniques de respiration</h4>
+                  <p className="text-sm text-gray-600">Exercices guidés pour retrouver le calme instantanément</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
+                  <h4 className="font-medium text-gray-900 mb-2">Respiration guidée</h4>
+                  <p className="text-sm text-gray-600">Techniques variées adaptées à vos besoins du moment</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <h4 className="font-medium text-gray-900 mb-2">Bien-être quotidien</h4>
+                  <p className="text-sm text-gray-600">Outils pratiques pour gérer stress et anxiété au quotidien</p>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.novahypnose.novarespire&pcampaignid=web_share"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block hover:opacity-90 transition-opacity"
+                >
+                  <img 
+                    src="https://storage.googleapis.com/pe-portal-consumer-prod-wagtail-static/images/googleplay-badge-01-getit.max-1920x1070.format-webp.webp?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=wagtail%40pe-portal-consumer-prod.iam.gserviceaccount.com%2F20250914%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250914T124848Z&X-Goog-Expires=86400&X-Goog-SignedHeaders=host&X-Goog-Signature=0a861cf92c5de381f353012e3a2631898c8a1cfec8ad06e829356c76f498afef0d06f2abc769873f4066893f236db48cca7d253d175bfe6fdce1df6946c1038dd6a424b40945b7e9d747337b9df8c05e13f7202b598f1b3a9178919f551daedbe6484cd5c1f98a12509ca33fca0d776a6126d822147e8999060d0f0256e36c9d9c567af97e6fd47d2854e680dc7bacbe4d1740879eaa7ce0e9e54af0b7a49b209c488f4e209810fed9ff56125a6ef1b68684514b27a33a43f7a5d07261beafc41d342caac635fd6ae4285ea629a49924c66e26606a851dadf651135db3655f405ba4193050bff491172ef3aa5a3d29645a5aa5508e7a637c43a2979f596ed356"
+                    alt="Disponible sur Google Play"
+                    className="h-16 w-auto"
+                  />
+                </a>
+              </div>
             </div>
           </div>
         </div>

@@ -88,12 +88,12 @@ const Footer = () => {
               <ul className="mt-4 space-y-2">
                 <li>
                   <a 
-                    href="https://www.inserm.fr/dossier/hypnose/" 
+                    href="https://fr.wikipedia.org/wiki/Hypnothérapie" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
                   >
-                    INSERM - Hypnose
+                    Hypnothérapie - Wikipédia
                   </a>
                 </li>
                 <li>
@@ -108,12 +108,12 @@ const Footer = () => {
                 </li>
                 <li>
                   <a 
-                    href="https://www.revue-hypnose.com/" 
+                    href="https://www.hypnose-ericksonienne.org/" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
                   >
-                    Revue Hypnose
+                    Hypnose Ericksonienne
                   </a>
                 </li>
               </ul>

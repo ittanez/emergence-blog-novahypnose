@@ -10,34 +10,64 @@ const supabase = createClient(
 // Fonction pour synchroniser un article avec Firebase
 const syncArticleToFirebase = async (article: any) => {
   try {
-    console.log('🔥 Synchronisation Firebase pour:', article.slug);
+    console.log('🔥 Déclenchement synchronisation Firebase pour article:', article.slug);
     
-    const response = await fetch('https://akrlyzmfszumibwgocae.supabase.co/functions/v1/sync-to-firebase', {
+    // Appel de la nouvelle edge function to_firebase
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/to_firebase`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        article_id: article.id,
+        // Données de fallback au cas où l'article ne serait pas trouvé
         title: article.title,
         slug: article.slug,
         excerpt: article.excerpt || '',
+        content: article.content || '',
+        image_url: article.image_url || article.storage_image_url || '',
         published_at: article.created_at || new Date().toISOString(),
         read_time: article.read_time || 5,
-        category: article.categories?.[0] || 'general'
+        categories: article.categories || ['general'],
+        tags: article.tags || [],
+        author: article.author || 'Novahypnose',
+        keywords: article.keywords || [],
+        seo_description: article.seo_description || article.excerpt || '',
+        featured: article.featured || false
       })
     });
 
     const result = await response.json();
     
-    if (response.ok) {
+    if (response.ok && result.success) {
       console.log('✅ Synchronisation Firebase réussie:', result.message);
+      
+      // Optionnel: Notification de succès
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('firebase-sync-success', {
+          detail: { articleId: article.id, slug: article.slug, message: result.message }
+        }));
+      }
     } else {
-      console.warn('⚠️ Échec synchronisation Firebase:', result.error);
+      console.warn('⚠️ Échec synchronisation Firebase:', result.error || 'Erreur inconnue');
+      
+      // Optionnel: Notification d'erreur
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('firebase-sync-error', {
+          detail: { articleId: article.id, error: result.error }
+        }));
+      }
     }
   } catch (error) {
     console.warn('⚠️ Erreur synchronisation Firebase:', error);
+    
     // Ne pas faire échouer la sauvegarde si Firebase échoue
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('firebase-sync-error', {
+        detail: { articleId: article.id, error: error.message }
+      }));
+    }
   }
 };
 

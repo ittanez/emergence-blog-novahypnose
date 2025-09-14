@@ -15,6 +15,7 @@ const ArticlePage = lazy(() => import("./pages/ArticlePage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const About = lazy(() => import("./pages/About"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const Sitemap = lazy(() => import("./pages/Sitemap"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminArticles = lazy(() => import("./pages/AdminArticles"));
@@ -57,6 +58,7 @@ const App = () => {
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/faq" element={<FAQ />} />
+                  <Route path="/sitemap" element={<Sitemap />} />
                   <Route path="/admin" element={<AdminLogin />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
                   <Route path="/admin/reset-password" element={<AdminResetPassword />} />

@@ -20,7 +20,7 @@ const Footer = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-2 gap-8 md:gap-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12">
             <div>
               <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wider">Explorer</h3>
               <ul className="mt-4 space-y-2">
@@ -37,6 +37,11 @@ const Footer = () => {
                 <li>
                   <Link to="/faq" className="text-gray-600 hover:text-nova-700 transition-colors text-sm">
                     FAQ
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/sitemap" className="text-gray-600 hover:text-nova-700 transition-colors text-sm">
+                    Plan du site
                   </Link>
                 </li>
               </ul>
@@ -57,12 +62,12 @@ const Footer = () => {
                 </li>
                 <li>
                   <a 
-                    href="https://novahypnose.fr/#about" 
+                    href="https://peur-de-parler-en-public.novahypnose.fr" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
                   >
-                    À propos
+                    Peur de parler en public
                   </a>
                 </li>
                 <li>
@@ -73,6 +78,42 @@ const Footer = () => {
                     className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
                   >
                     Rendez-vous
+                  </a>
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wider">Ressources</h3>
+              <ul className="mt-4 space-y-2">
+                <li>
+                  <a 
+                    href="https://www.inserm.fr/dossier/hypnose/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
+                  >
+                    INSERM - Hypnose
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="https://www.cfhtb.org/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
+                  >
+                    CFHTB
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="https://www.revue-hypnose.com/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-nova-700 transition-colors text-sm"
+                  >
+                    Revue Hypnose
                   </a>
                 </li>
               </ul>

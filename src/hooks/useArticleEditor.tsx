@@ -339,13 +339,58 @@ export const useArticleEditor = () => {
       if (error) throw error;
       if (!data) throw new Error("Aucune donnée n'a été retournée lors de l'enregistrement");
       
-      const successMessage = publishMode === "draft" 
-        ? "Article enregistré comme brouillon" 
-        : publishMode === "schedule" 
-        ? "Article programmé avec succès" 
-        : "Article publié avec succès";
+      // Messages de succès personnalisés
+      let successMessage = "";
+      let description = "";
       
-      toast.success(successMessage);
+      if (publishMode === "draft") {
+        successMessage = "Article enregistré comme brouillon";
+        description = "L'article a été sauvegardé et pourra être publié plus tard.";
+      } else if (publishMode === "schedule") {
+        successMessage = "Article programmé avec succès";
+        description = `L'article sera publié automatiquement le ${scheduledDate?.toLocaleDateString()}.`;
+      } else {
+        successMessage = "Article publié avec succès";
+        description = "L'article est maintenant visible publiquement et synchronisé avec Firebase.";
+      }
+      
+      // Affichage du toast de succès principal
+      toast.success(successMessage, { description });
+      
+      // Si l'article est publié, ajouter un écouteur pour la synchronisation Firebase
+      if (articleToSave.published) {
+        // Écouter les événements de synchronisation Firebase
+        const handleFirebaseSuccess = (event: CustomEvent) => {
+          if (event.detail.articleId === data.id) {
+            toast.success("🔥 Article synchronisé avec Firebase", {
+              description: "L'article est maintenant disponible dans l'application mobile."
+            });
+            window.removeEventListener('firebase-sync-success', handleFirebaseSuccess);
+            window.removeEventListener('firebase-sync-error', handleFirebaseError);
+          }
+        };
+        
+        const handleFirebaseError = (event: CustomEvent) => {
+          if (event.detail.articleId === data.id) {
+            console.warn('Firebase sync failed:', event.detail.error);
+            toast.error("⚠️ Synchronisation Firebase échouée", {
+              description: "L'article est publié mais n'a pas pu être synchronisé avec l'app mobile."
+            });
+            window.removeEventListener('firebase-sync-success', handleFirebaseSuccess);
+            window.removeEventListener('firebase-sync-error', handleFirebaseError);
+          }
+        };
+        
+        window.addEventListener('firebase-sync-success', handleFirebaseSuccess);
+        window.addEventListener('firebase-sync-error', handleFirebaseError);
+        
+        // Nettoyer les écouteurs après 10 secondes
+        setTimeout(() => {
+          window.removeEventListener('firebase-sync-success', handleFirebaseSuccess);
+          window.removeEventListener('firebase-sync-error', handleFirebaseError);
+        }, 10000);
+      }
+      
       navigate('/admin/articles');
     } catch (error: any) {
       console.error("Erreur lors de la sauvegarde de l'article:", error);

@@ -27,6 +27,70 @@ export const useAdminArticlesActions = () => {
     }
   };
 
+  const handleTogglePublishStatus = async (article: any) => {
+    const newStatus = !article.published;
+    const actionText = newStatus ? 'publier' : 'dépublier';
+    
+    if (!window.confirm(`Êtes-vous sûr de vouloir ${actionText} l'article "${article.title}" ?`)) {
+      return;
+    }
+
+    try {
+      // Importer dynamiquement le service d'article
+      const { saveArticle } = await import('@/lib/services/articleService');
+      
+      const updatedArticle = {
+        ...article,
+        published: newStatus,
+        scheduled_for: null // Annuler la programmation si elle existe
+      };
+
+      const result = await saveArticle(updatedArticle);
+      
+      if (result.error) {
+        throw new Error(result.error.message || `Erreur lors de la ${actionText}ication`);
+      }
+
+      toast({
+        title: newStatus ? "Article publié" : "Article dépublié",
+        description: newStatus 
+          ? `L'article "${article.title}" est maintenant visible publiquement et sera synchronisé avec Firebase.`
+          : `L'article "${article.title}" n'est plus visible publiquement.`,
+      });
+      
+      // Rafraîchir la liste des articles
+      queryClient.invalidateQueries({ queryKey: ['admin-articles'] });
+
+      // Si l'article vient d'être publié, écouter la synchronisation Firebase
+      if (newStatus && result.data) {
+        const handleFirebaseSuccess = (event: CustomEvent) => {
+          if (event.detail.articleId === result.data.id) {
+            toast({
+              title: "🔥 Synchronisation Firebase réussie",
+              description: "L'article est maintenant disponible dans l'application mobile.",
+            });
+            window.removeEventListener('firebase-sync-success', handleFirebaseSuccess);
+          }
+        };
+        
+        window.addEventListener('firebase-sync-success', handleFirebaseSuccess);
+        
+        // Nettoyer l'écouteur après 10 secondes
+        setTimeout(() => {
+          window.removeEventListener('firebase-sync-success', handleFirebaseSuccess);
+        }, 10000);
+      }
+
+    } catch (error: any) {
+      console.error(`Erreur ${actionText}ication:`, error);
+      toast({
+        title: "Erreur",
+        description: `Impossible de ${actionText} l'article. Veuillez réessayer.`,
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleEditArticle = (articleId: string) => {
     navigate(`/admin/article/${articleId}`);
   };
@@ -102,6 +166,7 @@ export const useAdminArticlesActions = () => {
     handleViewArticle,
     handleEditArticle,
     handleDeleteArticle,
-    handleShareArticle
+    handleShareArticle,
+    handleTogglePublishStatus
   };
 };

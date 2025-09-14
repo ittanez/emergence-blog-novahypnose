@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import RelatedArticles from "@/components/RelatedArticles";
 import { toast } from "sonner";
 import { getArticleBySlug, getRelatedArticles, getAllArticlesNoPagination } from "@/lib/services/articleService";
 import { articles } from "@/lib/mock-data";
@@ -323,6 +324,13 @@ const ArticlePage = () => {
               <div 
                 className="article-hypnose"
                 dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(article.content) }}
+              />
+              
+              {/* ✅ ARTICLES CONNEXES */}
+              <RelatedArticles 
+                currentArticleId={article.id} 
+                currentArticleCategory={article.category}
+                maxArticles={3}
               />
               
               {/* ✅ NAVIGATION PRÉCÉDENT/SUIVANT */}

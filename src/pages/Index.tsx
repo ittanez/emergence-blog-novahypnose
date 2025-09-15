@@ -199,7 +199,14 @@ const Index = () => {
       
       <Header />
       
-      <main className="flex-grow container mx-auto px-4 pt-8 pb-12" style={{ marginTop: '1rem' }}>
+      <main
+        className="flex-grow container mx-auto px-4 pt-8 pb-12"
+        style={{
+          marginTop: '2rem',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
         {/* ✅ OPTIMISATION CLS : Hero section avec dimensions fixes */}
         <div className="mb-12 text-center min-h-[200px] flex flex-col justify-center">
           <h1

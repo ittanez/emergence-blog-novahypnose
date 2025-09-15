@@ -156,6 +156,24 @@
     font-size: 2rem !important;
     line-height: 2.5rem !important;
   }
+
+  /* Fix card layout on mobile */
+  .group {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  .aspect-video {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  /* Ensure text doesn't overlap with images */
+  h3, p {
+    position: relative !important;
+    z-index: 2 !important;
+    background: white !important;
+  }
 }
 
 /* Android WebView compatibility fixes */

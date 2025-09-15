@@ -76,10 +76,26 @@ const ArticleCard = ({ article, isFirst = false, isLCP = false }: ArticleCardPro
   const displayTags = parseTagsForDisplay(article.tags);
 
   return (
-    <Card className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-      <Link to={`/article/${article.slug}`} className="block">
+    <Card
+      className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        position: 'relative'
+      }}
+    >
+      <Link to={`/article/${article.slug}`} className="block" style={{ display: 'block', height: '100%' }}>
         {/* ✅ OPTIMISATION CLS : Container avec aspect-ratio fixe */}
-        <div className="aspect-video overflow-hidden relative bg-gray-100">
+        <div
+          className="aspect-video overflow-hidden relative bg-gray-100"
+          style={{
+            position: 'relative',
+            width: '100%',
+            aspectRatio: '16/9',
+            overflow: 'hidden'
+          }}
+        >
           {isFirst || isLCP ? (
             <OptimizedImage
               src={article.image_url || "/placeholder.svg"}
@@ -111,9 +127,20 @@ const ArticleCard = ({ article, isFirst = false, isLCP = false }: ArticleCardPro
             </LazyLoadWrapper>
           )}
         </div>
-        
+
         {/* ✅ OPTIMISATION CLS : Contenu avec hauteur minimum fixe */}
-        <CardContent className="p-6 min-h-[160px] flex flex-col">
+        <CardContent
+          className="p-6 min-h-[160px] flex flex-col"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '1.5rem',
+            minHeight: '160px',
+            flex: '1',
+            position: 'relative',
+            zIndex: 2
+          }}
+        >
           {/* ✅ TAGS CORRIGÉS - Hauteur fixe pour éviter CLS */}
           <div className="min-h-[32px] mb-3">
             {displayTags.length > 0 && (
@@ -131,11 +158,36 @@ const ArticleCard = ({ article, isFirst = false, isLCP = false }: ArticleCardPro
             )}
           </div>
           
-          <h3 className="text-xl font-serif font-medium mb-3 group-hover:text-nova-700 transition-colors line-clamp-2 flex-grow">
+          <h3
+            className="text-xl font-serif font-medium mb-3 group-hover:text-nova-700 transition-colors line-clamp-2"
+            style={{
+              fontSize: '1.25rem',
+              lineHeight: '1.4',
+              marginBottom: '0.75rem',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
             {article.title}
           </h3>
-          
-          <p className="text-gray-600 mb-4 line-clamp-2 text-sm">
+
+          <p
+            className="text-gray-600 mb-4 line-clamp-2 text-sm"
+            style={{
+              fontSize: '0.875rem',
+              lineHeight: '1.5',
+              marginBottom: '1rem',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flex: '1'
+            }}
+          >
             {article.excerpt}
           </p>
           

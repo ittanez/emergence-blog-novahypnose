@@ -176,12 +176,15 @@
   }
 }
 
-/* Android WebView compatibility fixes */
+/* Android WebView compatibility fixes - AGGRESSIVE MODE */
 @supports (-webkit-appearance: none) {
   h1, h2, h3, h4, h5, h6 {
     font-family: "Playfair Display", serif !important;
     display: block !important;
     visibility: visible !important;
+    position: relative !important;
+    z-index: 999 !important;
+    background-color: white !important;
   }
 
   .flex {
@@ -209,6 +212,33 @@
     max-width: 100% !important;
     height: auto !important;
     visibility: visible !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  /* FORCE WebView Android layout */
+  .group {
+    display: block !important;
+    position: relative !important;
+    background: white !important;
+    margin-bottom: 2rem !important;
+    overflow: visible !important;
+  }
+
+  .aspect-video {
+    width: 100% !important;
+    height: 200px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .p-6 {
+    padding: 1.5rem !important;
+    position: relative !important;
+    z-index: 10 !important;
+    background: white !important;
+    margin-top: 0 !important;
   }
 }
 
@@ -218,6 +248,29 @@
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
     backface-visibility: hidden;
+  }
+}
+
+/* TEMPORARY DEBUG - Remove after testing */
+.debug-webview {
+  border: 3px solid red !important;
+  background: yellow !important;
+  opacity: 0.8 !important;
+}
+
+/* Force all text to be visible on mobile */
+@media (max-width: 767px) {
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    color: black !important;
+    background: white !important;
+    position: relative !important;
+    z-index: 999 !important;
+  }
+
+  .aspect-video {
+    height: 180px !important;
+    background: #f0f0f0 !important;
+    border: 2px solid #ccc !important;
   }
 }
 

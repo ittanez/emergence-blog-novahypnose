@@ -11,6 +11,7 @@ import Pagination from "@/components/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticlesNoPagination, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
+import SimpleCard from "@/components/SimpleCard";
 import { generateWebsiteSchema, generateOrganizationSchema } from "@/lib/services/schemaService";
 import { usePreloadLCPImage } from "@/hooks/usePreloadCriticalResources";
 
@@ -282,11 +283,9 @@ const Index = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {currentPageArticles.map((article, index) => (
-                <ArticleCard 
-                  key={article.id} 
-                  article={article}  
-                  isFirst={currentPage === 1 && index === 0}
-                  isLCP={currentPage === 1 && index === 0}
+                <SimpleCard
+                  key={article.id}
+                  article={article}
                 />
               ))}
             </div>

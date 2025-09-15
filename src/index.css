@@ -251,28 +251,6 @@
   }
 }
 
-/* TEMPORARY DEBUG - Remove after testing */
-.debug-webview {
-  border: 3px solid red !important;
-  background: yellow !important;
-  opacity: 0.8 !important;
-}
-
-/* Force all text to be visible on mobile */
-@media (max-width: 767px) {
-  h1, h2, h3, h4, h5, h6, p, span, div {
-    color: black !important;
-    background: white !important;
-    position: relative !important;
-    z-index: 999 !important;
-  }
-
-  .aspect-video {
-    height: 180px !important;
-    background: #f0f0f0 !important;
-    border: 2px solid #ccc !important;
-  }
-}
 
 .article-content {
   @apply prose lg:prose-lg max-w-none;

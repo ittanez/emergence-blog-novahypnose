@@ -283,10 +283,23 @@ const Index = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {currentPageArticles.map((article, index) => (
-                <SimpleCard
-                  key={article.id}
-                  article={article}
-                />
+                <>
+                  {/* Version desktop - cachée sur mobile */}
+                  <div className="hidden md:block" key={`desktop-${article.id}`}>
+                    <ArticleCard
+                      article={article}
+                      isFirst={currentPage === 1 && index === 0}
+                      isLCP={currentPage === 1 && index === 0}
+                    />
+                  </div>
+
+                  {/* Version mobile - cachée sur desktop */}
+                  <div className="block md:hidden" key={`mobile-${article.id}`}>
+                    <SimpleCard
+                      article={article}
+                    />
+                  </div>
+                </>
               ))}
             </div>
             

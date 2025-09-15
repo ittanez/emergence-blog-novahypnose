@@ -202,7 +202,17 @@ const Index = () => {
       <main className="flex-grow container mx-auto px-4 pt-8 pb-12">
         {/* ✅ OPTIMISATION CLS : Hero section avec dimensions fixes */}
         <div className="mb-12 text-center min-h-[200px] flex flex-col justify-center">
-          <h1 className="font-serif mb-4 text-4xl md:text-5xl lg:text-6xl">Émergences</h1>
+          <h1
+            className="font-serif mb-4 text-4xl md:text-5xl lg:text-6xl"
+            style={{
+              fontFamily: '"Playfair Display", "Times New Roman", serif',
+              fontWeight: '500',
+              display: 'block',
+              visibility: 'visible'
+            }}
+          >
+            Émergences
+          </h1>
           <div className="hero-paragraph min-h-[60px] flex items-center justify-center">
             <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Regards sur l'hypnose, la transformation intérieure et le bien-être – une exploration guidée par Alain Zenatti.

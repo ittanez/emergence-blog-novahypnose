@@ -158,6 +158,35 @@
   }
 }
 
+/* Android WebView compatibility fixes */
+@supports (-webkit-appearance: none) {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Playfair Display", serif !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .flex {
+    display: -webkit-flex !important;
+    display: flex !important;
+  }
+
+  .flex-col {
+    -webkit-flex-direction: column !important;
+    flex-direction: column !important;
+  }
+
+  .justify-center {
+    -webkit-justify-content: center !important;
+    justify-content: center !important;
+  }
+
+  .items-center {
+    -webkit-align-items: center !important;
+    align-items: center !important;
+  }
+}
+
 .article-content {
   @apply prose lg:prose-lg max-w-none;
 }

@@ -69,34 +69,49 @@ const OptimizedImage = ({
     const img = imgRef.current;
     if (!img) return;
 
-    // Pour les images LCP ou eagerly loaded, ne pas utiliser l'intersection observer
+    // Pour les images LCP ou eagerly loaded, charger immédiatement
     if (loading === "eager" || isLCP) {
       setImageSrc(optimizedSrc);
       return;
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setImageSrc(optimizedSrc);
-            observer.unobserve(img);
-          }
-        });
-      },
-      {
-        threshold: 0.1,
-        rootMargin: isLCP ? "200px" : "100px" // Marge plus grande pour LCP
-      }
-    );
+    // Détection WebView Android - forcer le chargement immédiat
+    const isAndroidWebView = /Android.*wv|Android.*Version\/\d\.\d\s+Mobile|; ?wv\)|Android.*Chrome\/(?:[0-9]{1,2}\.).*Mobile/i.test(navigator.userAgent);
 
-    observer.observe(img);
+    if (isAndroidWebView) {
+      // Dans WebView Android, charger toutes les images immédiatement
+      setImageSrc(optimizedSrc);
+      return;
+    }
 
-    return () => {
-      if (img) {
-        observer.unobserve(img);
-      }
-    };
+    // Utiliser IntersectionObserver seulement si supporté
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setImageSrc(optimizedSrc);
+              observer.unobserve(img);
+            }
+          });
+        },
+        {
+          threshold: 0.1,
+          rootMargin: isLCP ? "200px" : "100px"
+        }
+      );
+
+      observer.observe(img);
+
+      return () => {
+        if (img) {
+          observer.unobserve(img);
+        }
+      };
+    } else {
+      // Fallback : charger immédiatement si IntersectionObserver n'est pas supporté
+      setImageSrc(optimizedSrc);
+    }
   }, [optimizedSrc, loading, isLCP]);
 
   const handleLoad = () => {

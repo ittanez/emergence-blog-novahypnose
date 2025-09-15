@@ -123,11 +123,8 @@ const OptimizedImage = ({
     setImageSrc(placeholder);
   };
 
-  // Détection WebView Android pour simplifier les attributs
-  const isAndroidWebView = /Android.*wv|Android.*Version\/\d\.\d\s+Mobile|; ?wv\)|Android.*Chrome\/(?:[0-9]{1,2}\.).*Mobile/i.test(navigator.userAgent);
-
-  const srcSet = !isAndroidWebView ? generateSrcSet(src, width || 400) : undefined;
-  const sizes = !isAndroidWebView ? generateSizes(width || 400) : undefined;
+  const srcSet = generateSrcSet(src, width || 400);
+  const sizes = generateSizes(width || 400);
 
   return (
     <img
@@ -139,17 +136,11 @@ const OptimizedImage = ({
       className={`transition-opacity duration-300 ${
         isLoaded && !hasError ? "opacity-100" : "opacity-75"
       } ${className}`}
-      style={{
-        display: 'block',
-        width: width ? `${width}px` : '100%',
-        height: height ? `${height}px` : 'auto',
-        objectFit: 'cover'
-      }}
       width={width}
       height={height}
       onLoad={handleLoad}
       onError={handleError}
-      loading={isAndroidWebView ? "eager" : loading}
+      loading={loading}
       fetchPriority={fetchPriority}
       decoding={isLCP ? "sync" : "async"}
     />

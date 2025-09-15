@@ -11,7 +11,6 @@ import Pagination from "@/components/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllArticlesNoPagination, getAllCategories } from "@/lib/services/articleService";
 import ArticleCard from "@/components/ArticleCard";
-import SimpleCard from "@/components/SimpleCard";
 import { generateWebsiteSchema, generateOrganizationSchema } from "@/lib/services/schemaService";
 import { usePreloadLCPImage } from "@/hooks/usePreloadCriticalResources";
 
@@ -200,14 +199,7 @@ const Index = () => {
       
       <Header />
       
-      <main
-        className="flex-grow container mx-auto px-4 pt-8 pb-12"
-        style={{
-          marginTop: '2rem',
-          position: 'relative',
-          zIndex: 1
-        }}
-      >
+      <main className="flex-grow container mx-auto px-4 pt-8 pb-12">
         {/* ✅ OPTIMISATION CLS : Hero section avec dimensions fixes */}
         <div className="mb-12 text-center min-h-[200px] flex flex-col justify-center">
           <h1
@@ -283,23 +275,12 @@ const Index = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {currentPageArticles.map((article, index) => (
-                <>
-                  {/* Version desktop - cachée sur mobile */}
-                  <div className="hidden md:block" key={`desktop-${article.id}`}>
-                    <ArticleCard
-                      article={article}
-                      isFirst={currentPage === 1 && index === 0}
-                      isLCP={currentPage === 1 && index === 0}
-                    />
-                  </div>
-
-                  {/* Version mobile - cachée sur desktop */}
-                  <div className="block md:hidden" key={`mobile-${article.id}`}>
-                    <SimpleCard
-                      article={article}
-                    />
-                  </div>
-                </>
+                <ArticleCard 
+                  key={article.id} 
+                  article={article}  
+                  isFirst={currentPage === 1 && index === 0}
+                  isLCP={currentPage === 1 && index === 0}
+                />
               ))}
             </div>
             

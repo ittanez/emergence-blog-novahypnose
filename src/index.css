@@ -156,35 +156,14 @@
     font-size: 2rem !important;
     line-height: 2.5rem !important;
   }
-
-  /* Fix card layout on mobile */
-  .group {
-    position: relative !important;
-    overflow: visible !important;
-  }
-
-  .aspect-video {
-    position: relative !important;
-    z-index: 1 !important;
-  }
-
-  /* Ensure text doesn't overlap with images */
-  h3, p {
-    position: relative !important;
-    z-index: 2 !important;
-    background: white !important;
-  }
 }
 
-/* Android WebView compatibility fixes - AGGRESSIVE MODE */
+/* Android WebView compatibility fixes */
 @supports (-webkit-appearance: none) {
   h1, h2, h3, h4, h5, h6 {
     font-family: "Playfair Display", serif !important;
     display: block !important;
     visibility: visible !important;
-    position: relative !important;
-    z-index: 999 !important;
-    background-color: white !important;
   }
 
   .flex {
@@ -206,51 +185,7 @@
     -webkit-align-items: center !important;
     align-items: center !important;
   }
-
-  img {
-    display: block !important;
-    max-width: 100% !important;
-    height: auto !important;
-    visibility: visible !important;
-    position: relative !important;
-    z-index: 1 !important;
-  }
-
-  /* FORCE WebView Android layout */
-  .group {
-    display: block !important;
-    position: relative !important;
-    background: white !important;
-    margin-bottom: 2rem !important;
-    overflow: visible !important;
-  }
-
-  .aspect-video {
-    width: 100% !important;
-    height: 200px !important;
-    position: relative !important;
-    overflow: hidden !important;
-    margin-bottom: 1rem !important;
-  }
-
-  .p-6 {
-    padding: 1.5rem !important;
-    position: relative !important;
-    z-index: 10 !important;
-    background: white !important;
-    margin-top: 0 !important;
-  }
 }
-
-/* Specific Android WebView image fixes */
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-  img {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-}
-
 
 .article-content {
   @apply prose lg:prose-lg max-w-none;

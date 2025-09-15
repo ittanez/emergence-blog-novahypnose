@@ -50,10 +50,7 @@ const Header = () => {
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-6" style={{ 
-            display: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'flex' : 'none', 
-            gap: '1.5rem' 
-          }}>
+          <nav className="hidden md:flex space-x-6">
             {menuItems.map((item) => (
               item.external ? (
                 <a 
@@ -101,19 +98,10 @@ const Header = () => {
           </nav>
           
           {/* Mobile menu button */}
-          <button 
-            className="md:hidden"
+          <button
+            className="md:hidden p-2 text-gray-600 hover:text-nova-700"
             onClick={toggleMenu}
             aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            style={{
-              display: typeof window !== 'undefined' && window.innerWidth >= 768 ? 'none' : 'block',
-              padding: '0.5rem',
-              border: 'none',
-              backgroundColor: 'transparent',
-              cursor: 'pointer',
-              color: '#4b5563',
-              zIndex: 51
-            }}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

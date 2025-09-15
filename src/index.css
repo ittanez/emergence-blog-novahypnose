@@ -93,42 +93,68 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+    /* Prevent text overflow on mobile */
+    word-wrap: break-word;
+    hyphens: auto;
   }
-  
+
   h1 {
     @apply text-3xl md:text-4xl lg:text-5xl font-medium;
   }
-  
+
   h2 {
     @apply text-2xl md:text-3xl font-medium mt-6 mb-4;
   }
-  
+
   h3 {
     @apply text-xl md:text-2xl font-medium mt-5 mb-3;
   }
-  
+
   p {
     @apply my-4;
   }
-  
+
   ul, ol {
     @apply my-4 ml-6;
   }
-  
+
   li {
     @apply mb-2;
   }
-  
+
   ul li {
     @apply list-disc;
   }
-  
+
   ol li {
     @apply list-decimal;
+  }
+}
+
+/* Mobile-specific improvements only - no desktop changes */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .grid {
+    gap: 1rem !important;
+  }
+
+  h1 {
+    font-size: 2rem !important;
+    line-height: 2.5rem !important;
   }
 }
 

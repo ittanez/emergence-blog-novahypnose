@@ -16,13 +16,14 @@ const Header = () => {
   ];
 
   return (
-    <header 
-      className="border-b" 
-      style={{ 
+    <header
+      className="border-b sticky top-0"
+      style={{
         borderBottom: '1px solid #e5e7eb',
         backgroundColor: 'white',
-        position: 'relative',
-        zIndex: 50,
+        position: 'sticky',
+        top: '0',
+        zIndex: 100,
         width: '100%'
       }}
     >

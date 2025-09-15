@@ -185,6 +185,22 @@
     -webkit-align-items: center !important;
     align-items: center !important;
   }
+
+  img {
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    visibility: visible !important;
+  }
+}
+
+/* Specific Android WebView image fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  img {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
 }
 
 .article-content {

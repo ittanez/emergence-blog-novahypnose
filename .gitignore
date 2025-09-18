@@ -23,3 +23,19 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Security: Never commit sensitive files
+*.pem
+*.key
+*-key.json
+service-account*.json
+.env.local
+.env.production
+secrets/
+credentials/
+
+# Analytics scripts with potential keys
+get-*.py
+get-*.sh
+*-ga-*.py
+*-analytics-*.sh

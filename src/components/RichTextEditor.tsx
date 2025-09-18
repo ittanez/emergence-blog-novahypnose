@@ -3,6 +3,22 @@ import { useRef, useState } from 'react';
 import { Label } from "@/components/ui/label";
 import { Editor } from '@tinymce/tinymce-react';
 
+// Types pour TinyMCE
+interface TinyMCEEditor {
+  getContent: () => string;
+  setContent: (content: string) => void;
+  focus: () => void;
+}
+
+interface BlobInfo {
+  blob: () => Blob;
+  filename: () => string;
+}
+
+interface UploadHandler {
+  (blobInfo: BlobInfo, progress: (percent: number) => void): Promise<string>;
+}
+
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -11,7 +27,7 @@ interface RichTextEditorProps {
 }
 
 const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditorProps) => {
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<TinyMCEEditor | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   return (
@@ -25,7 +41,7 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
       <div style={{ display: isReady ? 'block' : 'none' }}>
         <Editor
           apiKey="6q2l0qo2d981lsmsnugf2o15m593samljjw043nc4ol1ao8t"
-          onInit={(evt: any, editor: any) => {
+          onInit={(evt: Event, editor: TinyMCEEditor) => {
             editorRef.current = editor;
             setIsReady(true);
           }}
@@ -46,11 +62,11 @@ const RichTextEditor = ({ value, onChange, label, height = 500 }: RichTextEditor
               'link image media | removeformat | help',
             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
             image_advtab: true,
-            images_upload_handler: (blobInfo: any, progress: any) => {
-              return new Promise((resolve, reject) => {
+            images_upload_handler: (blobInfo: BlobInfo, progress: (percent: number) => void) => {
+              return new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                  if (e.target) {
+                  if (e.target?.result) {
                     resolve(e.target.result as string);
                   } else {
                     reject('Erreur lors de la lecture du fichier');

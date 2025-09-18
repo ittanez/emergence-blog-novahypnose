@@ -8,7 +8,7 @@ const supabase = createClient(
 );
 
 // Fonction pour synchroniser un article avec Firebase
-const syncArticleToFirebase = async (article: any) => {
+const syncArticleToFirebase = async (article: Article) => {
   try {
     console.log('🔥 Déclenchement synchronisation Firebase pour article:', article.slug);
     
@@ -89,7 +89,7 @@ export const getAllArticles = async (page: number = 1, pageSize: number = 10) =>
     // Nettoyer les données avant de les retourner
     const sanitizedData = data ? data.map(article => sanitizeData(article)) : null;
     return { data: sanitizedData, error: null, count };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la récupération des articles:", error);
     return { data: null, error, count: 0 };
   }
@@ -108,7 +108,7 @@ export const getAllArticlesNoPagination = async () => {
     }
 
     return { data, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la récupération des articles:", error);
     return { data: null, error };
   }
@@ -128,7 +128,7 @@ export const getArticleById = async (id: string) => {
     }
 
     return { data, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la récupération de l'article:", error);
     return { data: null, error };
   }
@@ -153,7 +153,7 @@ export const getArticleBySlug = async (slug: string) => {
     }
 
     return { data, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la récupération de l'article:", error);
     return { data: null, error };
   }
@@ -173,7 +173,7 @@ export const getPopularArticles = async (limit: number = 3) => {
     }
 
     return { data, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la récupération des articles populaires:", error);
     return { data: null, error };
   }
@@ -210,7 +210,7 @@ export const getRelatedArticles = async (articleId: string, limit: number = 3) =
     }
 
     return { data, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la récupération des articles similaires:", error);
     return { data: null, error };
   }
@@ -287,7 +287,7 @@ export const saveArticle = async (article: Partial<Article>) => {
       
       return { data, error: null };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la sauvegarde de l\'article:', error);
     return { data: null, error };
   }
@@ -303,14 +303,14 @@ export const deleteArticle = async (articleId: string) => {
 
     if (error) throw error;
     return { success: true, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la suppression de l\'article:', error);
     return { success: false, error };
   }
 };
 
 // Fonction pour générer un slug unique
-export const generateUniqueSlug = async (title: string, existingId?: string): Promise<{ slug: string | null, error: any | null }> => {
+export const generateUniqueSlug = async (title: string, existingId?: string): Promise<{ slug: string | null, error: unknown | null }> => {
   let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   let count = 0;
   let originalSlug = slug;
@@ -338,7 +338,7 @@ export const generateUniqueSlug = async (title: string, existingId?: string): Pr
       count++;
       slug = `${originalSlug}-${count}`;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la génération du slug unique:", error);
     return { slug: null, error };
   }
@@ -357,7 +357,7 @@ export const getAllCategories = async () => {
     }
 
     return { data, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la récupération des catégories:", error);
     return { data: null, error };
   }
@@ -398,7 +398,7 @@ export const saveCategory = async (category: Partial<Category>) => {
       if (error) throw error;
       return { data, error: null };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la sauvegarde de la catégorie:', error);
     return { data: null, error };
   }
@@ -414,7 +414,7 @@ export const deleteCategory = async (categoryId: string) => {
     
     if (error) throw error;
     return { success: true, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la suppression de la catégorie:', error);
     return { success: false, error };
   }

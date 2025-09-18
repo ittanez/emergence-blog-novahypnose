@@ -5,13 +5,10 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { config } from 'dotenv';
-
-config();
 
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
+  process.env.VITE_SUPABASE_URL || 'https://akrlyzmfszumibwgocae.supabase.co',
+  process.env.VITE_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY_HERE'
 );
 
 class SecurityMonitor {

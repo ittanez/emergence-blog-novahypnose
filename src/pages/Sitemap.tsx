@@ -42,8 +42,8 @@ const Sitemap = () => {
         }
         
         if (categoriesResult?.data) {
-          setCategories(categoriesResult.data);
-        } else if (categoriesResult) {
+          setCategories(Array.isArray(categoriesResult.data) ? categoriesResult.data : []);
+        } else if (categoriesResult && Array.isArray(categoriesResult)) {
           setCategories(categoriesResult);
         }
         
@@ -59,7 +59,7 @@ const Sitemap = () => {
 
   // Group articles by category
   const articlesByCategory = articles.reduce((acc, article) => {
-    const category = article.category || 'Non classé';
+    const category = article.categories?.[0] || 'Non classé';
     if (!acc[category]) {
       acc[category] = [];
     }

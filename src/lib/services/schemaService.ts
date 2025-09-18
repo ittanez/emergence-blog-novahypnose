@@ -53,7 +53,7 @@ export const generateArticleSchema = (article: Article, siteUrl: string = "https
     "url": articleUrl,
     "datePublished": article.created_at,
     "dateModified": article.updated_at || article.created_at,
-    "articleSection": article.category,
+    "articleSection": article.categories?.[0] || "Blog",
     "keywords": article.tags || [],
     "wordCount": article.content ? article.content.length / 5 : 0, // Approximation des mots
     "inLanguage": "fr-FR",

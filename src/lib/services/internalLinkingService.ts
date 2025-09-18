@@ -136,8 +136,8 @@ export class InternalLinkingService {
           score += 5;
         }
         
-        // Bonus si le mot-clé est dans la catégorie
-        if (article.category?.toLowerCase().includes(keywordLower)) {
+        // Bonus si le mot-clé est dans les catégories
+        if (article.categories?.some(cat => cat.toLowerCase().includes(keywordLower))) {
           score += 3;
         }
       }

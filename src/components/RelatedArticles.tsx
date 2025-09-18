@@ -23,15 +23,18 @@ const RelatedArticles: React.FC<RelatedArticlesProps> = ({
         setIsLoading(true);
         const articles = await getAllArticlesNoPagination();
         
+        // Ensure articles is an array
+        const articlesArray = Array.isArray(articles) ? articles : (articles?.data || []);
+        
         // Filter out current article and get related ones
-        const filteredArticles = articles.filter(article => article.id !== currentArticleId);
+        const filteredArticles = articlesArray.filter(article => article.id !== currentArticleId);
         
         // Priority: same category first, then by date
         const categorized = currentArticleCategory 
-          ? filteredArticles.filter(article => article.category === currentArticleCategory)
+          ? filteredArticles.filter(article => article.categories?.includes(currentArticleCategory))
           : [];
         
-        const others = filteredArticles.filter(article => article.category !== currentArticleCategory);
+        const others = filteredArticles.filter(article => !article.categories?.includes(currentArticleCategory));
         
         // Combine and limit results
         const combined = [...categorized, ...others].slice(0, maxArticles);
@@ -86,7 +89,7 @@ const RelatedArticles: React.FC<RelatedArticlesProps> = ({
             </p>
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span className="bg-gray-100 px-2 py-1 rounded-full">
-                {article.category}
+                {article.categories?.[0] || 'Non classé'}
               </span>
               <span>
                 {new Date(article.created_at).toLocaleDateString('fr-FR')}

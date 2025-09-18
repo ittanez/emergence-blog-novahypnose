@@ -137,8 +137,8 @@ serve(async (req) => {
     // Construction de l'URL Firestore REST API avec API Key
     // Nettoyer le slug pour eviter les caracteres problematiques
     const cleanSlug = article.slug.replace(/[^a-zA-Z0-9-_]/g, '-');
-    // URL pour creer/mettre a jour un document dans la collection blog_articles
-    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${firebaseProjectId}/databases/(default)/documents/blog_articles?documentId=${cleanSlug}&key=${firebaseApiKey}`;
+    // URL pour mettre a jour un document dans la collection blog_articles
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${firebaseProjectId}/databases/(default)/documents/blog_articles/${cleanSlug}?key=${firebaseApiKey}`;
     
     console.log('🔗 Final URL:', firestoreUrl);
     
@@ -192,9 +192,9 @@ serve(async (req) => {
 
     console.log('🔥 Syncing to Firebase:', firestoreUrl);
     
-    // Envoi vers Firebase Firestore (POST pour creer le document)
+    // Envoi vers Firebase Firestore (PATCH pour créer ou mettre à jour le document)
     const response = await fetch(firestoreUrl, {
-      method: 'POST',
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },

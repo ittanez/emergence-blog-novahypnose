@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  base: '/',
+  base: process.env.NODE_ENV === 'production' ? '/emergence-blog-novahypnose/' : '/',
   // Configuration pour génération statique optimisée
   build: {
     outDir: 'dist',

@@ -1,9 +1,13 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  # Déploiement MANUEL uniquement - pas automatique !
   workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: 'Confirmer le déploiement (tapez "DEPLOY")'
+        required: true
+        default: ''
 
 permissions:
   contents: read
@@ -17,7 +21,14 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Vérification de sécurité avant déploiement
+    if: github.event.inputs.confirm_deploy == 'DEPLOY'
     steps:
+      - name: Vérification confirmation
+        run: |
+          echo "✅ Déploiement confirmé par l'utilisateur"
+          echo "📅 Date: $(date)"
+          echo "👤 Déclencheur: ${{ github.actor }}"
       - name: Checkout
         uses: actions/checkout@v4
 

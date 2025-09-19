@@ -1,13 +1,17 @@
-# 🚀 Guide de Configuration GitHub Pages
+# 🚀 Guide de Déploiement MANUEL GitHub Pages
 
 ## 🌐 Qu'est-ce que GitHub Pages ?
 
 GitHub Pages est un service gratuit qui transforme votre dépôt GitHub en site web accessible publiquement :
 
 - **URL de votre site :** `https://ittanez.github.io/emergence-blog-novahypnose/`
-- **Déploiement automatique** à chaque push sur la branche `main`
+- **Déploiement MANUEL uniquement** (vous contrôlez quand publier)
 - **Hébergement gratuit** avec certificat SSL
 - **CDN global** pour des performances optimales
+
+## 🎯 Déploiement Contrôlé
+
+**IMPORTANT :** Le déploiement ne se fait PAS automatiquement. Vous décidez quand publier votre site.
 
 ## 📋 Étapes de Configuration
 
@@ -35,16 +39,27 @@ GitHub Pages est un service gratuit qui transforme votre dépôt GitHub en site 
    - **Secret:** `[VOTRE_CLE_ANON_SUPABASE_ICI]` (trouvable dans Settings > API de votre projet Supabase)
    - Cliquer "Add secret"
 
-### 3️⃣ Déclencher le Premier Déploiement
+### 3️⃣ Déploiement MANUEL
 
-Le déploiement se fait automatiquement ! Voici comment :
+**VOUS contrôlez quand publier !** Deux méthodes disponibles :
 
-1. **Le workflow GitHub Actions** (`.github/workflows/deploy.yml`) est déjà configuré
-2. **À chaque push sur `main`**, GitHub va :
-   - Installer les dépendances (`npm ci`)
-   - Builder le projet (`npm run build`)
-   - Déployer sur GitHub Pages
-3. **Le processus prend environ 2-3 minutes**
+#### Option A: Script PowerShell (Recommandé)
+```powershell
+# Test sans déployer (simulation)
+PowerShell -ExecutionPolicy Bypass -File scripts/deploy-manual.ps1 -Preview
+
+# Déploiement réel
+PowerShell -ExecutionPolicy Bypass -File scripts/deploy-manual.ps1
+```
+
+#### Option B: Interface GitHub
+1. **Aller sur :** https://github.com/ittanez/emergence-blog-novahypnose/actions
+2. **Cliquer sur :** "Deploy to GitHub Pages"
+3. **Cliquer sur :** "Run workflow" (bouton bleu)
+4. **Taper exactement :** `DEPLOY` dans le champ
+5. **Cliquer :** "Run workflow"
+
+**⚠️ IMPORTANT :** Sans cette action manuelle, RIEN ne sera publié !
 
 ## 🔍 Vérifier le Déploiement
 

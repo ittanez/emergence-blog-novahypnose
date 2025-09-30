@@ -15,6 +15,7 @@ const ArticlePage = lazy(() => import("./pages/ArticlePage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const About = lazy(() => import("./pages/About"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const VEO3Generator = lazy(() => import("./pages/VEO3Generator"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -59,6 +60,7 @@ const App = () => {
                   <Route path="/about" element={<About />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/sitemap" element={<Sitemap />} />
+                  <Route path="/veo3-generator" element={<VEO3Generator />} />
                   <Route path="/admin" element={<AdminLogin />} />
                   <Route path="/admin/setup" element={<AdminSetup />} />
                   <Route path="/admin/reset-password" element={<AdminResetPassword />} />

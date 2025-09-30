@@ -95,7 +95,7 @@ export const getAllArticlesNoPagination = async () => {
   try {
     const { data, error } = await supabase
       .from('articles')
-      .select('*')
+      .select('id, title, slug, excerpt, image_url, storage_image_url, published_at, created_at, read_time, categories, tags, author, featured, published')
       .eq('published', true)  // ✅ Filtrer seulement les articles publiés côté serveur
       .order('created_at', { ascending: false });
 

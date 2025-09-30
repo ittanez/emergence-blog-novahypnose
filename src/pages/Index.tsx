@@ -106,9 +106,8 @@ const Index = () => {
     // Filtrage par recherche
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(article => 
+      filtered = filtered.filter(article =>
         article.title.toLowerCase().includes(query) ||
-        article.content.toLowerCase().includes(query) ||
         (article.excerpt && article.excerpt.toLowerCase().includes(query))
       );
     }

@@ -5,6 +5,7 @@ import { getAllArticles, getAllCategories } from "@/lib/services/articleService"
 import { notifySubscribersOfNewArticle } from "@/lib/services/notificationService";
 
 export const useAdminArticles = () => {
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,13 +51,13 @@ export const useAdminArticles = () => {
         }
 
         console.log("Articles récupérés pour l'admin:", data?.length || 0);
-        
+
         if (data) {
-          setArticles(data);
+          setAllArticles(data);
           setTotalCount(count || 0);
           setTotalPages(Math.ceil((count || 0) / articlesPerPage));
         } else {
-          setArticles([]);
+          setAllArticles([]);
           setTotalCount(0);
           setTotalPages(1);
         }
@@ -71,7 +72,30 @@ export const useAdminArticles = () => {
     };
 
     fetchArticles();
-  }, [filters, currentPage]);
+  }, [currentPage]);
+
+  // Filtrer les articles côté client
+  useEffect(() => {
+    let filtered = allArticles;
+
+    // Filtrage par recherche
+    if (filters.search.trim()) {
+      const query = filters.search.toLowerCase();
+      filtered = filtered.filter(article =>
+        article.title.toLowerCase().includes(query) ||
+        (article.excerpt && article.excerpt.toLowerCase().includes(query))
+      );
+    }
+
+    // Filtrage par catégorie
+    if (filters.category) {
+      filtered = filtered.filter(article =>
+        article.categories && article.categories.includes(filters.category)
+      );
+    }
+
+    setArticles(filtered);
+  }, [allArticles, filters]);
 
   const handleFiltersChange = (newFilters: { search: string; category: string }) => {
     setFilters(newFilters);
@@ -93,9 +117,9 @@ export const useAdminArticles = () => {
     try {
       setIsLoading(true);
       console.log("Suppression de l'article:", selectedArticle.id);
-      
+
       // Simuler la suppression pour l'instant
-      setArticles(articles.filter(a => a.id !== selectedArticle.id));
+      setAllArticles(allArticles.filter(a => a.id !== selectedArticle.id));
       toast.success("Article supprimé avec succès");
       
     } catch (error: any) {

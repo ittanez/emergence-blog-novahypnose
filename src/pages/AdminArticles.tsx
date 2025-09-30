@@ -19,7 +19,8 @@ import { useAdminArticles } from '@/hooks/useAdminArticles';
 
 const AdminArticles = () => {
   const navigate = useNavigate();
-  
+  const [searchQuery, setSearchQuery] = React.useState('');
+
   const {
     articles,
     isLoading,
@@ -27,7 +28,8 @@ const AdminArticles = () => {
     selectedArticle,
     setDeleteDialogOpen,
     handleDeleteClick,
-    confirmDelete
+    confirmDelete,
+    handleFiltersChange
   } = useAdminArticles();
 
   const handleNewArticle = () => {
@@ -88,6 +90,11 @@ const AdminArticles = () => {
           <input
             type="text"
             placeholder="Rechercher par titre..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              handleFiltersChange({ search: e.target.value, category: '' });
+            }}
             className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

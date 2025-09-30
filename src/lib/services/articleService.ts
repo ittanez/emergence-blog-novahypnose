@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { Article, Category } from '@/lib/types';
 import { sanitizeData } from '@/lib/utils/textUtils';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!
-);
 
 // Fonction pour synchroniser un article avec Firebase
 const syncArticleToFirebase = async (article: Article) => {
@@ -101,6 +96,7 @@ export const getAllArticlesNoPagination = async () => {
     const { data, error } = await supabase
       .from('articles')
       .select('*')
+      .eq('published', true)  // ✅ Filtrer seulement les articles publiés côté serveur
       .order('created_at', { ascending: false });
 
     if (error) {

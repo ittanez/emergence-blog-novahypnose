@@ -51,10 +51,10 @@ const Index = () => {
           getAllArticlesNoPagination(),
           getAllCategories()
         ]);
-        
+
         if (articlesResult.data && articlesResult.data.length > 0) {
-          const publishedArticles = articlesResult.data.filter(article => article.published);
-          setArticles(publishedArticles);
+          // ✅ Plus besoin de filtrer côté client, c'est fait côté serveur
+          setArticles(articlesResult.data);
         } else {
           // Fallback vers données mock si problème Supabase
           const { articles: mockArticles } = await import("@/lib/mock-data");

@@ -10,7 +10,8 @@ import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/OptimizedImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Facebook, Linkedin, Link2, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Facebook, Linkedin, Link2, Share2, ChevronLeft, ChevronRight, Edit } from "lucide-react";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import "../styles/article-hypnose.css";
 import { 
   DropdownMenu, 
@@ -80,6 +81,7 @@ const parseTagsForDisplay = (tags: any): string[] => {
 const ArticlePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const { processArticleContent } = useInternalLinking(allArticles);
   
@@ -304,7 +306,20 @@ const ArticlePage = () => {
           <div className="absolute inset-0 bg-black bg-opacity-30 flex items-end">
             <div className="container mx-auto px-4 pb-8 text-white">
               <div className="max-w-3xl">
-                <h1 className="text-3xl md:text-4xl font-serif mb-4">{article.title}</h1>
+                <div className="flex justify-between items-start mb-4">
+                  <h1 className="text-3xl md:text-4xl font-serif flex-1">{article.title}</h1>
+                  {isAdmin && (
+                    <Button
+                      onClick={() => navigate(`/admin/article/${article.id}`)}
+                      variant="secondary"
+                      size="sm"
+                      className="ml-4 flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Modifier
+                    </Button>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center text-sm">
                   <span>{authorName}</span>
                   <span className="mx-2">•</span>

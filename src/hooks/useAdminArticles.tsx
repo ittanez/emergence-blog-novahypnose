@@ -41,15 +41,16 @@ export const useAdminArticles = () => {
     fetchCategories();
   }, []);
 
-  // Charger les articles
+  // Charger TOUS les articles (pas de pagination côté serveur)
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         setIsLoading(true);
-        console.log("Récupération des articles pour l'admin...");
-        
-        const { data, error, count } = await getAllArticles(currentPage, articlesPerPage);
-          
+        console.log("Récupération de tous les articles pour l'admin...");
+
+        // Charger TOUS les articles sans pagination
+        const { data, error } = await getAllArticles(1, 1000); // Charge jusqu'à 1000 articles
+
         if (error) {
           console.error("Erreur lors de la récupération des articles:", error);
           throw error;
@@ -59,17 +60,15 @@ export const useAdminArticles = () => {
 
         if (data) {
           setAllArticles(data);
-          setTotalCount(count || 0);
-          setTotalPages(Math.ceil((count || 0) / articlesPerPage));
+          setTotalCount(data.length);
         } else {
           setAllArticles([]);
           setTotalCount(0);
-          setTotalPages(1);
         }
       } catch (error: any) {
         console.error("Erreur lors de la récupération des articles:", error);
-        toast.error("Impossible de charger les articles", { 
-          description: error.message 
+        toast.error("Impossible de charger les articles", {
+          description: error.message
         });
       } finally {
         setIsLoading(false);
@@ -77,7 +76,7 @@ export const useAdminArticles = () => {
     };
 
     fetchArticles();
-  }, [currentPage]);
+  }, []); // Plus de dépendance à currentPage
 
   // Filtrer et trier les articles côté client
   useEffect(() => {

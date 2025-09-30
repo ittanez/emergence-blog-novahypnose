@@ -4,6 +4,9 @@ import { Article } from "@/lib/types";
 import { getAllArticles, getAllCategories } from "@/lib/services/articleService";
 import { notifySubscribersOfNewArticle } from "@/lib/services/notificationService";
 
+type SortField = 'title' | 'created_at' | 'published_at' | 'status';
+type SortDirection = 'asc' | 'desc';
+
 export const useAdminArticles = () => {
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
@@ -16,8 +19,10 @@ export const useAdminArticles = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  const articlesPerPage = 50;
+  const articlesPerPage = 10;
 
   // Charger les catégories
   useEffect(() => {
@@ -74,7 +79,7 @@ export const useAdminArticles = () => {
     fetchArticles();
   }, [currentPage]);
 
-  // Filtrer les articles côté client
+  // Filtrer et trier les articles côté client
   useEffect(() => {
     let filtered = allArticles;
 
@@ -94,8 +99,39 @@ export const useAdminArticles = () => {
       );
     }
 
-    setArticles(filtered);
-  }, [allArticles, filters]);
+    // Tri
+    const sorted = [...filtered].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case 'title':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'created_at':
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case 'published_at':
+          const dateA = a.published_at ? new Date(a.published_at).getTime() : 0;
+          const dateB = b.published_at ? new Date(b.published_at).getTime() : 0;
+          comparison = dateA - dateB;
+          break;
+        case 'status':
+          // Ordre: Programmé > Brouillon > Publié
+          const getStatus = (article: Article) => {
+            if (article.scheduled_for && new Date(article.scheduled_for) > new Date()) return 0;
+            if (!article.published) return 1;
+            return 2;
+          };
+          comparison = getStatus(a) - getStatus(b);
+          break;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    setArticles(sorted);
+    setTotalPages(Math.ceil(sorted.length / articlesPerPage));
+  }, [allArticles, filters, sortField, sortDirection, articlesPerPage]);
 
   const handleFiltersChange = (newFilters: { search: string; category: string }) => {
     setFilters(newFilters);
@@ -104,6 +140,18 @@ export const useAdminArticles = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to desc for dates, asc for title
+      setSortField(field);
+      setSortDirection(field === 'title' ? 'asc' : 'desc');
+    }
+    setCurrentPage(1);
   };
 
   const handleDeleteClick = (article: Article) => {
@@ -166,8 +214,16 @@ export const useAdminArticles = () => {
     }
   };
 
+  // Obtenir les articles de la page actuelle
+  const getPaginatedArticles = () => {
+    const startIndex = (currentPage - 1) * articlesPerPage;
+    const endIndex = startIndex + articlesPerPage;
+    return articles.slice(startIndex, endIndex);
+  };
+
   return {
-    articles,
+    articles: getPaginatedArticles(),
+    allArticlesCount: articles.length,
     categories,
     isLoading,
     deleteDialogOpen,
@@ -177,9 +233,13 @@ export const useAdminArticles = () => {
     currentPage,
     totalPages,
     totalCount,
+    sortField,
+    sortDirection,
+    articlesPerPage,
     setDeleteDialogOpen,
     handleFiltersChange,
     handlePageChange,
+    handleSort,
     handleDeleteClick,
     confirmDelete,
     handleNotifySubscribers

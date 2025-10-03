@@ -1,2 +1,5 @@
+# Redirection page d'accueil vers blog principal
+/     https://novahypnose.fr/blog   301!
 
+# SPA fallback pour les autres pages
 /*    /index.html   200

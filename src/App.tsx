@@ -9,6 +9,7 @@ import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import AdminRoute from "./components/AdminRoute";
+import EmergencePopup from "./components/EmergencePopup";
 
 // Lazy load des pages pour réduire le bundle initial
 const ArticlePage = lazy(() => import("./pages/ArticlePage"));
@@ -51,6 +52,7 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <EmergencePopup />
             <BrowserRouter>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>

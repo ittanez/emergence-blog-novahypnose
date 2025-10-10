@@ -10,12 +10,11 @@ import Index from "./pages/Index";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import AdminRoute from "./components/AdminRoute";
 import EmergencePopup from "./components/EmergencePopup";
+import ExternalRedirect from "./components/ExternalRedirect";
 
 // Lazy load des pages pour réduire le bundle initial
 const ArticlePage = lazy(() => import("./pages/ArticlePage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
-const About = lazy(() => import("./pages/About"));
-const FAQ = lazy(() => import("./pages/FAQ"));
 const VEO3Generator = lazy(() => import("./pages/VEO3Generator"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -59,8 +58,8 @@ const App = () => {
                   <Route path="/" element={<Index />} />
                   <Route path="/article/:slug" element={<ArticlePage />} />
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/about" element={<ExternalRedirect to="https://novahypnose.fr/blog" />} />
+                  <Route path="/faq" element={<ExternalRedirect to="https://novahypnose.fr/blog" />} />
                   <Route path="/sitemap" element={<Sitemap />} />
                   <Route path="/veo3-generator" element={<VEO3Generator />} />
                   <Route path="/admin" element={<AdminLogin />} />

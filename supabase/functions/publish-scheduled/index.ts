@@ -50,11 +50,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Publier les articles
     const publishedArticles = [];
-    
+    const firebaseUrl = `${supabaseUrl}/functions/v1/to_firebase`;
+
     for (const article of scheduledArticles) {
       const { error: updateError } = await supabase
         .from('articles')
-        .update({ 
+        .update({
           published: true,
           published_at: now,
           scheduled_for: null
@@ -66,6 +67,32 @@ const handler = async (req: Request): Promise<Response> => {
       } else {
         publishedArticles.push(article);
         console.log(`Article publié: ${article.title}`);
+
+        // Synchroniser avec Firebase
+        try {
+          console.log(`🔥 Synchronisation Firebase pour article: ${article.slug}`);
+          const firebaseResponse = await fetch(firebaseUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              article_id: article.id
+            })
+          });
+
+          const firebaseResult = await firebaseResponse.json();
+
+          if (firebaseResponse.ok && firebaseResult.success) {
+            console.log(`✅ Synchronisation Firebase réussie pour: ${article.slug}`);
+          } else {
+            console.warn(`⚠️ Échec synchronisation Firebase pour ${article.slug}:`, firebaseResult.error);
+          }
+        } catch (firebaseError) {
+          console.warn(`⚠️ Erreur synchronisation Firebase pour ${article.slug}:`, firebaseError);
+          // Ne pas bloquer la publication si Firebase échoue
+        }
       }
     }
 

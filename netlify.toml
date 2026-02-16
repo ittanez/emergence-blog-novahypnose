@@ -59,12 +59,32 @@
   status = 301
   force = true
 
-# Sitemap via fonction propre pour éviter injection script
+# Redirection 301 des articles vers le site principal (SEO : contenu dupliqué)
+[[redirects]]
+  from = "/article/*"
+  to = "https://novahypnose.fr/blog/article/:splat"
+  status = 301
+  force = true
+
+# Redirection 301 des catégories vers le site principal (SEO : contenu dupliqué)
+[[redirects]]
+  from = "/category/*"
+  to = "https://novahypnose.fr/blog"
+  status = 301
+  force = true
+
+# Sitemap redirigé vers le site principal (éviter deux sitemaps indexés)
+[[redirects]]
+  from = "/sitemap"
+  to = "https://novahypnose.fr/sitemap.xml"
+  status = 301
+  force = true
+
 [[redirects]]
   from = "/sitemap.xml"
-  to = "/.netlify/functions/sitemap-clean"
-  status = 200
-  headers = {Content-Type = "application/xml"}
+  to = "https://novahypnose.fr/sitemap.xml"
+  status = 301
+  force = true
 
 # Redirection intelligente pour bots et utilisateurs (autres pages)
 [[redirects]]

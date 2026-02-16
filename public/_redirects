@@ -1,5 +1,15 @@
 # Redirection page d'accueil vers blog principal
 /     https://novahypnose.fr/blog   301!
 
+# Redirection 301 des articles vers le site principal (SEO : contenu dupliqué)
+/article/*  https://novahypnose.fr/blog/article/:splat  301!
+
+# Redirection 301 des catégories vers le site principal
+/category/*  https://novahypnose.fr/blog  301!
+
+# Sitemap redirigé vers le site principal
+/sitemap     https://novahypnose.fr/sitemap.xml  301!
+/sitemap.xml https://novahypnose.fr/sitemap.xml  301!
+
 # SPA fallback pour les autres pages
 /*    /index.html   200
